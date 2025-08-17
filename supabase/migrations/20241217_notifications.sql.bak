@@ -1,0 +1,348 @@
+-- Notification System Migration
+-- Adds tables for notifications, email templates, and notification preferences
+
+-- Notification types enum
+CREATE TYPE notification_type AS ENUM (
+  'deadline_reminder',
+  'document_approval_required',
+  'document_approved',
+  'document_rejected',
+  'workflow_assigned',
+  'workflow_completed',
+  'workflow_overdue',
+  'report_generated',
+  'audit_scheduled',
+  'compliance_alert',
+  'system_maintenance'
+);
+
+-- Notification channels enum
+CREATE TYPE notification_channel AS ENUM (
+  'email',
+  'in_app',
+  'push',
+  'sms'
+);
+
+-- Notification priority enum
+CREATE TYPE notification_priority AS ENUM (
+  'low',
+  'medium',
+  'high',
+  'urgent'
+);
+
+-- Email templates table
+CREATE TABLE email_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  html_content TEXT NOT NULL,
+  text_content TEXT,
+  template_variables JSONB DEFAULT '{}',
+  notification_type notification_type NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by UUID REFERENCES auth.users(id)
+);
+
+-- Notification preferences table
+CREATE TABLE notification_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  notification_type notification_type NOT NULL,
+  email_enabled BOOLEAN DEFAULT true,
+  in_app_enabled BOOLEAN DEFAULT true,
+  push_enabled BOOLEAN DEFAULT false,
+  sms_enabled BOOLEAN DEFAULT false,
+  quiet_hours_start TIME,
+  quiet_hours_end TIME,
+  timezone VARCHAR(50) DEFAULT 'UTC',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(user_id, tenant_id, notification_type)
+);
+
+-- Notifications table
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  recipient_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  notification_type notification_type NOT NULL,
+  priority notification_priority DEFAULT 'medium',
+  channels notification_channel[] DEFAULT ARRAY['in_app']::notification_channel[],
+  
+  -- Reference to related entities
+  resource_type VARCHAR(50), -- 'document', 'workflow', 'report', etc.
+  resource_id UUID,
+  
+  -- Delivery tracking
+  email_sent_at TIMESTAMPTZ,
+  email_delivered_at TIMESTAMPTZ,
+  email_opened_at TIMESTAMPTZ,
+  email_clicked_at TIMESTAMPTZ,
+  
+  -- In-app tracking
+  read_at TIMESTAMPTZ,
+  dismissed_at TIMESTAMPTZ,
+  
+  -- Scheduling
+  scheduled_for TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ,
+  
+  -- Metadata
+  data JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by UUID REFERENCES auth.users(id)
+);
+
+-- Notification delivery log for tracking
+CREATE TABLE notification_delivery_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  notification_id UUID NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+  channel notification_channel NOT NULL,
+  status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'sent', 'delivered', 'failed', 'bounced')),
+  external_id VARCHAR(255), -- Resend message ID, etc.
+  error_message TEXT,
+  metadata JSONB DEFAULT '{}',
+  attempted_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_notifications_recipient_tenant ON notifications(recipient_id, tenant_id);
+CREATE INDEX idx_notifications_type ON notifications(notification_type);
+CREATE INDEX idx_notifications_scheduled ON notifications(scheduled_for) WHERE read_at IS NULL;
+CREATE INDEX idx_notifications_unread ON notifications(recipient_id, read_at) WHERE read_at IS NULL;
+CREATE INDEX idx_notification_preferences_user ON notification_preferences(user_id, tenant_id);
+CREATE INDEX idx_email_templates_tenant_type ON email_templates(tenant_id, notification_type);
+CREATE INDEX idx_delivery_log_notification ON notification_delivery_log(notification_id);
+
+-- RLS Policies
+ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notification_delivery_log ENABLE ROW LEVEL SECURITY;
+
+-- Email templates policies
+CREATE POLICY "Users can view email templates for their tenant" ON email_templates
+  FOR SELECT USING (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can manage email templates for their tenant" ON email_templates
+  FOR ALL USING (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid()
+    )
+  );
+
+-- Notification preferences policies  
+CREATE POLICY "Users can view their own notification preferences" ON notification_preferences
+  FOR SELECT USING (user_id = auth.uid());
+
+CREATE POLICY "Users can manage their own notification preferences" ON notification_preferences
+  FOR ALL USING (user_id = auth.uid());
+
+-- Notifications policies
+CREATE POLICY "Users can view their own notifications" ON notifications
+  FOR SELECT USING (
+    recipient_id = auth.uid() AND
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update their own notifications" ON notifications
+  FOR UPDATE USING (
+    recipient_id = auth.uid() AND
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "System can create notifications" ON notifications
+  FOR INSERT WITH CHECK (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid()
+    ) OR
+    current_setting('role') = 'service_role'
+  );
+
+-- Delivery log policies
+CREATE POLICY "Users can view delivery logs for their notifications" ON notification_delivery_log
+  FOR SELECT USING (
+    notification_id IN (
+      SELECT id FROM notifications WHERE recipient_id = auth.uid()
+    )
+  );
+
+-- Functions for notification management
+CREATE OR REPLACE FUNCTION mark_notification_as_read(notification_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  UPDATE notifications 
+  SET read_at = NOW()
+  WHERE id = notification_id 
+    AND recipient_id = auth.uid()
+    AND read_at IS NULL;
+  
+  RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION mark_all_notifications_as_read(user_tenant_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  updated_count INTEGER;
+BEGIN
+  UPDATE notifications 
+  SET read_at = NOW()
+  WHERE recipient_id = auth.uid()
+    AND tenant_id = user_tenant_id
+    AND read_at IS NULL;
+  
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+  RETURN updated_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION get_unread_notification_count(user_tenant_id UUID)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*)
+    FROM notifications
+    WHERE recipient_id = auth.uid()
+      AND tenant_id = user_tenant_id
+      AND read_at IS NULL
+      AND (expires_at IS NULL OR expires_at > NOW())
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Insert default notification preferences for existing users
+DO $$
+DECLARE
+  user_record RECORD;
+  notification_types notification_type[] := ARRAY[
+    'deadline_reminder',
+    'document_approval_required', 
+    'document_approved',
+    'document_rejected',
+    'workflow_assigned',
+    'workflow_completed',
+    'workflow_overdue',
+    'report_generated',
+    'audit_scheduled',
+    'compliance_alert',
+    'system_maintenance'
+  ];
+  ntype notification_type;
+BEGIN
+  FOR user_record IN 
+    SELECT p.id as user_id, p.tenant_id 
+    FROM profiles p
+  LOOP
+    FOREACH ntype IN ARRAY notification_types
+    LOOP
+      INSERT INTO notification_preferences (
+        user_id, 
+        tenant_id, 
+        notification_type,
+        email_enabled,
+        in_app_enabled
+      ) VALUES (
+        user_record.user_id,
+        user_record.tenant_id,
+        ntype,
+        true,
+        true
+      ) ON CONFLICT (user_id, tenant_id, notification_type) DO NOTHING;
+    END LOOP;
+  END LOOP;
+END;
+$$;
+
+-- Insert default email templates
+INSERT INTO email_templates (tenant_id, name, subject, html_content, text_content, notification_type, template_variables) VALUES
+-- System templates (will be copied to tenant-specific templates)
+(
+  (SELECT id FROM tenants LIMIT 1), -- Default tenant
+  'Deadline Reminder',
+  'Compliance Deadline Approaching: {{task_name}}',
+  '<h2>Deadline Reminder</h2><p>Hello {{user_name}},</p><p>This is a reminder that the compliance task "{{task_name}}" is due on {{due_date}}.</p><p><strong>Priority:</strong> {{priority}}</p><p><a href="{{task_url}}">View Task</a></p>',
+  'Deadline Reminder\n\nHello {{user_name}},\n\nThis is a reminder that the compliance task "{{task_name}}" is due on {{due_date}}.\n\nPriority: {{priority}}\n\nView Task: {{task_url}}',
+  'deadline_reminder',
+  '{"user_name": "string", "task_name": "string", "due_date": "string", "priority": "string", "task_url": "string"}'
+),
+(
+  (SELECT id FROM tenants LIMIT 1),
+  'Document Approval Required',
+  'Document Approval Required: {{document_title}}',
+  '<h2>Document Approval Required</h2><p>Hello {{user_name}},</p><p>The document "{{document_title}}" requires your approval.</p><p><strong>Type:</strong> {{document_type}}</p><p><strong>Submitted by:</strong> {{submitted_by}}</p><p><a href="{{document_url}}">Review Document</a></p>',
+  'Document Approval Required\n\nHello {{user_name}},\n\nThe document "{{document_title}}" requires your approval.\n\nType: {{document_type}}\nSubmitted by: {{submitted_by}}\n\nReview Document: {{document_url}}',
+  'document_approval_required',
+  '{"user_name": "string", "document_title": "string", "document_type": "string", "submitted_by": "string", "document_url": "string"}'
+),
+(
+  (SELECT id FROM tenants LIMIT 1),
+  'Workflow Assignment',
+  'New Workflow Assignment: {{workflow_title}}',
+  '<h2>New Workflow Assignment</h2><p>Hello {{user_name}},</p><p>You have been assigned to the workflow "{{workflow_title}}".</p><p><strong>Step:</strong> {{step_name}}</p><p><strong>Due Date:</strong> {{due_date}}</p><p><a href="{{workflow_url}}">View Workflow</a></p>',
+  'New Workflow Assignment\n\nHello {{user_name}},\n\nYou have been assigned to the workflow "{{workflow_title}}".\n\nStep: {{step_name}}\nDue Date: {{due_date}}\n\nView Workflow: {{workflow_url}}',
+  'workflow_assigned',
+  '{"user_name": "string", "workflow_title": "string", "step_name": "string", "due_date": "string", "workflow_url": "string"}'
+);
+
+-- Trigger to automatically create notification preferences for new users
+CREATE OR REPLACE FUNCTION create_default_notification_preferences()
+RETURNS TRIGGER AS $$
+DECLARE
+  notification_types notification_type[] := ARRAY[
+    'deadline_reminder',
+    'document_approval_required',
+    'document_approved', 
+    'document_rejected',
+    'workflow_assigned',
+    'workflow_completed',
+    'workflow_overdue',
+    'report_generated',
+    'audit_scheduled',
+    'compliance_alert',
+    'system_maintenance'
+  ];
+  ntype notification_type;
+BEGIN
+  FOREACH ntype IN ARRAY notification_types
+  LOOP
+    INSERT INTO notification_preferences (
+      user_id,
+      tenant_id,
+      notification_type,
+      email_enabled,
+      in_app_enabled
+    ) VALUES (
+      NEW.id,
+      NEW.tenant_id,
+      ntype,
+      true,
+      true
+    );
+  END LOOP;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_create_notification_preferences
+  AFTER INSERT ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION create_default_notification_preferences();

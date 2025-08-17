@@ -1,0 +1,10 @@
+{
+  "high": true,
+  "moderate": false,
+  "low": false,
+  "critical": true,
+  "allowlist": [],
+  "report-type": "important",
+  "package-manager": "npm",
+  "path": "./package.json"
+}

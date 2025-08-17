@@ -1,0 +1,183 @@
+-- Create deadline reminders table for scheduling task notifications
+CREATE TABLE deadline_reminders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  task_id UUID NOT NULL REFERENCES calendar_tasks(id) ON DELETE CASCADE,
+  due_date TIMESTAMPTZ NOT NULL,
+  reminder_minutes INTEGER NOT NULL, -- Minutes before due date
+  scheduled_for TIMESTAMPTZ NOT NULL, -- When to send the reminder
+  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
+  last_sent TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Add indexes for performance
+CREATE INDEX idx_deadline_reminders_task_id ON deadline_reminders(task_id);
+CREATE INDEX idx_deadline_reminders_scheduled_for ON deadline_reminders(scheduled_for);
+CREATE INDEX idx_deadline_reminders_status ON deadline_reminders(status);
+CREATE INDEX idx_deadline_reminders_pending_due ON deadline_reminders(status, scheduled_for) WHERE status = 'pending';
+
+-- Add RLS policies
+ALTER TABLE deadline_reminders ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only access reminders for tasks in their tenant
+CREATE POLICY "deadline_reminders_tenant_isolation" ON deadline_reminders
+  FOR ALL USING (
+    task_id IN (
+      SELECT id FROM calendar_tasks 
+      WHERE tenant_id = (
+        SELECT tenant_id FROM user_tenants 
+        WHERE user_id = auth.uid() 
+        AND role IN ('owner', 'admin', 'member')
+      )
+    )
+  );
+
+-- Create function to automatically update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_deadline_reminders_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for auto-updating timestamps
+CREATE TRIGGER deadline_reminders_updated_at
+  BEFORE UPDATE ON deadline_reminders
+  FOR EACH ROW
+  EXECUTE FUNCTION update_deadline_reminders_updated_at();
+
+-- Function to schedule reminders when a task is created or updated
+CREATE OR REPLACE FUNCTION schedule_task_reminders()
+RETURNS TRIGGER AS $$
+DECLARE
+  reminder_intervals INTEGER[] := ARRAY[1440, 60, 15]; -- 24h, 1h, 15min
+  interval_minutes INTEGER;
+  scheduled_time TIMESTAMPTZ;
+BEGIN
+  -- Only process if task has a due date
+  IF NEW.due_date IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Delete existing pending reminders for this task
+  DELETE FROM deadline_reminders 
+  WHERE task_id = NEW.id AND status = 'pending';
+
+  -- Create new reminders for each interval
+  FOREACH interval_minutes IN ARRAY reminder_intervals
+  LOOP
+    scheduled_time := NEW.due_date - (interval_minutes || ' minutes')::INTERVAL;
+    
+    -- Only schedule if the reminder time is in the future
+    IF scheduled_time > now() THEN
+      INSERT INTO deadline_reminders (
+        task_id,
+        due_date,
+        reminder_minutes,
+        scheduled_for,
+        status
+      ) VALUES (
+        NEW.id,
+        NEW.due_date,
+        interval_minutes,
+        scheduled_time,
+        'pending'
+      );
+    END IF;
+  END LOOP;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to automatically schedule reminders
+CREATE TRIGGER calendar_tasks_schedule_reminders
+  AFTER INSERT OR UPDATE OF due_date ON calendar_tasks
+  FOR EACH ROW
+  EXECUTE FUNCTION schedule_task_reminders();
+
+-- Function to clean up old reminders (older than 30 days)
+CREATE OR REPLACE FUNCTION cleanup_old_reminders()
+RETURNS INTEGER AS $$
+DECLARE
+  deleted_count INTEGER;
+BEGIN
+  DELETE FROM deadline_reminders 
+  WHERE created_at < now() - INTERVAL '30 days'
+  AND status IN ('sent', 'failed');
+  
+  GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create function to get overdue tasks
+CREATE OR REPLACE FUNCTION get_overdue_tasks(tenant_uuid UUID)
+RETURNS TABLE (
+  id UUID,
+  title VARCHAR,
+  description TEXT,
+  due_date TIMESTAMPTZ,
+  priority task_priority,
+  category task_category,
+  assigned_to UUID,
+  days_overdue INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ct.id,
+    ct.title,
+    ct.description,
+    ct.due_date,
+    ct.priority,
+    ct.category,
+    ct.assigned_to,
+    EXTRACT(DAY FROM now() - ct.due_date)::INTEGER as days_overdue
+  FROM calendar_tasks ct
+  WHERE ct.tenant_id = tenant_uuid
+    AND ct.due_date < now()
+    AND ct.status NOT IN ('completed', 'cancelled')
+  ORDER BY ct.due_date ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create function to get upcoming deadlines (next 7 days)
+CREATE OR REPLACE FUNCTION get_upcoming_deadlines(tenant_uuid UUID, days_ahead INTEGER DEFAULT 7)
+RETURNS TABLE (
+  id UUID,
+  title VARCHAR,
+  description TEXT,
+  due_date TIMESTAMPTZ,
+  priority task_priority,
+  category task_category,
+  assigned_to UUID,
+  days_until_due INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ct.id,
+    ct.title,
+    ct.description,
+    ct.due_date,
+    ct.priority,
+    ct.category,
+    ct.assigned_to,
+    EXTRACT(DAY FROM ct.due_date - now())::INTEGER as days_until_due
+  FROM calendar_tasks ct
+  WHERE ct.tenant_id = tenant_uuid
+    AND ct.due_date BETWEEN now() AND now() + (days_ahead || ' days')::INTERVAL
+    AND ct.status NOT IN ('completed', 'cancelled')
+  ORDER BY ct.due_date ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant permissions
+GRANT ALL ON deadline_reminders TO authenticated;
+GRANT EXECUTE ON FUNCTION schedule_task_reminders() TO authenticated;
+GRANT EXECUTE ON FUNCTION cleanup_old_reminders() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_overdue_tasks(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_upcoming_deadlines(UUID, INTEGER) TO authenticated;

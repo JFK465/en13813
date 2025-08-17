@@ -1,0 +1,1239 @@
+# Analyse: EN 13813 DoP-Generator für Estrichmörtel
+
+## 🎯 Product-Market-Fit Bewertung
+
+### Marktgröße & Potenzial
+
+**DACH-Markt Zahlen:**
+- **Deutschland:** ~350 Estrichwerke/Mischwerke
+- **Österreich:** ~80 Betriebe  
+- **Schweiz:** ~60 Betriebe
+- **Gesamt TAM:** ~490 potenzielle Kunden
+
+**Marktsegmentierung:**
+- Große Werke (>50 MA): ~15% → 75 Betriebe
+- Mittlere Werke (20-50 MA): ~35% → 170 Betriebe  
+- Kleine Werke (5-20 MA): ~50% → 245 Betriebe
+
+**Realistisches SOM (Serviceable Obtainable Market):**
+- Jahr 1: 2-3% → 10-15 Kunden
+- Jahr 3: 8-10% → 40-50 Kunden
+- Jahr 5: 15-20% → 75-100 Kunden
+
+### Umsatzpotenzial
+
+```
+Preismodell:
+- Kleine Werke: 149€/Monat
+- Mittlere Werke: 299€/Monat  
+- Große Werke: 499€/Monat + Zusatzmodule
+
+Realistische Projektion:
+Jahr 1: 12 Kunden × 200€ × 12 = 28.800€ ARR
+Jahr 2: 35 Kunden × 250€ × 12 = 105.000€ ARR
+Jahr 3: 65 Kunden × 280€ × 12 = 218.400€ ARR
+Jahr 5: 100 Kunden × 320€ × 12 = 384.000€ ARR
+```
+
+## 🔍 Konkurrenzanalyse
+
+### Direkte Konkurrenten
+1. **Keine spezialisierten EN 13813 Tools gefunden** ✅
+2. **Allgemeine DoP-Generatoren:**
+   - CE-CON (zu generisch, teuer >1000€/Monat)
+   - docdoku.com (Frankreich, nicht DACH-fokussiert)
+   - Verschiedene Bauprodukte-Tools (nicht estrich-spezifisch)
+
+### Indirekte Konkurrenten
+1. **Excel/Word-Templates** (Status Quo)
+2. **ERP-Module** (SAP, Microsoft Dynamics - zu komplex/teuer)
+3. **QM-Software** (zu allgemein, keine Normtiefe)
+
+### Wettbewerbsvorteile
+- ✅ **Erste spezialisierte Lösung für EN 13813**
+- ✅ **Deutscher Markt mit deutschen Normen/Sprache**
+- ✅ **Preis-Leistung unschlagbar**
+- ✅ **Branchen-Expertise einbaubar**
+
+## ⚠️ Kritische Risiken
+
+### Herausforderungen
+1. **Sehr kleine Zielgruppe** → Skalierung begrenzt
+2. **Konservative Branche** → Lange Sales Cycles
+3. **Saisonalität** → Baubranche schwankt
+4. **Normänderungen** → Kontinuierliche Anpassung nötig
+5. **Lokale Unterschiede** → DACH ist nicht homogen
+
+### Pain Point Validierung
+✅ **Echter Pain:** DoP-Erstellung ist Pflicht, zeitaufwändig, fehleranfällig
+✅ **Audit-Druck:** Verschärfte Kontrollen durch Behörden
+✅ **Händler-Anforderungen:** Digitalisierungsdruck von Abnehmern
+⚠️ **Aber:** Viele kleine Werke "wursteln" seit Jahren durch
+
+## 📊 Erfolgswahrscheinlichkeit: 65%
+
+### Pro:
+- Klarer, unbesetzter Nischenmarkt
+- Regulatorischer Zwang (CE-Pflicht)
+- Messbare Zeitersparnis
+- Überschaubare Entwicklung
+
+### Contra:
+- Kleine Marktgröße limitiert Exit-Optionen
+- Schwierige Skalierung über DACH hinaus
+- Abhängigkeit von einer Norm
+- Traditionelle Branche
+
+---
+
+# 🛠️ Technischer Umsetzungsplan: EN 13813 DoP-Generator
+
+## Phase 1: Fundament (Woche 1-2)
+
+### 1.1 Projekt-Setup & Core-Module
+
+```bash
+# Repository Setup
+git clone compliance-saas-repo
+cd compliance-saas-repo
+git checkout -b feature/en13813-module
+
+# Module-Struktur erstellen
+mkdir -p modules/en13813/{
+  components,
+  services,
+  schemas,
+  workflows,
+  templates,
+  migrations
+}
+```
+
+### 1.2 Datenbank-Schema
+
+```sql
+-- modules/en13813/migrations/001_en13813_base.sql
+
+-- Rezepturen (Estrich-Mischungen)
+CREATE TABLE en13813_recipes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  recipe_code TEXT NOT NULL, -- z.B. "CT-C25-F4"
+  name TEXT NOT NULL,
+  type TEXT CHECK (type IN ('CT', 'CA', 'MA', 'SR', 'AS')), -- Estrichtypen
+  
+  -- Technische Eigenschaften
+  compressive_strength_class TEXT, -- C5, C7, C12...C80
+  flexural_strength_class TEXT, -- F1...F50
+  wear_resistance_class TEXT, -- A1...A22
+  fire_class TEXT, -- A1fl, A2fl, Bfl...
+  
+  -- Zusatzstoffe & Eigenschaften
+  additives JSONB DEFAULT '[]',
+  special_properties JSONB DEFAULT '{}',
+  
+  status TEXT DEFAULT 'draft',
+  valid_from DATE,
+  valid_until DATE,
+  
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(tenant_id, recipe_code)
+);
+
+-- Prüfberichte
+CREATE TABLE en13813_test_reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  recipe_id UUID REFERENCES en13813_recipes(id),
+  
+  report_number TEXT NOT NULL,
+  test_type TEXT NOT NULL, -- 'initial_type_test', 'factory_control'
+  test_date DATE NOT NULL,
+  testing_body TEXT,
+  notified_body_number TEXT, -- z.B. "0757"
+  
+  -- Prüfergebnisse
+  test_results JSONB NOT NULL,
+  /*
+  {
+    "compressive_strength": { "value": 28.5, "unit": "N/mm²" },
+    "flexural_strength": { "value": 5.2, "unit": "N/mm²" },
+    "fire_behavior": "A1fl",
+    "emissions": { "TVOC": "<1000 µg/m³" }
+  }
+  */
+  
+  document_id UUID REFERENCES documents(id), -- Verknüpfung zum PDF
+  valid_until DATE,
+  status TEXT DEFAULT 'valid',
+  
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Chargen/Batches
+CREATE TABLE en13813_batches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  recipe_id UUID REFERENCES en13813_recipes(id),
+  
+  batch_number TEXT NOT NULL,
+  production_date DATE NOT NULL,
+  quantity_tons DECIMAL(10,2),
+  production_site TEXT,
+  
+  -- Qualitätsdaten
+  qc_data JSONB DEFAULT '{}',
+  deviation_notes TEXT,
+  
+  status TEXT DEFAULT 'produced',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(tenant_id, batch_number)
+);
+
+-- Generierte DoPs
+CREATE TABLE en13813_dops (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  recipe_id UUID REFERENCES en13813_recipes(id),
+  batch_id UUID REFERENCES en13813_batches(id),
+  
+  dop_number TEXT NOT NULL, -- z.B. "2024-CT25-001"
+  version INTEGER DEFAULT 1,
+  
+  -- DoP Inhalte
+  product_name TEXT NOT NULL,
+  intended_use TEXT,
+  manufacturer_info JSONB,
+  declared_performance JSONB NOT NULL,
+  
+  -- Freigabe
+  prepared_by UUID REFERENCES profiles(id),
+  approved_by UUID REFERENCES profiles(id),
+  approval_date TIMESTAMPTZ,
+  
+  -- Dokumente
+  pdf_document_id UUID REFERENCES documents(id),
+  ce_label_document_id UUID REFERENCES documents(id),
+  qr_code TEXT,
+  public_url TEXT,
+  
+  status TEXT DEFAULT 'draft',
+  issued_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(tenant_id, dop_number, version)
+);
+
+-- DoP-Pakete für Händler/Projekte
+CREATE TABLE en13813_dop_packages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  
+  name TEXT NOT NULL,
+  recipient_type TEXT CHECK (recipient_type IN ('dealer', 'project', 'customer')),
+  recipient_info JSONB,
+  
+  dop_ids UUID[] NOT NULL,
+  package_document_id UUID REFERENCES documents(id),
+  
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Compliance-Kalender für EN 13813
+CREATE TABLE en13813_compliance_tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  
+  task_type TEXT NOT NULL, -- 'fpc_audit', 'test_renewal', 'cert_renewal'
+  related_recipe_id UUID REFERENCES en13813_recipes(id),
+  related_test_id UUID REFERENCES en13813_test_reports(id),
+  
+  description TEXT,
+  due_date DATE NOT NULL,
+  reminder_days INTEGER[] DEFAULT '{60,30,7}',
+  
+  assigned_to UUID REFERENCES profiles(id),
+  status TEXT DEFAULT 'pending',
+  completed_at TIMESTAMPTZ,
+  
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS Policies
+ALTER TABLE en13813_recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE en13813_test_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE en13813_batches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE en13813_dops ENABLE ROW LEVEL SECURITY;
+
+-- Audit Trigger für alle Tabellen
+CREATE TRIGGER audit_en13813_recipes 
+  AFTER INSERT OR UPDATE OR DELETE ON en13813_recipes
+  FOR EACH ROW EXECUTE FUNCTION audit_changes();
+```
+
+### 1.3 Service Layer
+
+```typescript
+// modules/en13813/services/recipe.service.ts
+import { BaseService } from '@/lib/core/base.service'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+
+export class EN13813RecipeService extends BaseService<Recipe> {
+  constructor(supabase: SupabaseClient) {
+    super(supabase, 'en13813_recipes')
+  }
+  
+  async validateRecipe(recipe: Partial<Recipe>): Promise<ValidationResult> {
+    const errors: ValidationError[] = []
+    
+    // EN 13813 spezifische Validierung
+    if (!recipe.compressive_strength_class) {
+      errors.push({
+        field: 'compressive_strength_class',
+        message: 'Druckfestigkeitsklasse ist Pflichtfeld nach EN 13813'
+      })
+    }
+    
+    if (!recipe.flexural_strength_class) {
+      errors.push({
+        field: 'flexural_strength_class',
+        message: 'Biegezugfestigkeitsklasse ist Pflichtfeld'
+      })
+    }
+    
+    if (!recipe.fire_class) {
+      errors.push({
+        field: 'fire_class',
+        message: 'Brandverhalten muss deklariert werden'
+      })
+    }
+    
+    // Prüfberichte vorhanden?
+    const testReports = await this.getTestReports(recipe.id)
+    if (!testReports.length) {
+      errors.push({
+        field: 'test_reports',
+        message: 'Mindestens ein Erstprüfbericht erforderlich'
+      })
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings: this.checkWarnings(recipe)
+    }
+  }
+  
+  async importFromCSV(file: File): Promise<ImportResult> {
+    const Papa = (await import('papaparse')).default
+    
+    return new Promise((resolve) => {
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        complete: async (results) => {
+          const recipes = []
+          
+          for (const row of results.data) {
+            const recipe = this.mapCSVToRecipe(row)
+            const validation = await this.validateRecipe(recipe)
+            
+            if (validation.valid) {
+              const created = await this.create(recipe)
+              recipes.push(created)
+            }
+          }
+          
+          resolve({
+            imported: recipes.length,
+            total: results.data.length,
+            recipes
+          })
+        }
+      })
+    })
+  }
+  
+  private mapCSVToRecipe(row: any): Partial<Recipe> {
+    return {
+      recipe_code: row['Rezeptur-Code'] || row['Code'],
+      name: row['Bezeichnung'] || row['Name'],
+      type: this.mapEstrichType(row['Typ']),
+      compressive_strength_class: row['Druckfestigkeit'],
+      flexural_strength_class: row['Biegezugfestigkeit'],
+      fire_class: row['Brandklasse'] || 'A1fl',
+      additives: this.parseAdditives(row['Zusatzstoffe'])
+    }
+  }
+}
+```
+
+## Phase 2: DoP-Generation Engine (Woche 3-4)
+
+### 2.1 DoP Generator Service
+
+```typescript
+// modules/en13813/services/dop-generator.service.ts
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import QRCode from 'qrcode'
+
+export class DoPGeneratorService {
+  private supabase: SupabaseClient
+  private templateService: TemplateService
+  
+  async generateDoP(
+    recipeId: string,
+    batchId?: string,
+    options?: DoPOptions
+  ): Promise<GeneratedDoP> {
+    // 1. Daten sammeln
+    const recipe = await this.getRecipe(recipeId)
+    const testReports = await this.getTestReports(recipeId)
+    const batch = batchId ? await this.getBatch(batchId) : null
+    const manufacturer = await this.getManufacturerInfo()
+    
+    // 2. Validierung
+    const validation = await this.validateDoPData({
+      recipe,
+      testReports,
+      manufacturer
+    })
+    
+    if (!validation.valid) {
+      throw new ValidationError('DoP-Daten unvollständig', validation.errors)
+    }
+    
+    // 3. DoP-Nummer generieren
+    const dopNumber = this.generateDoPNumber(recipe, batch)
+    
+    // 4. DoP-Daten strukturieren
+    const dopData: DoPData = {
+      number: dopNumber,
+      issueDate: new Date(),
+      manufacturer,
+      product: {
+        name: recipe.name,
+        type: recipe.type,
+        code: recipe.recipe_code,
+        intendedUse: this.getIntendedUse(recipe.type)
+      },
+      declaredPerformance: {
+        essentialCharacteristics: [
+          {
+            characteristic: 'Druckfestigkeit',
+            performance: recipe.compressive_strength_class,
+            standard: 'EN 13813'
+          },
+          {
+            characteristic: 'Biegezugfestigkeit',
+            performance: recipe.flexural_strength_class,
+            standard: 'EN 13813'
+          },
+          {
+            characteristic: 'Brandverhalten',
+            performance: recipe.fire_class,
+            standard: 'EN 13501-1'
+          },
+          {
+            characteristic: 'Freisetzung korrosiver Substanzen',
+            performance: recipe.type, // CT, CA, etc.
+            standard: 'EN 13813'
+          },
+          {
+            characteristic: 'Wasserdurchlässigkeit',
+            performance: 'NPD',
+            standard: '-'
+          },
+          {
+            characteristic: 'Wasserdampfdurchlässigkeit',
+            performance: 'NPD',
+            standard: '-'
+          },
+          {
+            characteristic: 'Druckfestigkeit',
+            performance: recipe.compressive_strength_class,
+            standard: 'EN 13813'
+          },
+          {
+            characteristic: 'Biegezugfestigkeit',
+            performance: recipe.flexural_strength_class,
+            standard: 'EN 13813'
+          },
+          {
+            characteristic: 'Verschleißwiderstand',
+            performance: recipe.wear_resistance_class || 'NPD',
+            standard: 'EN 13813'
+          },
+          {
+            characteristic: 'Schalldämmung',
+            performance: 'NPD',
+            standard: '-'
+          },
+          {
+            characteristic: 'Schallabsorption',
+            performance: 'NPD',
+            standard: '-'
+          },
+          {
+            characteristic: 'Wärmewiderstand',
+            performance: 'NPD',
+            standard: '-'
+          },
+          {
+            characteristic: 'Chemische Beständigkeit',
+            performance: 'NPD',
+            standard: '-'
+          }
+        ]
+      },
+      system: 'System 4', // AVCP System
+      notifiedBody: testReports[0]?.notified_body_number,
+      testReports: testReports.map(tr => ({
+        number: tr.report_number,
+        date: tr.test_date,
+        body: tr.testing_body
+      })),
+      batch: batch ? {
+        number: batch.batch_number,
+        date: batch.production_date,
+        quantity: batch.quantity_tons
+      } : undefined
+    }
+    
+    // 5. PDF generieren
+    const pdfBuffer = await this.generatePDF(dopData)
+    
+    // 6. CE-Label generieren
+    const ceLabel = await this.generateCELabel(dopData)
+    
+    // 7. QR-Code generieren
+    const qrCode = await this.generateQRCode(dopNumber)
+    
+    // 8. In Supabase speichern
+    const storedDoP = await this.storeDoP({
+      recipe_id: recipeId,
+      batch_id: batchId,
+      dop_number: dopNumber,
+      data: dopData,
+      pdf: pdfBuffer,
+      ce_label: ceLabel,
+      qr_code: qrCode
+    })
+    
+    return storedDoP
+  }
+  
+  private async generatePDF(data: DoPData): Promise<Buffer> {
+    const pdfDoc = await PDFDocument.create()
+    const page = pdfDoc.addPage([595, 842]) // A4
+    
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    
+    let y = 800
+    
+    // Header
+    page.drawText('LEISTUNGSERKLÄRUNG', {
+      x: 50,
+      y,
+      size: 16,
+      font: helveticaBold
+    })
+    
+    y -= 20
+    page.drawText(`Nr. ${data.number}`, {
+      x: 50,
+      y,
+      size: 12,
+      font: helvetica
+    })
+    
+    y -= 30
+    page.drawText('1. Eindeutiger Kenncode des Produkttyps:', {
+      x: 50,
+      y,
+      size: 10,
+      font: helveticaBold
+    })
+    
+    y -= 15
+    page.drawText(data.product.code, {
+      x: 50,
+      y,
+      size: 10,
+      font: helvetica
+    })
+    
+    // ... weitere Abschnitte nach EN 13813 Template
+    
+    // Tabelle der wesentlichen Merkmale
+    y -= 30
+    page.drawText('9. Erklärte Leistung:', {
+      x: 50,
+      y,
+      size: 10,
+      font: helveticaBold
+    })
+    
+    y -= 20
+    // Tabellen-Header
+    const tableHeaders = ['Wesentliche Merkmale', 'Leistung', 'Harmonisierte Norm']
+    const columnWidths = [200, 150, 150]
+    let xPos = 50
+    
+    for (let i = 0; i < tableHeaders.length; i++) {
+      page.drawText(tableHeaders[i], {
+        x: xPos,
+        y,
+        size: 9,
+        font: helveticaBold
+      })
+      xPos += columnWidths[i]
+    }
+    
+    y -= 15
+    // Tabellen-Inhalt
+    for (const char of data.declaredPerformance.essentialCharacteristics) {
+      xPos = 50
+      page.drawText(char.characteristic, {
+        x: xPos,
+        y,
+        size: 9,
+        font: helvetica
+      })
+      xPos += columnWidths[0]
+      
+      page.drawText(char.performance, {
+        x: xPos,
+        y,
+        size: 9,
+        font: helvetica
+      })
+      xPos += columnWidths[1]
+      
+      page.drawText(char.standard, {
+        x: xPos,
+        y,
+        size: 9,
+        font: helvetica
+      })
+      
+      y -= 15
+    }
+    
+    // Unterschrift
+    y -= 40
+    page.drawText('Unterzeichnet für den Hersteller und im Namen des Herstellers von:', {
+      x: 50,
+      y,
+      size: 10,
+      font: helvetica
+    })
+    
+    y -= 30
+    page.drawLine({
+      start: { x: 50, y },
+      end: { x: 250, y },
+      thickness: 1
+    })
+    
+    y -= 15
+    page.drawText(`${data.manufacturer.authorized_person}`, {
+      x: 50,
+      y,
+      size: 10,
+      font: helvetica
+    })
+    
+    y -= 15
+    page.drawText(`${data.manufacturer.location}, ${data.issueDate.toLocaleDateString('de-DE')}`, {
+      x: 50,
+      y,
+      size: 10,
+      font: helvetica
+    })
+    
+    const pdfBytes = await pdfDoc.save()
+    return Buffer.from(pdfBytes)
+  }
+  
+  private async generateCELabel(data: DoPData): Promise<Buffer> {
+    // CE-Kennzeichnung nach EN 13813
+    const pdfDoc = await PDFDocument.create()
+    const page = pdfDoc.addPage([200, 300]) // Label-Größe
+    
+    // CE-Logo
+    page.drawText('CE', {
+      x: 75,
+      y: 250,
+      size: 40,
+      font: await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    })
+    
+    // Notified Body Number
+    if (data.notifiedBody) {
+      page.drawText(data.notifiedBody, {
+        x: 130,
+        y: 250,
+        size: 20,
+        font: await pdfDoc.embedFont(StandardFonts.Helvetica)
+      })
+    }
+    
+    // Jahr
+    page.drawText('24', {
+      x: 90,
+      y: 220,
+      size: 16,
+      font: await pdfDoc.embedFont(StandardFonts.Helvetica)
+    })
+    
+    // Produktcode
+    page.drawText(data.product.code, {
+      x: 20,
+      y: 180,
+      size: 12,
+      font: await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    })
+    
+    // Klassifizierung
+    const classification = `${data.product.type}-${data.declaredPerformance.essentialCharacteristics[0].performance}-${data.declaredPerformance.essentialCharacteristics[1].performance}`
+    page.drawText(classification, {
+      x: 20,
+      y: 160,
+      size: 14,
+      font: await pdfDoc.embedFont(StandardFonts.Helvetica)
+    })
+    
+    // EN 13813
+    page.drawText('EN 13813', {
+      x: 20,
+      y: 140,
+      size: 10,
+      font: await pdfDoc.embedFont(StandardFonts.Helvetica)
+    })
+    
+    const pdfBytes = await pdfDoc.save()
+    return Buffer.from(pdfBytes)
+  }
+  
+  private async generateQRCode(dopNumber: string): Promise<string> {
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/dop/${dopNumber}`
+    return await QRCode.toDataURL(url, {
+      width: 200,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    })
+  }
+}
+```
+
+## Phase 3: Workflow & UI (Woche 5-6)
+
+### 3.1 Freigabe-Workflow
+
+```typescript
+// modules/en13813/workflows/dop-approval.workflow.ts
+export class DoPApprovalWorkflow extends BaseWorkflow {
+  name = 'DoP Freigabe nach EN 13813'
+  
+  steps = [
+    {
+      id: 'draft',
+      name: 'Entwurf',
+      actions: ['edit', 'validate', 'submit_for_review'],
+      nextSteps: ['review']
+    },
+    {
+      id: 'review',
+      name: 'QS-Prüfung',
+      assignTo: 'role:quality_manager',
+      actions: ['approve', 'reject', 'request_changes'],
+      nextSteps: ['approval', 'draft'],
+      sla: 24 // Stunden
+    },
+    {
+      id: 'approval',
+      name: 'Finale Freigabe',
+      assignTo: 'role:plant_manager',
+      actions: ['sign', 'reject'],
+      nextSteps: ['published', 'review'],
+      sla: 48
+    },
+    {
+      id: 'published',
+      name: 'Veröffentlicht',
+      actions: ['revoke', 'create_revision'],
+      notifications: ['notify_sales', 'notify_production']
+    }
+  ]
+  
+  async onStepComplete(step: WorkflowStep, action: string, data: any) {
+    if (step.id === 'approval' && action === 'sign') {
+      // DoP generieren und speichern
+      const dop = await this.dopGenerator.generateDoP(
+        data.recipe_id,
+        data.batch_id
+      )
+      
+      // Benachrichtigungen
+      await this.notificationService.send({
+        type: 'dop_published',
+        recipients: ['sales_team', 'production_team'],
+        data: {
+          dop_number: dop.number,
+          product: dop.product_name,
+          url: dop.public_url
+        }
+      })
+    }
+  }
+}
+```
+
+### 3.2 React Components
+
+```tsx
+// modules/en13813/components/RecipeManager.tsx
+'use client'
+
+import { useState } from 'react'
+import { useEN13813 } from '../hooks/useEN13813'
+import { DataTable } from '@/components/core/DataTable'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+
+export function RecipeManager() {
+  const { recipes, createRecipe, validateRecipe } = useEN13813()
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  
+  const columns = [
+    {
+      key: 'recipe_code',
+      header: 'Rezeptur-Code',
+      cell: (recipe) => (
+        <span className="font-mono">{recipe.recipe_code}</span>
+      )
+    },
+    {
+      key: 'classification',
+      header: 'Klassifizierung',
+      cell: (recipe) => (
+        <div className="flex gap-1">
+          <Badge variant="outline">{recipe.type}</Badge>
+          <Badge>{recipe.compressive_strength_class}</Badge>
+          <Badge>{recipe.flexural_strength_class}</Badge>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      cell: (recipe) => {
+        const validation = validateRecipe(recipe)
+        return (
+          <div className="flex items-center gap-2">
+            {validation.valid ? (
+              <Badge variant="success">Vollständig</Badge>
+            ) : (
+              <Badge variant="destructive">
+                {validation.errors.length} Fehler
+              </Badge>
+            )}
+            {recipe.test_reports_count > 0 && (
+              <Badge variant="secondary">
+                {recipe.test_reports_count} Prüfberichte
+              </Badge>
+            )}
+          </div>
+        )
+      }
+    },
+    {
+      key: 'actions',
+      header: 'Aktionen',
+      cell: (recipe) => (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={() => generateDoP(recipe.id)}
+          >
+            DoP erstellen
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => editRecipe(recipe.id)}
+          >
+            Bearbeiten
+          </Button>
+        </div>
+      )
+    }
+  ]
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Rezepturen nach EN 13813</h2>
+        <div className="flex gap-2">
+          <Button onClick={() => setImportDialogOpen(true)}>
+            CSV Import
+          </Button>
+          <Button onClick={() => createRecipe()}>
+            Neue Rezeptur
+          </Button>
+        </div>
+      </div>
+      
+      <RecipeValidationSummary recipes={recipes} />
+      
+      <DataTable
+        data={recipes}
+        columns={columns}
+        searchable
+        filterable
+        exportable
+      />
+      
+      <ImportDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+      />
+    </div>
+  )
+}
+
+// Validierungs-Dashboard
+function RecipeValidationSummary({ recipes }) {
+  const stats = useMemo(() => {
+    return recipes.reduce((acc, recipe) => {
+      const validation = validateRecipe(recipe)
+      if (validation.valid) {
+        acc.complete++
+      } else {
+        acc.incomplete++
+        validation.errors.forEach(error => {
+          acc.issues[error.field] = (acc.issues[error.field] || 0) + 1
+        })
+      }
+      return acc
+    }, { complete: 0, incomplete: 0, issues: {} })
+  }, [recipes])
+  
+  return (
+    <div className="grid grid-cols-4 gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Vollständig</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-green-600">
+            {stats.complete}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Unvollständig</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-orange-600">
+            {stats.incomplete}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Häufigste Fehler</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1 text-sm">
+            {Object.entries(stats.issues)
+              .sort(([,a], [,b]) => b - a)
+              .slice(0, 3)
+              .map(([field, count]) => (
+                <div key={field}>
+                  {field}: {count}x
+                </div>
+              ))}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Nächste Aufgaben</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <NextComplianceTasks />
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+```
+
+### 3.3 DoP Viewer mit QR
+
+```tsx
+// modules/en13813/components/DoPViewer.tsx
+export function DoPViewer({ dopId }: { dopId: string }) {
+  const { dop, loading } = useDoP(dopId)
+  
+  if (loading) return <Skeleton />
+  if (!dop) return <NotFound />
+  
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        {/* Header mit QR Code */}
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">Leistungserklärung</h1>
+            <p className="text-lg mt-2">Nr. {dop.dop_number}</p>
+            <p className="text-sm text-gray-600">
+              Ausgestellt am: {formatDate(dop.issued_at)}
+            </p>
+          </div>
+          <div className="text-center">
+            <QRCodeSVG
+              value={dop.public_url}
+              size={120}
+            />
+            <p className="text-xs mt-2">DoP QR-Code</p>
+          </div>
+        </div>
+        
+        {/* Produktinformationen */}
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">
+            1. Eindeutiger Kenncode des Produkttyps
+          </h2>
+          <p className="font-mono bg-gray-50 p-2 rounded">
+            {dop.product.code}
+          </p>
+        </section>
+        
+        {/* Leistungstabelle */}
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">
+            9. Erklärte Leistung
+          </h2>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border p-2 text-left">Wesentliche Merkmale</th>
+                <th className="border p-2 text-left">Leistung</th>
+                <th className="border p-2 text-left">Harmonisierte Norm</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dop.declaredPerformance.essentialCharacteristics.map((char, i) => (
+                <tr key={i}>
+                  <td className="border p-2">{char.characteristic}</td>
+                  <td className="border p-2 font-semibold">{char.performance}</td>
+                  <td className="border p-2">{char.standard}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+        
+        {/* Downloads */}
+        <div className="flex gap-4 mt-8">
+          <Button onClick={() => downloadPDF(dop.pdf_url)}>
+            <Download className="mr-2 h-4 w-4" />
+            DoP herunterladen
+          </Button>
+          <Button variant="outline" onClick={() => downloadCELabel(dop.ce_label_url)}>
+            <Tag className="mr-2 h-4 w-4" />
+            CE-Kennzeichnung
+          </Button>
+          <Button variant="outline" onClick={() => shareDoP(dop.public_url)}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Teilen
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+## Phase 4: Integration & Testing (Woche 7-8)
+
+### 4.1 Test Suite
+
+```typescript
+// modules/en13813/tests/dop-generation.test.ts
+describe('EN 13813 DoP Generation', () => {
+  let service: DoPGeneratorService
+  
+  beforeEach(() => {
+    service = new DoPGeneratorService(mockSupabase)
+  })
+  
+  it('should validate required fields according to EN 13813', async () => {
+    const invalidRecipe = {
+      name: 'Test Recipe',
+      type: 'CT',
+      // Missing required fields
+    }
+    
+    await expect(service.generateDoP(invalidRecipe)).rejects.toThrow(
+      'Druckfestigkeitsklasse ist Pflichtfeld'
+    )
+  })
+  
+  it('should generate valid DoP number format', async () => {
+    const recipe = createValidRecipe()
+    const dop = await service.generateDoP(recipe.id)
+    
+    expect(dop.dop_number).toMatch(/^\d{4}-[A-Z]{2}\d{2}-\d{3}$/)
+  })
+  
+  it('should include all essential characteristics', async () => {
+    const recipe = createValidRecipe()
+    const dop = await service.generateDoP(recipe.id)
+    
+    const characteristics = dop.declaredPerformance.essentialCharacteristics
+    
+    expect(characteristics).toContainEqual(
+      expect.objectContaining({
+        characteristic: 'Druckfestigkeit'
+      })
+    )
+    
+    expect(characteristics).toContainEqual(
+      expect.objectContaining({
+        characteristic: 'Brandverhalten'
+      })
+    )
+  })
+})
+```
+
+### 4.2 Deployment Configuration
+
+```yaml
+# .github/workflows/deploy-en13813.yml
+name: Deploy EN 13813 Module
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/en13813/**'
+      - 'supabase/migrations/*en13813*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run EN 13813 Migrations
+        run: |
+          supabase db push \
+            --include "modules/en13813/migrations/*.sql" \
+            --db-url ${{ secrets.SUPABASE_DB_URL }}
+      
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy generate-en13813-dop \
+            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+      
+      - name: Deploy to Vercel
+        run: vercel --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+```
+
+## Phase 5: Go-Live Checkliste
+
+### Woche 8: Launch-Vorbereitung
+
+- [ ] **Datenimport vorbereiten**
+  - Excel-Template für Rezepturen erstellen
+  - Import-Wizard testen
+  - Beispiel-Daten von 2-3 Pilotkunden
+
+- [ ] **Compliance-Validierung**
+  - EN 13813 Checkliste durchgehen
+  - Muster-DoPs von Experten prüfen lassen
+  - CE-Kennzeichnung validieren
+
+- [ ] **Performance-Tests**
+  - Batch-Generation (100 DoPs)
+  - PDF-Generation Performance
+  - Storage-Limits prüfen
+
+- [ ] **Schulungsmaterial**
+  - Video-Tutorial (5 Min)
+  - Quick-Start-Guide (PDF)
+  - FAQ-Sammlung
+
+- [ ] **Monitoring Setup**
+  - Error-Tracking für DoP-Generation
+  - Usage-Analytics
+  - Performance-Metriken
+
+---
+
+## 📊 KPIs für Erfolg
+
+### Technische KPIs
+- DoP-Generation < 3 Sekunden
+- PDF-Qualität 300 DPI
+- 99.9% Uptime
+- Zero Data Loss
+
+### Business KPIs (Jahr 1)
+- 12+ zahlende Kunden
+- 80% Trial-to-Paid Conversion
+- <5% Monthly Churn
+- 1000+ generierte DoPs/Monat
+
+### User Experience KPIs
+- Time-to-first-DoP < 30 Minuten
+- Support-Tickets < 2 pro Kunde/Monat
+- NPS Score > 50
+
+---
+
+## 🚀 Skalierungs-Roadmap
+
+### Q1 2025: MVP & erste Kunden
+- EN 13813 Core Features
+- 5-10 Pilotkunden
+- Feedback-Integration
+
+### Q2 2025: Feature-Erweiterung
+- Batch-Import via API
+- Händler-Portal
+- Mobile App für QR-Scanning
+
+### Q3 2025: Marktexpansion
+- Österreich & Schweiz
+- Englische Version
+- Partner-Integrationen (ERP)
+
+### Q4 2025: Nächste Norm
+- EN 12004 (Fliesenkleber) oder
+- EN 998 (Putzmörtel)
+- Cross-Selling zu Bestandskunden
+
+Diese detaillierte Implementierung nutzt alle Core-Module optimal und ist spezifisch auf die EN 13813 Anforderungen zugeschnitten. Der modulare Aufbau ermöglicht schnelle Anpassungen und Erweiterungen.
