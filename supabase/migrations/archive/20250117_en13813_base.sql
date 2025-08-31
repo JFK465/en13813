@@ -224,38 +224,38 @@ ALTER TABLE en13813_compliance_tasks ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (tenant isolation)
 CREATE POLICY "tenant_isolation" ON en13813_recipes
-  FOR ALL USING (tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid);
+  FOR ALL USING (tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid);
 
 CREATE POLICY "service_role_bypass" ON en13813_recipes
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
 -- Same policies for all tables
 CREATE POLICY "tenant_isolation" ON en13813_test_reports
-  FOR ALL USING (tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid);
+  FOR ALL USING (tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid);
 
 CREATE POLICY "service_role_bypass" ON en13813_test_reports
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
 CREATE POLICY "tenant_isolation" ON en13813_batches
-  FOR ALL USING (tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid);
+  FOR ALL USING (tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid);
 
 CREATE POLICY "service_role_bypass" ON en13813_batches
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
 CREATE POLICY "tenant_isolation" ON en13813_dops
-  FOR ALL USING (tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid);
+  FOR ALL USING (tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid);
 
 CREATE POLICY "service_role_bypass" ON en13813_dops
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
 CREATE POLICY "tenant_isolation" ON en13813_dop_packages
-  FOR ALL USING (tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid);
+  FOR ALL USING (tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid);
 
 CREATE POLICY "service_role_bypass" ON en13813_dop_packages
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
 CREATE POLICY "tenant_isolation" ON en13813_compliance_tasks
-  FOR ALL USING (tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid);
+  FOR ALL USING (tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid);
 
 CREATE POLICY "service_role_bypass" ON en13813_compliance_tasks
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
@@ -289,12 +289,12 @@ BEGIN
   -- Get next sequence number for this year and type
   SELECT COUNT(*) + 1 INTO sequence_number
   FROM en13813_dops
-  WHERE tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid
+  WHERE tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid
   AND dop_number LIKE year_part || '-%'
   AND recipe_id IN (
     SELECT id FROM en13813_recipes 
     WHERE type = recipe_type
-    AND tenant_id = (auth.jwt() -> 'user_metadata' ->> 'tenant_id')::uuid
+    AND tenant_id = auth.jwt() -> 'user_metadata' ->> 'tenant_id'::uuid
   );
   
   dop_number := year_part || '-' || recipe_type || '-' || LPAD(sequence_number::TEXT, 3, '0');

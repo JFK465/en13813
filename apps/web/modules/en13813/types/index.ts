@@ -17,11 +17,26 @@ export interface Recipe extends BaseEntity {
   compressive_strength: string
   flexural_strength: string
   
-  // Optional properties
-  wear_resistance?: string
-  hardness?: string
-  rolling_wheel?: string
-  impact_resistance?: string
+  // Verschleißwiderstand - NUR EINE Methode!
+  wear_resistance_method?: 'bohme' | 'bca' | 'rolling_wheel'
+  wear_resistance_class?: string // A22-A1.5 | AR6-AR0.5 | RWA300-RWA1
+  
+  // Zusätzliche mechanische Eigenschaften
+  surface_hardness_class?: string // SH30-SH200 für MA
+  bond_strength_class?: string // B0.5-B2.0 für SR
+  impact_resistance_class?: string // IR1-IR20 für SR
+  indentation_class?: string // IC10-IC100 oder IP10-IP40 für AS
+  
+  // Verwendungszweck
+  intended_use: {
+    wearing_surface: boolean
+    with_flooring: boolean
+    heated_screed: boolean
+    indoor_only: boolean
+  }
+  
+  // Heizestrich
+  heated_screed?: boolean
   
   // Fire & Emissions
   fire_class?: string
@@ -32,6 +47,9 @@ export interface Recipe extends BaseEntity {
   mixing_ratio?: Record<string, any>
   application_thickness_min?: number
   application_thickness_max?: number
+  
+  // EN Designation (auto-generated)
+  en_designation?: string
   
   // Status & Validation
   status: 'draft' | 'active' | 'archived'
@@ -163,7 +181,7 @@ export interface DoPPackage extends BaseEntity {
 }
 
 export interface ComplianceTask extends BaseEntity {
-  task_type: 'test_report_renewal' | 'fpc_audit' | 'external_audit' | 'ce_renewal' | 'recipe_validation'
+  task_type: 'test_report_renewal' | 'fpc_audit' | 'external_audit' | 'ce_renewal' | 'recipe_validation' | 'itt_testing' | 'dop_creation' | 'calibration' | 'retest_required'
   
   recipe_id?: string
   test_report_id?: string
@@ -176,10 +194,137 @@ export interface ComplianceTask extends BaseEntity {
   assigned_to?: string
   assigned_role?: string
   
+  priority?: 'low' | 'medium' | 'high' | 'critical'
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
   completed_at?: string
   completed_by?: string
   completion_notes?: string
+}
+
+// Neue Interfaces für erweiterte EN 13813 Konformität
+export interface RecipeMaterial extends BaseEntity {
+  recipe_id: string
+  
+  // Bindemittel
+  binder_type: string
+  binder_designation: string // z.B. "CEM I 42,5 R"
+  binder_amount_kg_m3: number
+  binder_supplier?: string
+  
+  // Zuschlagstoffe
+  aggregate_type?: string // natürlich/rezykliert/leicht
+  aggregate_max_size?: string // z.B. "0-8mm"
+  sieve_curve?: Record<string, number> // Korngrößenverteilung
+  
+  // Wasser & W/B-Wert
+  water_content?: number
+  water_binder_ratio: number
+  
+  // Zusatzmittel
+  additives?: Array<{
+    type: string
+    product: string
+    dosage_percent: number
+  }>
+  
+  fibers?: {
+    type: string
+    length_mm: number
+    dosage_kg_m3: number
+  }
+  
+  // Frischmörtel-Eigenschaften
+  fresh_mortar_properties?: {
+    consistency?: {
+      method: string
+      target_mm?: number
+      tolerance_mm?: number
+    }
+    setting_time?: {
+      initial_minutes?: number
+      final_minutes?: number
+    }
+    ph_value?: number
+    processing_time_minutes?: number
+    temperature_range?: {
+      min_celsius: number
+      max_celsius: number
+    }
+  }
+}
+
+export interface ITTTestPlan extends BaseEntity {
+  recipe_id: string
+  
+  required_tests: Array<{
+    property: string
+    norm: string
+    test_age_days?: number
+    target_class?: string
+  }>
+  
+  optional_tests?: Array<{
+    property: string
+    norm: string
+    reason?: string
+  }>
+  
+  test_status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  test_results?: Record<string, any>
+  
+  last_validated_at?: string
+  validation_notes?: string
+}
+
+export interface FPCControlPlan extends BaseEntity {
+  recipe_id: string
+  
+  incoming_inspection: {
+    binder: {
+      frequency: string
+      tests: string[]
+      tolerance: string
+    }
+    aggregates: {
+      frequency: string
+      tests: string[]
+      tolerance: string
+    }
+  }
+  
+  production_control: {
+    fresh_mortar: {
+      frequency: string
+      tests: string[]
+      limits: Record<string, any>
+    }
+    hardened_mortar: {
+      frequency: string
+      tests: string[]
+      warning_limit: string
+      action_limit: string
+    }
+  }
+  
+  calibration: {
+    scales: string
+    mixers: string
+    testing_equipment: string
+  }
+  
+  active: boolean
+}
+
+export interface RecipeVersion extends BaseEntity {
+  recipe_id: string
+  version_number: number
+  changes: {
+    old: Recipe
+    new: Recipe
+    changed_fields: Record<string, any>
+  }
+  requires_retest: boolean
+  created_by?: string
 }
 
 // Service parameters

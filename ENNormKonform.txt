@@ -1,0 +1,597 @@
+Basierend auf der Analyse eurer bestehenden Implementierung und den EN 13813 Anforderungen, hier mein konkreter Umsetzungsplan:
+
+## 📋 Implementierungsstrategie für vollständige EN 13813 Konformität
+
+### **Phase 1: Kritische Normkonformität (3-4 Tage)**
+
+#### 1.1 Datenbank-Erweiterung für Materialzusammensetzung
+
+```sql
+-- Neue Tabelle für Materialzusammensetzung
+CREATE TABLE en13813_recipe_materials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipe_id UUID NOT NULL REFERENCES en13813_recipes(id) ON DELETE CASCADE,
+  
+  -- Bindemittel
+  binder_type TEXT NOT NULL,
+  binder_designation TEXT NOT NULL, -- z.B. "CEM I 42,5 R"
+  binder_amount_kg_m3 DECIMAL(10,2) NOT NULL,
+  binder_supplier TEXT,
+  
+  -- Zuschlagstoffe
+  aggregate_type TEXT, -- natürlich/rezykliert/leicht
+  aggregate_max_size TEXT, -- z.B. "0-8mm"
+  sieve_curve JSONB, -- Korngrößenverteilung
+  
+  -- Wasser & W/B-Wert
+  water_content DECIMAL(10,3),
+  water_binder_ratio DECIMAL(10,3) NOT NULL,
+  
+  -- Zusatzmittel
+  additives JSONB DEFAULT '[]', -- Array mit {type, product, dosage_percent}
+  fibers JSONB, -- {type, length_mm, dosage_kg_m3}
+  
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### 1.2 Erweiterte Verschleißwiderstand-Methoden
+
+```typescript
+// backend/types/index.ts - Erweitern
+export interface Recipe extends BaseEntity {
+  // ... existing fields ...
+  
+  // Verschleißwiderstand - nur EINE Methode!
+  wear_resistance_method?: 'bohme' | 'bca' | 'rolling_wheel'
+  wear_resistance_class?: string // A22-A1.5 | AR6-AR0.5 | RWA300-RWA1
+  
+  // Verwendungszweck
+  intended_use: {
+    wearing_surface: boolean
+    with_flooring: boolean
+    heated_screed: boolean
+    indoor_only: boolean
+  }
+}
+```
+
+#### 1.3 ITT-Prüfplan Mapping
+
+```typescript
+// backend/services/itt-mapping.service.ts
+export class ITTMappingService {
+  private readonly testMappings = {
+    compressive_strength: { 
+      norm: 'EN 13892-2', 
+      test_age_days: 28,
+      required: true 
+    },
+    flexural_strength: { 
+      norm: 'EN 13892-2', 
+      test_age_days: 28,
+      required: true 
+    },
+    wear_bohme: { 
+      norm: 'EN 13892-3',
+      required_if: 'wearing_surface' 
+    },
+    wear_bca: { 
+      norm: 'EN 13892-4',
+      required_if: 'wearing_surface' 
+    },
+    wear_rolling: { 
+      norm: 'EN 13892-5',
+      required_if: 'wearing_surface' 
+    },
+    surface_hardness: { 
+      norm: 'EN 13892-6',
+      required_for: ['MA'] 
+    },
+    bond_strength: { 
+      norm: 'EN 13892-8',
+      required_for: ['SR'] 
+    }
+  }
+
+  generateTestPlan(recipe: Recipe): TestPlan {
+    const plan: TestPlan = {
+      recipe_id: recipe.id,
+      required_tests: [],
+      optional_tests: []
+    }
+
+    // Pflicht-Tests basierend auf Typ und Verwendung
+    if (recipe.intended_use.wearing_surface) {
+      // Genau EINE Verschleißmethode erforderlich
+      if (recipe.wear_resistance_method) {
+        plan.required_tests.push({
+          property: `wear_${recipe.wear_resistance_method}`,
+          norm: this.testMappings[`wear_${recipe.wear_resistance_method}`].norm,
+          target_class: recipe.wear_resistance_class
+        })
+      }
+    }
+    
+    return plan
+  }
+}
+```
+
+#### 1.4 Frontend: Verwendungszweck-Logik
+
+```tsx
+// components/RecipeForm.tsx - Erweiterte Version
+export function RecipeForm() {
+  const [intendedUse, setIntendedUse] = useState({
+    wearing_surface: false,
+    with_flooring: false,
+    heated_screed: false
+  })
+
+  // Dynamische Pflichtfeld-Steuerung
+  const isWearResistanceRequired = intendedUse.wearing_surface && !intendedUse.with_flooring
+
+  return (
+    <Tabs>
+      <TabsContent value="intended-use">
+        <Card>
+          <CardHeader>
+            <CardTitle>Verwendungszweck</CardTitle>
+            <CardDescription>
+              Bestimmt die erforderlichen Eigenschaften
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="wearing"
+                  checked={intendedUse.wearing_surface}
+                  onCheckedChange={(checked) => {
+                    setIntendedUse(prev => ({
+                      ...prev,
+                      wearing_surface: checked as boolean
+                    }))
+                  }}
+                />
+                <Label htmlFor="wearing">
+                  Als Nutzschicht (Wearing Surface)
+                </Label>
+              </div>
+              
+              {intendedUse.wearing_surface && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Bei Nutzschicht ist <strong>genau eine</strong> Verschleißwiderstandsmethode anzugeben!
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="flooring"
+                  checked={intendedUse.with_flooring}
+                  onCheckedChange={(checked) => {
+                    setIntendedUse(prev => ({
+                      ...prev,
+                      with_flooring: checked as boolean
+                    }))
+                  }}
+                />
+                <Label htmlFor="flooring">
+                  Mit Bodenbelag versehen
+                </Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {isWearResistanceRequired && (
+        <TabsContent value="wear-resistance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Verschleißwiderstand (Pflicht)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup 
+                value={wearMethod}
+                onValueChange={setWearMethod}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="bohme" id="bohme" />
+                    <div>
+                      <Label htmlFor="bohme">Böhme-Verfahren (A-Klassen)</Label>
+                      <Select disabled={wearMethod !== 'bohme'}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Klasse wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['A22', 'A15', 'A12', 'A9', 'A6', 'A3', 'A1.5'].map(cls => (
+                            <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="bca" id="bca" />
+                    <div>
+                      <Label htmlFor="bca">BCA-Verfahren (AR-Klassen)</Label>
+                      <Select disabled={wearMethod !== 'bca'}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Klasse wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['AR6', 'AR4', 'AR2', 'AR1', 'AR0.5'].map(cls => (
+                            <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="rolling" id="rolling" />
+                    <div>
+                      <Label htmlFor="rolling">Rollrad-Verfahren (RWA-Klassen)</Label>
+                      <Select disabled={wearMethod !== 'rolling'}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Klasse wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['RWA300', 'RWA200', 'RWA100', 'RWA50', 'RWA20', 'RWA10', 'RWA1'].map(cls => (
+                            <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
+    </Tabs>
+  )
+}
+```
+
+### **Phase 2: Vollständige Konformität (4-5 Tage)**
+
+#### 2.1 Frischmörtel-Eigenschaften
+
+```sql
+-- Erweiterte Tabelle
+ALTER TABLE en13813_recipe_materials ADD COLUMN IF NOT EXISTS
+  fresh_mortar_properties JSONB DEFAULT '{
+    "consistency": {
+      "method": "flow_table",
+      "target_mm": null,
+      "tolerance_mm": null
+    },
+    "setting_time": {
+      "initial_minutes": null,
+      "final_minutes": null
+    },
+    "ph_value": null,
+    "processing_time_minutes": null,
+    "temperature_range": {
+      "min_celsius": 5,
+      "max_celsius": 30
+    }
+  }';
+```
+
+#### 2.2 WPK/FPC System
+
+```typescript
+// backend/services/fpc.service.ts
+export class FPCService {
+  async createControlPlan(recipeId: string): Promise<ControlPlan> {
+    const recipe = await this.recipeService.getById(recipeId)
+    
+    return {
+      recipe_id: recipeId,
+      incoming_inspection: {
+        binder: {
+          frequency: 'per_delivery',
+          tests: ['certificate_check', 'visual_inspection'],
+          tolerance: 'as_per_en197'
+        },
+        aggregates: {
+          frequency: 'weekly',
+          tests: ['moisture_content', 'grading'],
+          tolerance: '±2%'
+        }
+      },
+      production_control: {
+        fresh_mortar: {
+          frequency: 'per_batch',
+          tests: ['consistency', 'temperature'],
+          limits: recipe.fresh_mortar_properties
+        },
+        hardened_mortar: {
+          frequency: 'monthly',
+          tests: ['compressive_strength', 'flexural_strength'],
+          warning_limit: '90%_of_declared',
+          action_limit: '85%_of_declared'
+        }
+      },
+      calibration: {
+        scales: 'quarterly',
+        mixers: 'annually',
+        testing_equipment: 'as_per_manufacturer'
+      }
+    }
+  }
+}
+```
+
+#### 2.3 Spezielle Eigenschaften je Estrichtyp
+
+```tsx
+// components/SpecialPropertiesForm.tsx
+function SpecialProperties({ estrichType }: { estrichType: string }) {
+  switch(estrichType) {
+    case 'AS': // Gussasphalt
+      return (
+        <div className="space-y-4">
+          <FormField name="indentation_class">
+            <FormLabel>Eindrückklasse (IC/IP)</FormLabel>
+            <Select>
+              <SelectContent>
+                {['IC10', 'IC15', 'IC40', 'IC100', 'IP10', 'IP15', 'IP40'].map(cls => (
+                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+          
+          <Checkbox name="heated_screed">
+            <Label>Heizestrich (H-Kennzeichnung)</Label>
+          </Checkbox>
+        </div>
+      )
+      
+    case 'SR': // Kunstharz
+      return (
+        <div className="space-y-4">
+          <FormField name="bond_strength_class">
+            <FormLabel>Verbundfestigkeit (B-Klasse)</FormLabel>
+            <Select>
+              <SelectContent>
+                {['B0.5', 'B1.0', 'B1.5', 'B2.0'].map(cls => (
+                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+          
+          <FormField name="impact_resistance_class">
+            <FormLabel>Schlagfestigkeit (IR-Klasse)</FormLabel>
+            <Select>
+              <SelectContent>
+                {['IR1', 'IR2', 'IR4', 'IR10', 'IR20'].map(cls => (
+                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        </div>
+      )
+      
+    default:
+      return null
+  }
+}
+```
+
+### **Phase 3: Prozessoptimierung (2-3 Tage)**
+
+#### 3.1 Versionierung mit Historie
+
+```sql
+-- Versions-Tabelle
+CREATE TABLE en13813_recipe_versions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipe_id UUID REFERENCES en13813_recipes(id),
+  version_number INTEGER NOT NULL,
+  changes JSONB NOT NULL,
+  requires_retest BOOLEAN DEFAULT false,
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  UNIQUE(recipe_id, version_number)
+);
+
+-- Trigger für automatische Versionierung
+CREATE OR REPLACE FUNCTION create_recipe_version()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.status = 'active' AND NEW != OLD THEN
+    INSERT INTO en13813_recipe_versions (
+      recipe_id, 
+      version_number,
+      changes,
+      requires_retest,
+      created_by
+    ) VALUES (
+      NEW.id,
+      COALESCE((
+        SELECT MAX(version_number) + 1 
+        FROM en13813_recipe_versions 
+        WHERE recipe_id = NEW.id
+      ), 1),
+      jsonb_build_object(
+        'old', to_jsonb(OLD),
+        'new', to_jsonb(NEW),
+        'changed_fields', (
+          SELECT jsonb_object_agg(key, value)
+          FROM jsonb_each(to_jsonb(NEW))
+          WHERE to_jsonb(OLD)->key != value
+        )
+      ),
+      -- Re-ITT erforderlich bei kritischen Änderungen
+      CASE 
+        WHEN OLD.compressive_strength != NEW.compressive_strength THEN true
+        WHEN OLD.flexural_strength != NEW.flexural_strength THEN true
+        WHEN OLD.estrich_type != NEW.estrich_type THEN true
+        ELSE false
+      END,
+      NEW.updated_by
+    );
+    
+    -- Automatische Compliance-Task bei Re-ITT
+    IF OLD.compressive_strength != NEW.compressive_strength 
+       OR OLD.flexural_strength != NEW.flexural_strength THEN
+      INSERT INTO en13813_compliance_tasks (
+        tenant_id,
+        task_type,
+        recipe_id,
+        title,
+        description,
+        due_date
+      ) VALUES (
+        NEW.tenant_id,
+        'recipe_validation',
+        NEW.id,
+        'Re-ITT erforderlich: ' || NEW.recipe_code,
+        'Rezepturänderung erfordert neue Erstprüfung',
+        CURRENT_DATE + INTERVAL '30 days'
+      );
+    END IF;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### 3.2 Automatische EN-Bezeichnung mit allen Eigenschaften
+
+```typescript
+// backend/services/recipe-code-generator.ts
+export class RecipeCodeGenerator {
+  generate(recipe: Recipe): string {
+    const parts = [recipe.estrich_type]
+    
+    // Pflicht für CT/CA/MA
+    if (['CT', 'CA', 'MA'].includes(recipe.estrich_type)) {
+      parts.push(recipe.compressive_strength)
+      parts.push(recipe.flexural_strength)
+    }
+    
+    // AS spezifisch
+    if (recipe.estrich_type === 'AS') {
+      if (recipe.indentation_class) {
+        parts.push(recipe.indentation_class)
+      }
+      if (recipe.heated_screed) {
+        parts.push('H')
+      }
+    }
+    
+    // SR spezifisch
+    if (recipe.estrich_type === 'SR') {
+      if (recipe.bond_strength_class) parts.push(recipe.bond_strength_class)
+      if (recipe.wear_resistance_class) parts.push(recipe.wear_resistance_class)
+      if (recipe.impact_resistance_class) parts.push(recipe.impact_resistance_class)
+    }
+    
+    // Verschleiß bei Wearing Surface
+    if (recipe.intended_use?.wearing_surface && recipe.wear_resistance_class) {
+      parts.push(recipe.wear_resistance_class)
+    }
+    
+    // Oberflächenhärte bei MA
+    if (recipe.estrich_type === 'MA' && recipe.surface_hardness_class) {
+      parts.push(recipe.surface_hardness_class)
+    }
+    
+    return parts.join('-')
+  }
+}
+```
+
+## 📊 Dashboard für Compliance-Übersicht
+
+```tsx
+// components/ComplianceDashboard.tsx
+export function ComplianceDashboard() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Rezeptur-Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Vollständig konform</span>
+              <Badge variant="success">{stats.compliant}</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Fehlende ITT</span>
+              <Badge variant="warning">{stats.missing_itt}</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Re-ITT erforderlich</span>
+              <Badge variant="destructive">{stats.retest_required}</Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Anstehende Aufgaben</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[200px]">
+            {tasks.map(task => (
+              <div key={task.id} className="mb-2 p-2 border rounded">
+                <div className="font-medium">{task.title}</div>
+                <div className="text-sm text-muted-foreground">
+                  Fällig: {formatDate(task.due_date)}
+                </div>
+              </div>
+            ))}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>DoP-Bereitschaft</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold">
+            {stats.dop_ready_percentage}%
+          </div>
+          <Progress value={stats.dop_ready_percentage} />
+          <p className="text-sm text-muted-foreground mt-2">
+            {stats.dop_ready} von {stats.total} Rezepturen
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+```
+
+## 🚀 Deployment-Strategie
+
+1. **Datenbank-Migration** ausführen (neue Tabellen/Spalten)
+2. **Backend-Services** deployen
+3. **Frontend** mit neuen Formularen aktualisieren
+4. **Bestehende Daten** migrieren (Mapping-Script)
+5. **Validierung** aller Rezepturen durchführen
+6. **Schulung** der Nutzer
+
+Diese Implementierung macht eure Software vollständig EN 13813 konform und automatisiert die kritischen Compliance-Prozesse!
