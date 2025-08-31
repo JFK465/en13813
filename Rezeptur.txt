@@ -1,0 +1,213 @@
+Für eine **normkonforme Rezepturerstellung nach EN 13813** müssen folgende Elemente zwingend erfasst und dokumentiert werden:
+
+Info 1:
+## 🔬 1. **Materialzusammensetzung**
+
+### Bindemittel:
+- **Art des Bindemittels** (z.B. Zement, Calciumsulfat, Magnesit, Kunstharz)
+- **Genaue Bezeichnung** nach relevanten Normen (z.B. CEM I 42,5 R nach EN 197-1)
+- **Mengenangaben** in kg/m³ oder Gewichtsprozent
+- **Lieferantenspezifikation** mit Konformitätsnachweisen
+
+### Zuschlagstoffe:
+- **Korngrößenverteilung** mit Sieblinie
+- **Art der Gesteinskörnung** (natürlich, rezykliert, leicht)
+- **Größtkorn** (z.B. 0-8 mm, 0-16 mm)
+- **Rohdichte und Feuchtegehalt**
+
+### Zusatzmittel und Zusatzstoffe:
+- **Fließmittel, Verzögerer, Beschleuniger** mit genauer Dosierung
+- **Fasern** (Art, Länge, Dosierung)
+- **Pigmente** für eingefärbte Estriche
+- **Alle Zusätze** müssen EN-konform sein
+
+## 📊 2. **Leistungsklassen-Codierung nach EN 13813**
+
+Die Rezeptur muss folgende **Eigenschaften mit Klassifizierung** dokumentieren:
+
+### Beispiel-Code: **CT-C25-F4-AR0,5**
+- **CT** = Cementitious screed (Zementestrich)
+- **C25** = Druckfestigkeitsklasse (25 N/mm²)
+- **F4** = Biegezugfestigkeitsklasse (4 N/mm²)
+- **AR0,5** = Verschleißwiderstand (≤ 0,5 cm³/50 cm²)
+
+### Weitere mögliche Kennwerte:
+- **SH** = Oberflächenhärte
+- **RWA** = Rollwiderstand
+- **E** = E-Modul
+- **B** = Brandverhalten (z.B. Bfl-s1)
+
+## 🧪 3. **Prüfnachweise und Erstprüfung (ITT)**
+
+### Erforderliche Prüfungen:
+- **Druckfestigkeit** nach EN 13892-2
+- **Biegezugfestigkeit** nach EN 13892-2
+- **Verschleißwiderstand** nach EN 13892-4 (falls deklariert)
+- **Oberflächenhärte** nach EN 13892-6 (falls deklariert)
+- **Brandverhalten** nach EN 13501-1
+
+### Dokumentation:
+- **Prüfberichte** von akkreditierten Prüfstellen
+- **Prüfdatum** und Gültigkeitsdauer
+- **Prüfkörperherstellung** und Lagerungsbedingungen
+- **Prüfalter** (meist 28 Tage)
+
+## 📝 4. **Verarbeitungsparameter**
+
+### Mischvorschrift:
+- **Wasserzugabe** (Wasser-Bindemittel-Wert)
+- **Mischreihenfolge** und Mischzeiten
+- **Mischtechnik** (Zwangsmischer, Freifallmischer)
+- **Temperaturbereich** für Verarbeitung
+
+### Einbaubedingungen:
+- **Schichtdicke** (minimal/maximal)
+- **Verarbeitungszeit**
+- **Erhärtungszeiten** (begehbar, belegreif)
+- **Nachbehandlung** (Folie, Nachbehandlungsmittel)
+
+## 🏭 5. **Werkseigene Produktionskontrolle (WPK/FPC)**
+
+### Kontrollplan:
+- **Eingangskontrolle** der Rohstoffe
+- **Prüfhäufigkeit** während der Produktion
+- **Grenzwerte** und Toleranzen
+- **Maßnahmen bei Abweichungen**
+
+### Qualitätssicherung:
+- **Kalibrierung** der Waagen und Dosiereinrichtungen
+- **Homogenität** der Mischung
+- **Chargenprotokollierung**
+- **Rückstellmuster**
+
+## 📋 6. **Zusätzliche normative Anforderungen**
+
+### Umwelt und Gesundheit:
+- **Gefährliche Substanzen** - Deklaration nach REACH
+- **Radioaktivität** bei bestimmten Zuschlägen
+- **pH-Wert** des Frischmörtels
+
+### Spezielle Estriche:
+- **Heizestriche**: Wärmeleitfähigkeit λ
+- **Industrieestriche**: Schlagfestigkeit, chemische Beständigkeit
+- **Schnellestriche**: Frühfestigkeiten
+
+## ⚠️ 7. **Versionierung und Änderungsmanagement**
+
+### Dokumentationspflichten:
+- **Eindeutige Rezeptur-ID**
+- **Versionsnummer** mit Änderungshistorie
+- **Freigabestatus** (Entwicklung, freigegeben, gesperrt)
+- **Gültigkeitszeitraum**
+- **Verantwortlicher** für Freigabe
+
+### Bei Rezepturänderungen:
+- **Neue Erstprüfung** bei wesentlichen Änderungen
+- **Dokumentation** der Änderungsgründe
+- **Übergangsfristen** für Produktion
+- **Information** an betroffene Stellen
+
+## 📊 8. **Rückverfolgbarkeit**
+
+- **Lückenlose Chargendokumentation**
+- **Verknüpfung** Charge → Rezeptur → DoP
+- **Lieferantennachweise** für alle Komponenten
+- **Kundenlieferungen** dokumentiert
+
+Die **digitale Erfassung** all dieser Punkte mit automatischer Validierung gegen die Normvorgaben stellt sicher, dass keine kritischen Informationen fehlen und die Rezeptur vollständig normkonform ist. Besonders wichtig ist die **Echtzeitvalidierung**, die sofort auf fehlende oder nicht-konforme Werte hinweist.
+
+Info 2:
+Super Fokus. Für **EN 13813-konforme** Estrich-Rezepturen muss deine Rezepturerstellung (Mix-Design) drei Dinge sauber abdecken: **(A) die richtige Ziel-Deklaration nach Norm**, **(B) belastbare Prüf-/Nachweise (ITT + WPK/FPC)** und **(C) die herstellseitige Steuerung/Traceability**. Hier ist die **praxisnahe Checkliste** dafür – so kannst du sie direkt in ComplianceHub als Felder/Validierungen abbilden.
+
+# 1) Ziel-Deklaration & Produktlogik (was muss die Rezeptur „können“?)
+
+1. **Bindemittel-Typ (Pflicht)**
+
+   * Auswahl: **CT** (zementgebunden), **CA** (Calciumsulfat), **MA** (Magnesit), **AS** (Gussasphalt), **SR** (Reaktionsharz). Diese Kürzel sind die Basis jeder EN-13813-Bezeichnung.&#x20;
+2. **Verwendungszweck**
+
+   * **Innen** (EN 13813 deckt interne Nutzung ab), **Tragfunktion?** (tragende Estriche sind *ausgeschlossen*), **Wearing Surface?** (ja/nein), **mit Bodenbelag?** (ja/nein), **Heizestrich?** (Kennzeichen z. B. „H“ bei AS).&#x20;
+3. **Ziel-Leistungsklassen (Pflicht je nach Bindemittel/Use-Case)**
+
+   * **Druckfestigkeit C-Klasse** (C5 … C80). **Pflicht** für CT/CA/MA.&#x20;
+   * **Biegezugfestigkeit F-Klasse** (F1 … F50). **Pflicht** für CT/CA/MA.&#x20;
+   * **Verschleiß** (nur wenn „Wearing Surface“): **eine** der drei Methoden wählen:
+     **A** (Böhme: A22 … A1,5) **oder** **AR** (BCA: AR6 … AR0,5) **oder** **RWA** (Rollrad: RWA300 … RWA1).&#x20;
+   * **Oberflächenhärte SH** (relevant/üblich bei MA; optional bei feinen CT/CA/SR). Klassen SH30 … SH200.&#x20;
+   * **Eindrückbarkeit IC/IP** (für AS). Klassen nach EN-Tabelle (Würfel/Platte, ggf. „H“ für Heizestrich).&#x20;
+   * **(SR) Verbundfestigkeit B-Klasse** und **Schlagfestigkeit IR** (typisch z. B. *SR-B2,0-AR1-IR4*). ([Nobelcert][1], [gbr.sika.com][2])
+4. **Frischmörtel-Eigenschaften** (für Rezepturfreigabe/Prozess)
+
+   * **Erstarrungszeiten**, **Konsistenz** (definiertes Messverfahren und Zielbereich), **pH-Wert**. Diese Fresh-Properties sind in EN 13813 benannt.&#x20;
+5. **Weitere (optionale) Deklarationen nach Bedarf**
+
+   * **Schwinden/Quellen**, **Elastizitätsmodul E**, **Reaktion-auf-Feuer (z. B. A1fl)**, **Akustik**, **Thermik**, **Chemikalienbeständigkeit** – nur wenn relevant, sonst **NPD** („No Performance Determined“) zulässig. ([GlobalLanding][3])
+6. **Vollständige EN-13813-Bezeichnung automatisch bilden**
+
+   * Beispiele: **CT-C25-F4**, **MA-C50-F10-SH150**, **AS-IC10**, **SR-B2,0-AR1-IR4**. (Automatisierbar über Regeln abhängig von Bindemittel/Wearing Surface.) ([Nobelcert][1])
+
+# 2) Prüfplan & Nachweise (Initial Type Testing + laufende WPK/FPC)
+
+1. **ITT – „Welche Prüfung für welches Merkmal?“**
+
+   * **C & F**: **EN 13892-2** (Biege/Druck). ([knowledge.bsigroup.com][4])
+   * **Verschleiß**: **EN 13892-3** (Böhme, „A“), **EN 13892-4** (BCA, „AR“), **EN 13892-5** (Rollrad, „RWA“).&#x20;
+   * **Oberflächenhärte**: **EN 13892-6** („SH“).&#x20;
+   * **Rollrad m. Belag**: **EN 13892-7** („RWFC“). ([iTeh Standards][5])
+   * **Verbundfestigkeit/Schlag** (insb. SR): **EN 13892-8** (B), **EN ISO 6272** (IR).&#x20;
+   * **Reaktion-auf-Feuer**: **EN 13501-1** (Ergebnis oft A1fl für mineralische Systeme).&#x20;
+   * **Hinweis Altersangabe**: Leistungsalter nach **EN 13892-1**; wenn früher erreicht, darf dieses Alter **in der Bezeichnung** mitgeführt werden (alle Klassen müssen erreicht sein).&#x20;
+2. **WPK/FPC – Werkseigene Produktionskontrolle (Qualitäts-Handbuch)**
+
+   * Vorgabe in EN 13813: **Produktionskontrollsystem im QM-Handbuch dokumentieren** (Probenahme, Prüfintervalle, Gerätekalibrierung, Abweichungsgrenzen, Freigaberegeln).&#x20;
+   * **Routineprüfungen** definieren (z. B. Frisch-Konsistenz je Charge, Dichte, Luftporen; Festigkeit nach definiertem Turnus; Feuchte/Feinanteile im Zuschlag).
+   * **Änderungsmanagement**: Jede Rezepturänderung außerhalb definierter Toleranzen ⇒ **neu ITT-pflichtig** (Ziel: nachweislich keine Verschlechterung der deklarierten Klassen).&#x20;
+
+# 3) Zusammensetzung, Prozess & Traceability (was gehört in die Rezepturakte?)
+
+* **Rohstoffe & Spezifikationen**:
+  Bindemittel (CEM-Typ/Anhydrit-Typ/Harzsystem), Zuschläge (Körnung/Grädigkeit/Feuchte), Zusätze/Adjuvantien (Weichmacher, Beschleuniger, Fasern, Schrumpfreduzierer), **Wasserqualität**. (EN 13813 fordert „geeignete“ Materialien mit nachgewiesener Eignung.)&#x20;
+* **Mischungsparameter**: Ziel-**w/B-Wert** bzw. Harz/Härter-Verhältnis, Dosierfenster (min/max), Mischreihenfolge, Mischzeit, Temperaturfenster.
+* **Prozessgrenzen**: Batching-Toleranzen, Gerätekalibrierungen, Freigabekriterien der Frisch-prüfung (Konsistenz-Soll, Start-/Ende Erstarrung).
+* **Rückverfolgbarkeit**: Rezeptur-Version, ITT-Berichte, WPK-Protokolle, Rohstoff-Chargen, **Charge→DoP→Lieferung**-Verknüpfung, Rückstellmuster.
+* **Kennzeichnung/Beipack**: Automatische Bildung der **EN-13813-Bezeichnung** (s. oben) + **CE/DoP-Infos** (siehe 4). ([Nobelcert][1])
+
+# 4) Schnittstelle zur DoP/CE-Kennzeichnung (für die spätere DoP-Generierung)
+
+Für die **Leistungserklärung (DoP)** brauchst du aus der Rezepturakte u. a.:
+
+* **Produkt-ID & Typ**, **vorgesehene Verwendung**, Herstellerdaten, **hEN-Referenz (EN 13813)**, **AVCP-System** (bei EN 13813 typischerweise **System 4**), **erklärte Leistungen** der **wesentlichen Merkmale** (z. B. C/F-Klassen, ggf. A/AR/RWA, SH, IC/IP, B, IR, Reaktion-auf-Feuer, …) mit **NPD**, wo nicht bestimmt. Beispiele aktueller DoPs zeigen genau diese Struktur. ([gbr.sika.com][2], [GlobalLanding][3])
+
+---
+
+## So würde ich’s in ComplianceHub als Felder/Validierungen modellieren
+
+* **\[Pflicht]** Bindemittel-Typ (CT/CA/MA/AS/SR) → steuert Pflichtenmatrix (welche Merkmale **N**, welche **optional**).&#x20;
+* **\[Pflicht]** Intended use: *Wearing Surface? Mit Belag? Heizestrich?* → schaltet A/AR/RWA/SH/IC/IP an/aus.&#x20;
+* **\[Pflicht]** Zielklassen: C-Klasse, F-Klasse; bei Wearing Surface genau **eine** Verschleiß-Methode + Klasse.&#x20;
+* **\[Fresh]** Konsistenz-Ziel, Erstarrungszeiten, pH-Ziel + Messmethode.&#x20;
+* **\[Optional]** E, Schwinden/Quellen, IR, B, Reaktion-auf-Feuer, Akustik, Thermik, Chemie → als NPD vorbelegt.&#x20;
+* **\[Nachweis]** ITT-Mapping (jede erklärte Leistung → zugehörige **EN 13892/EN/ISO**-Prüfnorm, Prüfalter, Report-ID). ([knowledge.bsigroup.com][4])
+* **\[WPK]** Kontrollplan (Frequenzen, Toleranzen, Kalibrierungen), Änderungsregeln mit Re-ITT-Trigger.&#x20;
+* **\[Auto]** Generator der EN-13813-Bezeichnung (z. B. **CT-C25-F4** …) + **DoP-Payload** (inkl. AVCP, NPD-Felder), QR-Link. ([Nobelcert][1], [gbr.sika.com][2])
+
+---
+
+### Mini-Beispiele (korrekte Norm-Syntax)
+
+* **CT-C25-F4** (Innen, nicht als Nutzschicht): Druck C25, Biege F4. ([Heidelberg Materials UK][6])
+* **CA-C25-F4** (Calciumsulfat, gleiche Klassen). ([Nobelcert][1])
+* **SR-B2,0-AR1-IR4** (Reaktionsharz mit Verbund-/Verschleiß-/Schlagklasse). ([Nobelcert][1], [gbr.sika.com][2])
+* **MA-C50-F10-SH150** (Magnesit mit Oberflächenhärte). ([Nobelcert][1])
+* **AS-IC10** (Gussasphalt mit Eindrückklasse; ggf. „H“ für Heizestrich).&#x20;
+
+> **Kernbotschaft:** Lass die App zuerst Bindemittel & Use-Case abfragen. Daraus leitest du **Pflicht-Leistungen** ab, verknüpfst **jede erklärte Klasse** mit der **passenden EN-13892-Prüfung** (ITT) und hängst alles an **Rezeptur-Version + WPK**. Die EN-Bezeichnung und die DoP fallen dann „automatisch“ heraus – sauber normkonform.&#x20;
+
+Wenn du willst, baue ich dir daraus direkt ein **Datenmodell (JSON/Zod)** inkl. Validierungslogik für CT/CA/MA/AS/SR.
+
+[1]: https://nobelcert.com/DataFiles/FreeUpload/EN%2013813-2002.pdf?utm_source=chatgpt.com "Screed material — Properties and requirements"
+[2]: https://gbr.sika.com/dam/dms/gb01/w/dop-sika-ucrete-mten13813200224470196en.pdf?utm_source=chatgpt.com "DoP Sika® Ucrete® MT – EN 13813:2002 – 24470196 – en"
+[3]: https://cdnmedia.mapei.com/docs/librariesprovider2/products-documents/3_ise_ce-dop_8928_en-13813_gb_0_5c6eeb41be14461490c085bcfb4ada1b.pdf?sfvrsn=4e23c1cb_0&utm_source=chatgpt.com "ULTRATOP SCREED Declaration of Performance"
+[4]: https://knowledge.bsigroup.com/products/methods-of-test-for-screed-materials-determination-of-flexural-and-compressive-strength?utm_source=chatgpt.com "BS EN 13892-2:2002 | 28 Nov 2002"
+[5]: https://standards.iteh.ai/catalog/standards/cen/fbbc6f7c-24b7-4a10-be22-be2242ceefe3/en-13892-2-2002?srsltid=AfmBOoohpEFMbEYU4PJbVYetK6mWNLCu625vHo_-2FOXCKPBtwWtjOK1&utm_source=chatgpt.com "EN 13892-2:2002 - Methods of test for screed materials"
+[6]: https://www.heidelbergmaterials.co.uk/sites/default/files/2023-07/hanson-easyflow-screed-technical-data-sheet-ct-c25-f4.pdf?utm_source=chatgpt.com "Hanson EasyFlow Screed CT C25 F4"
