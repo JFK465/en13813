@@ -1,20 +1,34 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { authService } from '@/lib/auth/auth-service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    const message = searchParams.get('message')
+    const registered = searchParams.get('registered')
+    
+    if (message) {
+      setSuccess(message)
+    } else if (registered === 'true') {
+      setSuccess('Account created successfully! Please sign in.')
+    }
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,72 +36,25 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    // Temporärer Demo-Login für Entwicklung
+    // Check for demo login
     if (email === 'demo@example.com' && password === 'demo') {
-      console.log('✅ Demo login detected, proceeding with demo authentication')
-      // Simuliere erfolgreichen Login
-      localStorage.setItem('demo_user', JSON.stringify({
-        id: 'demo-user-id',
-        email: 'demo@example.com',
-        tenant_id: 'demo-tenant-id'
-      }))
-      console.log('📦 Demo user data stored in localStorage')
-      
-      // Trigger custom event to notify useAuth
-      window.dispatchEvent(new CustomEvent('demo-user-set'))
-      console.log('📡 Demo user event dispatched')
-      console.log('🚀 Redirecting to /en13813')
-      
-      // More detailed debugging
-      console.log('Router object:', router)
-      console.log('Current pathname:', window.location.pathname)
-      console.log('Current href:', window.location.href)
-      
-      try {
-        const result = router.push('/en13813')
-        console.log('Router.push result:', result)
-        console.log('✅ router.push executed successfully')
-        
-        // Check if navigation actually happened
-        setTimeout(() => {
-          console.log('After 1s - Current pathname:', window.location.pathname)
-          console.log('After 1s - Current href:', window.location.href)
-        }, 1000)
-        
-        setTimeout(() => {
-          console.log('After 3s - Current pathname:', window.location.pathname) 
-          console.log('After 3s - Current href:', window.location.href)
-        }, 3000)
-        
-      } catch (error) {
-        console.error('❌ Error during router.push:', error)
-      }
-      
+      console.log('✅ Demo login detected')
+      authService.setDemoUser()
+      router.push('/en13813')
       setLoading(false)
       return
     }
 
     try {
-      console.log('🔗 Attempting Supabase authentication')
-      const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      console.log('🔗 Attempting authentication')
+      const data = await authService.signIn({ email, password })
 
-      if (error) {
-        console.log('❌ Supabase login error:', error.message)
-        setError(error.message)
-        setLoading(false)
-        return
-      }
-
-      console.log('✅ Supabase login successful, redirecting to EN13813')
+      console.log('✅ Login successful, redirecting to EN13813')
       router.push('/en13813')
       router.refresh()
-    } catch (err) {
-      console.log('💥 Login exception caught:', err)
-      setError('Verbindung zum Server fehlgeschlagen. Nutze demo@example.com / demo für Demo-Zugang.')
+    } catch (err: any) {
+      console.log('❌ Login error:', err)
+      setError(err.message || 'Sign in failed. Please try the demo account: demo@example.com / demo')
       setLoading(false)
     }
   }
@@ -115,7 +82,15 @@ export default function LoginPage() {
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           {error && (
             <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {success && (
+            <Alert className="border-green-500 bg-green-50">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">{success}</AlertDescription>
             </Alert>
           )}
 
@@ -169,17 +144,37 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={loading}
-            onClick={(e) => {
-              console.log('🖱️ Login button clicked')
-              console.log('📝 Form values:', { email, password: password ? '[HIDDEN]' : 'empty' })
-            }}
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or</span>
+              </div>
+            </div>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setEmail('demo@example.com')
+                setPassword('demo')
+                setSuccess('Demo credentials filled. Click Sign in to continue.')
+              }}
+            >
+              Use Demo Account
+            </Button>
+          </div>
         </form>
       </div>
     </div>

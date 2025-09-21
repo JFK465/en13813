@@ -140,7 +140,7 @@ export default function NewDoPPage() {
     if (!selectedRecipe) {
       toast({
         title: 'Fehler',
-        description: 'Bitte wählen Sie eine Rezeptur aus',
+        description: 'Bitte wÃ¤hlen Sie eine Rezeptur aus',
         variant: 'destructive'
       })
       return
@@ -153,7 +153,7 @@ export default function NewDoPPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipe_id: selectedRecipe,
-          batch_id: selectedBatch || undefined,
+          batch_id: selectedBatch === 'none' ? undefined : selectedBatch,
           test_report_ids: selectedTestReports,
           language
         })
@@ -199,15 +199,15 @@ export default function NewDoPPage() {
           className="inline-flex items-center text-sm text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Zurück zur Übersicht
+          ZurÃ¼ck zur Ãœbersicht
         </Link>
       </div>
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Neue Leistungserklärung (DoP)</h1>
+          <h1 className="text-3xl font-bold">Neue LeistungserklÃ¤rung (DoP)</h1>
           <p className="text-muted-foreground mt-1">
-            Generieren Sie eine CE-konforme Leistungserklärung nach EN 13813
+            Generieren Sie eine CE-konforme LeistungserklÃ¤rung nach EN 13813
           </p>
         </div>
 
@@ -232,16 +232,16 @@ export default function NewDoPPage() {
               </TabsTrigger>
               <TabsTrigger value="tests" disabled={!selectedRecipe}>
                 <ClipboardCheck className="mr-2 h-4 w-4" />
-                Prüfberichte
+                PrÃ¼fberichte
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="recipe" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Rezeptur auswählen</CardTitle>
+                  <CardTitle>Rezeptur auswÃ¤hlen</CardTitle>
                   <CardDescription>
-                    Wählen Sie die Rezeptur für die Leistungserklärung
+                    WÃ¤hlen Sie die Rezeptur fÃ¼r die LeistungserklÃ¤rung
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -249,7 +249,7 @@ export default function NewDoPPage() {
                     <Label>Rezeptur *</Label>
                     <Select value={selectedRecipe} onValueChange={setSelectedRecipe}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Rezeptur wählen..." />
+                        <SelectValue placeholder="Rezeptur wÃ¤hlen..." />
                       </SelectTrigger>
                       <SelectContent>
                         {recipes.map((recipe) => (
@@ -273,7 +273,7 @@ export default function NewDoPPage() {
                           <div><strong>Druckfestigkeit:</strong> {recipeDetails.compressive_strength}</div>
                           <div><strong>Biegezugfestigkeit:</strong> {recipeDetails.flexural_strength}</div>
                           {recipeDetails.wear_resistance && (
-                            <div><strong>Verschleißwiderstand:</strong> {recipeDetails.wear_resistance}</div>
+                            <div><strong>VerschleiÃŸwiderstand:</strong> {recipeDetails.wear_resistance}</div>
                           )}
                         </div>
                       </AlertDescription>
@@ -288,7 +288,7 @@ export default function NewDoPPage() {
                 <CardHeader>
                   <CardTitle>Charge (Optional)</CardTitle>
                   <CardDescription>
-                    Verknüpfen Sie die DoP mit einer spezifischen Produktionscharge
+                    VerknÃ¼pfen Sie die DoP mit einer spezifischen Produktionscharge
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -296,10 +296,10 @@ export default function NewDoPPage() {
                     <Label>Charge</Label>
                     <Select value={selectedBatch} onValueChange={setSelectedBatch}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Keine Charge ausgewählt" />
+                        <SelectValue placeholder="Keine Charge ausgewÃ¤hlt" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Keine Charge</SelectItem>
+                        <SelectItem value="none">Keine Charge</SelectItem>
                         {batches.map((batch) => (
                           <SelectItem key={batch.id} value={batch.id}>
                             {batch.batch_number} - {new Date(batch.production_date).toLocaleDateString('de-DE')}
@@ -313,7 +313,7 @@ export default function NewDoPPage() {
                     <Alert className="mt-4">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Keine Chargen für diese Rezeptur gefunden. 
+                        Keine Chargen fÃ¼r diese Rezeptur gefunden. 
                         Die DoP kann auch ohne Charge erstellt werden.
                       </AlertDescription>
                     </Alert>
@@ -325,9 +325,9 @@ export default function NewDoPPage() {
             <TabsContent value="tests" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Prüfberichte</CardTitle>
+                  <CardTitle>PrÃ¼fberichte</CardTitle>
                   <CardDescription>
-                    Wählen Sie die relevanten Prüfberichte für die DoP
+                    WÃ¤hlen Sie die relevanten PrÃ¼fberichte fÃ¼r die DoP
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -355,7 +355,7 @@ export default function NewDoPPage() {
                             </div>
                             {report.valid_until && (
                               <div className="text-sm">
-                                Gültig bis: {new Date(report.valid_until).toLocaleDateString('de-DE')}
+                                GÃ¼ltig bis: {new Date(report.valid_until).toLocaleDateString('de-DE')}
                               </div>
                             )}
                           </label>
@@ -366,8 +366,8 @@ export default function NewDoPPage() {
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Keine gültigen Prüfberichte für diese Rezeptur gefunden.
-                        Bitte laden Sie zuerst einen Prüfbericht hoch.
+                        Keine gÃ¼ltigen PrÃ¼fberichte fÃ¼r diese Rezeptur gefunden.
+                        Bitte laden Sie zuerst einen PrÃ¼fbericht hoch.
                       </AlertDescription>
                     </Alert>
                   )}
@@ -388,8 +388,8 @@ export default function NewDoPPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="de"><é<ê Deutsch</SelectItem>
-                <SelectItem value="en"><ì<ç English</SelectItem>
+                <SelectItem value="de">ðŸ‡©ðŸ‡ª Deutsch</SelectItem>
+                <SelectItem value="en">ðŸ‡¬ðŸ‡§ English</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>

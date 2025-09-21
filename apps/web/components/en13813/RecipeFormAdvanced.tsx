@@ -651,7 +651,7 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Keine Angabe</SelectItem>
+                                <SelectItem value="none">Keine Angabe</SelectItem>
                                 {['SH30', 'SH40', 'SH50', 'SH70', 'SH100', 'SH150', 'SH200'].map(cls => (
                                   <SelectItem key={cls} value={cls}>{cls} N/mm²</SelectItem>
                                 ))}
@@ -687,7 +687,7 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Keine Angabe</SelectItem>
+                                <SelectItem value="none">Keine Angabe</SelectItem>
                                 {['B0.5', 'B1.0', 'B1.5', 'B2.0'].map(cls => (
                                   <SelectItem key={cls} value={cls}>{cls} N/mm²</SelectItem>
                                 ))}
@@ -714,7 +714,7 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Keine Angabe</SelectItem>
+                                <SelectItem value="none">Keine Angabe</SelectItem>
                                 {['IR1', 'IR2', 'IR4', 'IR10', 'IR20'].map(cls => (
                                   <SelectItem key={cls} value={cls}>{cls} Nm</SelectItem>
                                 ))}
@@ -750,7 +750,7 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Keine Angabe</SelectItem>
+                                <SelectItem value="none">Keine Angabe</SelectItem>
                                 <SelectItem value="IC10">IC10 - Industrie schwer</SelectItem>
                                 <SelectItem value="IC15">IC15 - Industrie mittel</SelectItem>
                                 <SelectItem value="IC40">IC40 - Industrie leicht</SelectItem>

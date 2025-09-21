@@ -1,0 +1,231 @@
+Alles klar—hier ist eine kompakte, aber vollständige Liste der **Handover-Dokus** mit jeweils **Ziel** (wofür?) und **Inhalt** (was gehört rein?). Du kannst die Dateinamen so in deinem Repo anlegen.
+
+# Kern
+
+### 1) `README.md`
+
+**Ziel:** Schnell verstehen, was die Software macht und sie in <15 Min starten.
+**Inhalt:**
+
+* Kurzbeschreibung (Problem, Zielgruppe, Scope)
+* Tech-Stack (Frontend/Backend/DB/Infra)
+* Quickstart (Prereqs, Install, `dev`/`build`/`test`/`lint`)
+* Standard-Logins/Demo-Daten
+* Wichtige Links (Staging/Prod, API-Spec, Storybook, Monitoring)
+
+### 2) `ARCHITECTURE.md`
+
+**Ziel:** System auf einen Blick: Komponenten, Datenflüsse, Abhängigkeiten, Qualitätsziele.
+**Inhalt:**
+
+* Systemdiagramm (Kontext + Hauptkomponenten)
+* Datenflüsse (z. B. Login, zentrales CRUD)
+* Nichtfunktionale Ziele (Performance, Verfügbarkeit, Sicherheit)
+* Externe Dienste (Auth, E-Mail, Payments, Analytics)
+* Trade-offs/Constraints (z. B. Multi-Tenant, Edge-Limits)
+
+### 3) `SETUP.md` (oder `DEVELOPING.md`)
+
+**Ziel:** Lokale Entwicklungsumgebung reproduzierbar aufsetzen.
+**Inhalt:**
+
+* Prereqs (Node, Paketmanager, Docker, CLI-Tools)
+* Repo-Befehle (Install, Start, Tests, Lint, Typecheck)
+* DB/Migrations/Seed (Reihenfolge, Rollback)
+* Debugging (VS Code Launch Configs)
+* Troubleshooting (Top-5 Setup-Fehler)
+
+### 4) `.env.example` + Variablenliste
+
+**Ziel:** Envs korrekt und sicher befüllen.
+**Inhalt:**
+
+* Tabelle: `KEY` | Bedeutung | Beispielwert | Pflicht?
+* Hinweise zu Secrets/Rotation
+* Env-Scopes (local/staging/prod) & Unterschiede
+
+### 5) `CONTRIBUTING.md` (inkl. Repo-Konventionen)
+
+**Ziel:** Einheitliche Zusammenarbeit, PR-Qualität sichern.
+**Inhalt:**
+
+* Branch-Modell, Commit-Konvention (Conventional Commits)
+* PR-Prozess (Template, Review-Kriterien, CI-Checks)
+* Code-Style (ESLint/Prettier/TS-Strictness)
+* Ordnerstruktur & Namenskonventionen
+* Issue-Labels, Release-Tagging
+
+### 6) `CHANGELOG.md` + Versionierung
+
+**Ziel:** Nachvollziehbare Änderungen & Migrationshinweise.
+**Inhalt:**
+
+* SemVer (MAJOR.MINOR.PATCH)
+* Sektionen: Added/Changed/Fixed/Deprecated/Removed/Security
+* Upgrade-/Migrations-Notizen pro Release
+
+### 7) `adr/` (Architecture Decision Records)
+
+**Ziel:** Entscheidungslog für Architektur/Tech-Weichenstellungen.
+**Inhalt (pro ADR):**
+
+* Kontext & Problem
+* Optionen (Pro/Contra)
+* Entscheidung & Begründung
+* Folgen/Schulden/Migration
+* Status (Accepted/Deprecated/Superseded)
+
+# Fachlich & Code-nah
+
+### 8) **Frontend-Doku** (`docs/frontend.md`)
+
+**Ziel:** Schneller Einstieg in Struktur, Patterns und UI-System.
+**Inhalt:**
+
+* App-Struktur (Routing, Layouts, Feature-Slices)
+* State-Management (z. B. React Query), Caching, Error-Handling
+* Forms & Validation (z. B. RHF + Zod), UX-Fehlermuster
+* Design-System (Tokens, shadcn/ui-Varianten)
+* Performance-Guidelines (Code-Split, LCP-Budget)
+* A11y-Prinzipien (Fokus, ARIA, Kontrast)
+
+### 9) **Backend/DB-Doku** (`docs/backend.md`)
+
+**Ziel:** Datenmodell & Serverlogik sicher erweitern.
+**Inhalt:**
+
+* ERD/Tabellen, zentrale Relationen & Indizes
+* Auth-/Rollenmodell (Multi-Tenant, Claims)
+* RLS-Policies (Beispiele + Tests)
+* Migrations-Workflow (Naming, reversible Changes)
+* Jobs/Queues/Webhooks (Idempotenz, Retries)
+
+### 10) **API-Doku** (`docs/api/openapi.yaml` + `docs/api.md`)
+
+**Ziel:** Konsumierbare, versionierte API für interne/Externe.
+**Inhalt:**
+
+* Auth-Flows, Scopes/Rollen
+* Endpunkte mit Schemas, Fehlercodes, Pagination/Filter
+* Idempotenz-Schlüssel & Retry-Semantik
+* Webhooks (Signatur, Replay-Schutz, Retry-Policy)
+* Versionierung/Deprecation-Timeline
+
+# Qualität, Sicherheit & Compliance
+
+### 11) **Test-Strategie** (`docs/testing.md`)
+
+**Ziel:** Verlässliche Qualitätssicherung mit klaren Gates.
+**Inhalt:**
+
+* Testpyramide (Unit/Integration/E2E) + Tools
+* Coverage-Ziele, Flaky-Handhabung
+* Testdaten (Factories, Anonymisierung)
+* CI-Checks (wann blockend?), Artefakte/Reports
+
+### 12) **SECURITY.md**
+
+**Ziel:** Bedrohungsbild, Schutzmaßnahmen, Verantwortlichkeiten.
+**Inhalt:**
+
+* Threat-Model (STRIDE-Kurzform je Komponente)
+* SAST/DAST/SCA (Tools, Frequenz, Gates)
+* Secrets-Management & Rotation
+* Sicherheitsheader/CSP, Input-Validierung
+* Responsible-Disclosure-Kontakt/Policy
+
+### 13) **Daten & DSGVO** (`docs/compliance-dsgvo.md`)
+
+**Ziel:** Nachweisbare Datenschutz-Compliance & Prozesse.
+**Inhalt:**
+
+* Datenklassifikation (PII/Intern/Public)
+* Rechtsgrundlagen je Zweck, Einwilligungen/Protokolle
+* Speicherfristen & Löschkonzept (TTL/Jobs)
+* Betroffenenrechte (Export/Korrektur/Löschung – technische Pfade)
+* Sub-Prozessoren, TOMs, AVVs (Links/Stand)
+
+# Betrieb & Auslieferung
+
+### 14) **CI/CD-Pipelines** (`docs/cicd.md`)
+
+**Ziel:** Reproduzierbare, sichere Builds & Deploys.
+**Inhalt:**
+
+* Trigger (PR/main/tags), Stages (Build/Test/E2E/Security/Deploy)
+* Environments (Dev/Staging/Prod) & Promotions
+* Secrets (OIDC/Key-Vault, keine Klartexte)
+* Release-Arten (Canary/Blue-Green) & Rollback-Plan
+* Release-Checklist (Changelog, Migrations, Flags, Dashboards)
+
+### 15) **RUNBOOK.md**
+
+**Ziel:** Störung beheben können—auch ohne die „alten Hasen“.
+**Inhalt:**
+
+* Start/Stop/Restart, Health-Checks
+* Logs/Tracing/Metric-Zugriff
+* Häufige Störungen & Workarounds
+* Incident-Prozess (Priorisierung, Eskalation, Kommunikation)
+* Post-Mortem-Vorlage (Owner, Actions, Due Dates)
+
+### 16) **INFRA.md**
+
+**Ziel:** Infrastruktur, Kosten und Risiken im Griff behalten.
+**Inhalt:**
+
+* Hosting/Provisionierung (Vercel/Netlify/K8s/Terraform)
+* DNS/Domains/TLS/HSTS
+* CDN/Caching-Strategien
+* Jobs/Cron/Queues (Zeitpläne, DLQ)
+* Kosten-Budgets/Alerts, Kapazitätsplanung
+
+### 17) **Monitoring & Observability** (`docs/observability.md`)
+
+**Ziel:** Sichtbarkeit und Frühwarnsysteme definiert.
+**Inhalt:**
+
+* SLI/SLOs (Latenz, Fehlerquote, Verfügbarkeit)
+* Dashboards (APM, Logs, Traces)
+* Alerting-Regeln (Routen, Ruhezeiten)
+* On-Call-Plan (Rollen, Bereitschaft)
+
+# Produkt & Governance
+
+### 18) **PRODUKT.md**
+
+**Ziel:** Kontext & Prioritäten klarmachen, nicht nur Technik.
+**Inhalt:**
+
+* Problemstatement, Ziele/KPIs
+* Personas & Kern-Use-Cases
+* Roadmap (nächste 1–2 Quartale)
+* Analytics-Ereignisse (Event-Namen, Properties, DSGVO-Hinweise)
+* Definition of Done/Akzeptanzkriterien
+
+### 19) **LICENSE / NOTICE / CODE\_OF\_CONDUCT**
+
+**Ziel:** Rechtliche Klarheit & Community-Rahmen.
+**Inhalt:**
+
+* Lizenz (MIT/Apache/Proprietär)
+* Drittanbieter-Hinweise
+* Verhaltenskodex (Zusammenarbeit, Meldewege)
+
+### 20) **Glossar & Namenskonventionen** (`docs/glossary.md`)
+
+**Ziel:** Gemeinsame Sprache, weniger Missverständnisse.
+**Inhalt:**
+
+* Domänenbegriffe, Abkürzungen
+* Benennungsregeln (DB-Felder, Events, Flags)
+
+---
+
+## Wann ist „fertig“?
+
+* Jede Datei beantwortet klar **Zweck, Wie, Wo & Wer**.
+* Lässt sich in einem PR-Gate prüfen (Checkliste im PR-Template).
+* Neue Entwickler\:in kann in 1 Tag lokal lauffähig sein und 1 kleines Ticket umsetzen.
+
+

@@ -18,14 +18,17 @@ export interface Recipe extends BaseEntity {
   flexural_strength: string
   
   // Verschleißwiderstand - NUR EINE Methode!
-  wear_resistance_method?: 'bohme' | 'bca' | 'rolling_wheel'
+  wear_resistance_method?: 'bohme' | 'bca' | 'rolling_wheel' | 'none' | 'NPD'
   wear_resistance_class?: string // A22-A1.5 | AR6-AR0.5 | RWA300-RWA1
   
   // Zusätzliche mechanische Eigenschaften
   surface_hardness_class?: string // SH30-SH200 für MA
-  bond_strength_class?: string // B0.5-B2.0 für SR
+  bond_strength_class?: string // B0.2-B2.0 für SR und optional andere
   impact_resistance_class?: string // IR1-IR20 für SR
   indentation_class?: string // IC10-IC100 oder IP10-IP40 für AS
+  
+  // Rollradprüfung für bedeckte Estriche (EN 13813 Abschnitt 5.2.6)
+  rolling_wheel_floor_covering_class?: string // RWFC150, RWFC250, RWFC350, RWFC450, RWFC550 oder NPD
   
   // Verwendungszweck
   intended_use: {
@@ -33,14 +36,82 @@ export interface Recipe extends BaseEntity {
     with_flooring: boolean
     heated_screed: boolean
     indoor_only: boolean
+    outdoor_use?: boolean
+    wet_areas?: boolean
+    chemical_exposure?: boolean
+    heavy_duty?: boolean
+    esd_requirements?: boolean
   }
   
   // Heizestrich
   heated_screed?: boolean
   
-  // Fire & Emissions
-  fire_class?: string
+  // Fire & Emissions  
+  fire_class?: string // A1fl-Ffl oder NPD
+  fire_smoke_class?: string // s1, s2
   emissions?: Record<string, any>
+  
+  // Freisetzung korrosiver Substanzen (EN 13813 Abschnitt 5.3.5)
+  release_corrosive_substances?: string // Deklaration des Materialtyps (CT/CA/MA/AS/SR)
+  
+  // === VOLLSTÄNDIGE EN 13813 EIGENSCHAFTEN ===
+  
+  // Wassereigenschaften
+  water_permeability?: string // NPD oder Wert
+  water_permeability_value?: number // Wert in ml/(m²·h)
+  water_vapour_permeability?: string // NPD oder µ-Wert
+  water_vapour_permeability_value?: number // µ-Wert (Diffusionswiderstand)
+  water_absorption_class?: string // W0, W1, W2 oder NPD
+  
+  // Thermische Eigenschaften
+  thermal_conductivity?: number // λ-Wert in W/(m·K)
+  thermal_resistance?: number // R-Wert in m²·K/W
+  specific_heat_capacity?: number // J/(kg·K)
+  
+  // Akustische Eigenschaften
+  sound_insulation?: number // Luftschallverbesserung in dB
+  sound_absorption_coefficient?: number // α-Wert
+  impact_sound_improvement?: number // ΔLw in dB
+  
+  // Elektrische Eigenschaften (PFLICHT für AS bei ESD)
+  electrical_resistance?: string // 10^4 - 10^9 Ω
+  electrical_conductivity?: string // Leitfähigkeit
+  electrostatic_behaviour?: 'insulating' | 'dissipative' | 'conductive'
+  
+  // Chemische Beständigkeit
+  chemical_resistance_class?: string // CR0 - CR4 oder NPD
+  ph_resistance_range?: {
+    min: number
+    max: number
+  }
+  oil_resistance?: boolean
+  
+  // pH-Wert für CA-Estriche (EN 13813 Abschnitt 5.2.10)
+  ph_value_ca?: number // MUSS ≥ 7 für CA-Estriche
+  
+  // Mechanische Zusatzeigenschaften
+  creep_coefficient?: number // Kriechzahl
+  elastic_modulus?: number // E-Modul in N/mm² (E1-E20+)
+  elastic_modulus_class?: string // E1, E2, E5, E10, E15, E20 oder höher
+  
+  // Schwinden und Quellen (EN 13813 Abschnitt 5.2.8)
+  shrinkage_value?: number // mm/m
+  swelling_value?: number // mm/m
+  shrinkage_class?: string // S1, S2, S3 oder NPD
+  curling_tendency?: string // niedrig/mittel/hoch oder NPD
+  
+  // Dauerhaftigkeit
+  freeze_thaw_resistance?: string // FT0, FT1, FT2
+  abrasion_resistance_class?: string // Alternativ zu wear_resistance
+  
+  // Sicherheit
+  slip_resistance_class?: string // R9 - R13 oder NPD
+  release_dangerous_substances?: string // NPD oder "Siehe SDB"
+  
+  // Anwendungsspezifisch
+  thickness_tolerance_class?: string // T1, T2, T3 oder NPD
+  flatness_tolerance?: number // mm/2m
+  surface_texture?: 'smooth' | 'textured' | 'structured' | 'NPD'
   
   // Additional data
   additives?: any[]
@@ -120,12 +191,24 @@ export interface DoP extends BaseEntity {
   dop_number: string
   version: number
   revision_of?: string
+  language: 'de' | 'en' | 'fr' | string
   
   // Manufacturer data
   manufacturer_data: ManufacturerData
+  authorized_representative?: AuthorizedRepresentative
+  
+  // AVCP System (System 1+ oder 4)
+  avcp_system: 1 | 4
+  notified_body?: NotifiedBody
+  
+  // Harmonized specification
+  harmonized_specification: {
+    standard: string // 'EN 13813:2002'
+    title: string
+  }
   
   // Declared performance
-  declared_performance: Record<string, any>
+  declared_performance: DeclaredPerformance
   
   // Generated documents
   pdf_document_id?: string
@@ -135,6 +218,11 @@ export interface DoP extends BaseEntity {
   qr_code_data?: string
   public_uuid?: string
   public_url?: string
+  digital_availability_url?: string
+  
+  // Retention
+  retention_period?: string // '10 years'
+  retention_location?: string
   
   // Workflow
   workflow_status: 'draft' | 'submitted' | 'reviewed' | 'approved' | 'published' | 'revoked'
@@ -150,6 +238,13 @@ export interface DoP extends BaseEntity {
   issue_date?: string
   expiry_date?: string
   is_active?: boolean
+  
+  // Signatory
+  signatory?: {
+    name: string
+    position: string
+    place?: string
+  }
 }
 
 export interface ManufacturerData {
@@ -163,6 +258,60 @@ export interface ManufacturerData {
   website?: string
   vat_number?: string
   registration_number?: string
+}
+
+export interface AuthorizedRepresentative {
+  name: string
+  address: string
+  postalCode: string
+  city: string
+  country: string
+  mandate_reference?: string
+}
+
+export interface NotifiedBody {
+  name: string
+  number: string // z.B. '0672'
+  task: string // 'Klassifizierung des Brandverhaltens'
+  certificate_number?: string // z.B. '0672-CPR-2024-12345'
+  test_report?: string // z.B. 'PB-2024-12345'
+  test_date?: string
+}
+
+export interface DeclaredPerformance {
+  // Bindemitteltyp (korrosive Stoffe)
+  release_of_corrosive_substances: 'CT' | 'CA' | 'MA' | 'AS' | 'SR'
+  
+  // Mechanische Eigenschaften
+  compressive_strength_class: string
+  flexural_strength_class: string
+  
+  // Verschleißwiderstand (je nach Methode)
+  wear_resistance_bohme_class?: string // A22-A1.5
+  wear_resistance_bca_class?: string // AR6-AR0.5
+  wear_resistance_rwfc_class?: string // RWFC350-RWFC50
+  
+  // Zusätzliche mechanische Eigenschaften
+  surface_hardness_class?: string // SH30-SH200
+  bond_strength_class?: string // B0.2-B2.0
+  impact_resistance_class?: string // IR1-IR20
+  
+  // Brandverhalten
+  fire_class?: string // A1fl, Bfl-s1, etc. oder NPD
+  
+  // Weitere Eigenschaften gemäß EN 13813
+  water_permeability?: string // NPD oder Wert
+  water_vapour_permeability?: string // NPD oder Wert
+  sound_insulation?: string // NPD oder Wert
+  sound_absorption?: string // NPD oder Wert
+  thermal_resistance?: string // NPD oder Wert
+  chemical_resistance?: string // NPD oder Klasse
+  
+  // Freisetzung gefährlicher Substanzen
+  release_of_dangerous_substances?: string // 'Siehe SDS' oder NPD
+  
+  // Elektrische Eigenschaften (nur für AS)
+  electrical_resistance?: string // NPD oder Wert
 }
 
 export interface DoPPackage extends BaseEntity {
@@ -236,15 +385,17 @@ export interface RecipeMaterial extends BaseEntity {
   // Frischmörtel-Eigenschaften
   fresh_mortar_properties?: {
     consistency?: {
-      method: string
+      method: 'flow_table' | 'slump' | 'compacting_factor' | 'EN12706' | 'EN13454-2'
+      value_mm?: number // Konsistenzwert in mm
       target_mm?: number
       tolerance_mm?: number
     }
     setting_time?: {
       initial_minutes?: number
       final_minutes?: number
+      method?: 'EN13454-2' | 'Vicat' | 'other'
     }
-    ph_value?: number
+    ph_value?: number // PFLICHT ≥ 7 für CA-Estriche
     processing_time_minutes?: number
     temperature_range?: {
       min_celsius: number
@@ -332,7 +483,14 @@ export interface DoPGenerationParams {
   recipeId: string
   batchId?: string
   testReportIds?: string[]
-  language?: 'de' | 'en'
+  language?: 'de' | 'en' | 'fr' | string
+  signatory?: {
+    name: string
+    position: string
+    place?: string
+  }
+  authorizedRepresentative?: AuthorizedRepresentative
+  notifiedBody?: NotifiedBody
 }
 
 export interface PDFGenerationParams {
@@ -342,6 +500,20 @@ export interface PDFGenerationParams {
   batch?: Batch
   testReports?: TestReport[]
   language?: 'de' | 'en'
+}
+
+// Validation
+export interface DoPValidationResult {
+  valid: boolean
+  errors: string[]
+  warnings?: string[]
+}
+
+export interface DoPValidationRules {
+  requireNotifiedBody?: boolean // für System 1+
+  requireTestReports?: boolean
+  requireBatch?: boolean
+  checkExpiry?: boolean
 }
 
 // Filter types

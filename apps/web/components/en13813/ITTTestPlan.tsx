@@ -199,7 +199,7 @@ export function ITTTestPlan({ recipeId, testPlan, onUpdate, readOnly = false }: 
                 setPlan(prev => ({ ...prev, test_status: 'in_progress' }))
               }}
             >
-              Als "In Bearbeitung" markieren
+              Als &quot;In Bearbeitung&quot; markieren
             </Button>
             <Button
               onClick={() => onUpdate(plan)}

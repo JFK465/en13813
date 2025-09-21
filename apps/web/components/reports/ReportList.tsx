@@ -61,8 +61,8 @@ interface ReportListProps {
 
 export function ReportList({ showFilters = true }: ReportListProps) {
   const [filters, setFilters] = useState({
-    status: '',
-    type: '',
+    status: 'all',
+    type: 'all',
     search: ''
   })
 
@@ -215,7 +215,7 @@ export function ReportList({ showFilters = true }: ReportListProps) {
                   <SelectValue placeholder="Status wählen" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Alle Status</SelectItem>
+                  <SelectItem value="all">Alle Status</SelectItem>
                   <SelectItem value="completed">Abgeschlossen</SelectItem>
                   <SelectItem value="generating">In Bearbeitung</SelectItem>
                   <SelectItem value="failed">Fehlgeschlagen</SelectItem>
@@ -233,7 +233,7 @@ export function ReportList({ showFilters = true }: ReportListProps) {
                   <SelectValue placeholder="Typ wählen" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Alle Typen</SelectItem>
+                  <SelectItem value="all">Alle Typen</SelectItem>
                   {Object.entries(typeLabels).map(([key, label]) => (
                     <SelectItem key={key} value={key}>{label}</SelectItem>
                   ))}

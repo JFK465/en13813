@@ -16,6 +16,16 @@ const nextConfig = {
       },
     ],
   },
+  // Workaround für Next.js 14.2.5 webpack chunk loading issue
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.optimization = {
+        ...config.optimization,
+        runtimeChunk: 'single',
+      }
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig

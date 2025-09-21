@@ -688,8 +688,8 @@ export class ReportService extends BaseService<Report> {
       .from('reports')
       .select('*, report_templates(name)')
 
-    if (filters.status) query = query.eq('status', filters.status)
-    if (filters.type) query = query.eq('type', filters.type)
+    if (filters.status && filters.status !== 'all') query = query.eq('status', filters.status)
+    if (filters.type && filters.type !== 'all') query = query.eq('type', filters.type)
     if (filters.createdBy) query = query.eq('generated_by', filters.createdBy)
     if (filters.startDate) query = query.gte('created_at', filters.startDate)
     if (filters.endDate) query = query.lte('created_at', filters.endDate)

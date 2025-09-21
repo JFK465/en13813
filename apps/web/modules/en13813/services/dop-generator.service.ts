@@ -10,7 +10,7 @@ export class DoPGeneratorService {
     this.pdfGenerator = new PDFGeneratorService()
   }
 
-  async getDoPs(filter?: DoPFilter): Promise<DoP[]> {
+  async listDoPs(filter?: DoPFilter): Promise<DoP[]> {
     try {
       let query = this.supabase
         .from('en13813_dops')
@@ -39,7 +39,7 @@ export class DoPGeneratorService {
     }
   }
 
-  async generateDoP(params: DoPGenerationParams): Promise<DoP> {
+  async generatePDF(params: DoPGenerationParams): Promise<DoP> {
     try {
       const { recipeId, batchId, testReportIds = [], language = 'de' } = params
 
@@ -57,6 +57,41 @@ export class DoPGeneratorService {
       // Validate recipe
       if (!recipe.is_validated || recipe.status !== 'active') {
         throw new Error('Recipe must be validated and active')
+      }
+
+      // WICHTIG: Prüfe ITT-Vollständigkeit vor DOP-Erstellung
+      const { data: ittComplete } = await this.supabase
+        .rpc('check_itt_completeness', { recipe_uuid: recipeId })
+      
+      if (!ittComplete?.complete) {
+        throw new Error(`ITT nicht vollständig. Fehlende Tests: ${ittComplete?.missing_tests?.join(', ')}`)
+      }
+
+      // Prüfe AVCP System basierend auf Brandklasse
+      let avcpSystem = '4' // Standard System 4
+      let notifiedBodyInfo = null
+      
+      if (recipe.fire_class && recipe.fire_class !== 'A1fl' && recipe.fire_class !== 'NPD') {
+        // Bei Brandklasse != A1fl ist System 1+ erforderlich
+        avcpSystem = '1'
+        
+        // Hole System 1+ Prüfbericht mit Notified Body
+        const { data: system1Report } = await this.supabase
+          .from('en13813_test_reports')
+          .select('*')
+          .eq('recipe_id', recipeId)
+          .eq('report_type', 'System1+')
+          .eq('validation_status', 'valid')
+          .single()
+        
+        if (!system1Report || !system1Report.notified_body_number) {
+          throw new Error('System 1+ Prüfbericht mit Notified Body erforderlich für Brandklasse != A1fl')
+        }
+        
+        notifiedBodyInfo = {
+          number: system1Report.notified_body_number,
+          name: system1Report.notified_body_name
+        }
       }
 
       // Get tenant/manufacturer data
@@ -136,6 +171,8 @@ export class DoPGeneratorService {
         version: 1,
         manufacturer_data: manufacturerData,
         declared_performance: declaredPerformance,
+        avcp_system: avcpSystem,
+        notified_body: notifiedBodyInfo,
         qr_code_data: qrCodeData,
         public_uuid: publicUuid,
         workflow_status: 'draft',

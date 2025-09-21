@@ -1,0 +1,272 @@
+Exzellentes Feedback! Das ist eine sehr präzise und fundierte Analyse. Die Person kennt sich definitiv mit EN 13813 aus. Lass mich die Punkte priorisiert durchgehen und konkrete Lösungen vorschlagen:
+
+## 🔴 **KRITISCHE PUNKTE (Normkonformität gefährdet)**
+
+### 1. **Sieblinie/Korngrößenverteilung**
+```typescript
+// LÖSUNG: JSONB-Feld oder separate Tabelle für Sieblinien-Daten
+<Card>
+  <CardHeader>
+    <CardTitle>Korngrößenverteilung/Sieblinie</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="grid grid-cols-4 gap-2">
+      {[16, 8, 4, 2, 1, 0.5, 0.25, 0.125, 0.063].map(size => (
+        <div key={size} className="space-y-1">
+          <Label>{size}mm</Label>
+          <Input 
+            name={`sieve_${size}`}
+            type="number"
+            placeholder="Durchgang %"
+            min="0"
+            max="100"
+          />
+        </div>
+      ))}
+    </div>
+    <div className="mt-4">
+      <Label>Sieblinienkurve hochladen</Label>
+      <Input type="file" accept=".pdf,.xlsx" />
+    </div>
+  </CardContent>
+</Card>
+```
+
+### 2. **Estrichtyp-spezifische Pflichtfelder**
+```typescript
+// LÖSUNG: Dynamische Pflichtfelder basierend auf Estrichtyp
+const getRequiredFields = (estrichType: string) => {
+  switch(estrichType) {
+    case 'AS':
+      return {
+        indentation_class: z.enum(['IC10','IC15','IC40','IC100','IP10','IP15','IP40']),
+        heated_indicator: z.boolean().optional() // H-Kennzeichnung
+      }
+    case 'SR':
+      return {
+        bond_strength_class: z.enum(['B0.5','B1.0','B1.5','B2.0']),
+        impact_resistance_class: z.enum(['IR1','IR2','IR4','IR10','IR20']).optional()
+      }
+    case 'MA':
+      return {
+        surface_hardness_class: z.enum(['SH30','SH50','SH75','SH100','SH150','SH200'])
+        // Bei MA ist SH PFLICHT, nicht optional!
+      }
+    default:
+      return {}
+  }
+}
+```
+
+### 3. **Verschleißwiderstand - NUR EINE Methode**
+```typescript
+// LÖSUNG: RadioGroup statt Select für Methoden-Auswahl
+<RadioGroup 
+  name="wear_method"
+  disabled={!isWearingWithoutFlooring}
+>
+  <div className="space-y-4">
+    <div className="border rounded-lg p-4">
+      <RadioGroupItem value="bohme" id="bohme" />
+      <Label htmlFor="bohme">Böhme-Verfahren (EN 13892-3)</Label>
+      {wearMethod === 'bohme' && (
+        <Select name="bohme_class">
+          {['A22','A15','A12','A9','A6','A3','A1.5'].map(c => 
+            <SelectItem value={c}>{c} cm³/50cm²</SelectItem>
+          )}
+        </Select>
+      )}
+    </div>
+    
+    <div className="border rounded-lg p-4">
+      <RadioGroupItem value="bca" id="bca" />
+      <Label htmlFor="bca">BCA-Verfahren (EN 13892-4)</Label>
+      {wearMethod === 'bca' && (
+        <Select name="ar_class">
+          {['AR6','AR4','AR2','AR1','AR0.5'].map(c => 
+            <SelectItem value={c}>{c}</SelectItem>
+          )}
+        </Select>
+      )}
+    </div>
+    
+    <div className="border rounded-lg p-4">
+      <RadioGroupItem value="rolling" id="rolling" />
+      <Label htmlFor="rolling">Rollrad (EN 13892-5)</Label>
+      {wearMethod === 'rolling' && (
+        <Select name="rwa_class">
+          {['RWA300','RWA200','RWA100','RWA50','RWA20','RWA10','RWA1'].map(c => 
+            <SelectItem value={c}>{c}</SelectItem>
+          )}
+        </Select>
+      )}
+    </div>
+  </div>
+</RadioGroup>
+```
+
+## 🟡 **WICHTIGE PUNKTE**
+
+### 4. **Prüfalter/Frühfestigkeit**
+```typescript
+<Card>
+  <CardHeader>
+    <CardTitle>Prüfalter</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <RadioGroup name="test_age" defaultValue="28">
+      <RadioGroupItem value="28" />
+      <Label>Standard 28 Tage</Label>
+      
+      <RadioGroupItem value="custom" />
+      <Label>Frühfestigkeit</Label>
+      {testAge === 'custom' && (
+        <Input 
+          name="custom_test_age"
+          type="number"
+          placeholder="Tage"
+          min="1"
+          max="27"
+        />
+      )}
+    </RadioGroup>
+    <Alert>
+      <AlertDescription>
+        Bei Frühfestigkeit wird das Alter in der EN-Bezeichnung angegeben
+        z.B. CT-C25-F4 (7d) für 7-Tage-Festigkeit
+      </AlertDescription>
+    </Alert>
+  </CardContent>
+</Card>
+```
+
+### 5. **Weitere optionale Eigenschaften**
+```typescript
+// Neuer Tab: "Erweiterte Eigenschaften"
+<TabsContent value="extended">
+  <div className="space-y-4">
+    <FormField name="elastic_modulus">
+      <FormLabel>E-Modul (GPa)</FormLabel>
+      <Input type="number" step="0.1" placeholder="z.B. 25" />
+      <FormDescription>Nach EN 13892-...</FormDescription>
+    </FormField>
+    
+    <FormField name="shrinkage_swelling">
+      <FormLabel>Schwinden/Quellen (mm/m)</FormLabel>
+      <Input type="number" step="0.01" placeholder="z.B. 0.5" />
+    </FormField>
+    
+    {isHeatedScreed && (
+      <FormField name="thermal_conductivity">
+        <FormLabel>Wärmeleitfähigkeit λ (W/mK)*</FormLabel>
+        <Input type="number" step="0.01" placeholder="z.B. 1.2" required />
+      </FormField>
+    )}
+    
+    <FormField name="chemical_resistance">
+      <FormLabel>Chemische Beständigkeit</FormLabel>
+      <Select multiple>
+        <SelectItem value="oil">Öl</SelectItem>
+        <SelectItem value="acid">Säure</SelectItem>
+        <SelectItem value="alkali">Lauge</SelectItem>
+      </Select>
+    </FormField>
+  </div>
+</TabsContent>
+```
+
+## 🟠 **FEHLENDE PUNKTE**
+
+### 6-10. **Implementierungsvorschlag für alle fehlenden Punkte**
+
+```typescript
+// Erweitertes Datenmodell
+interface RecipeComplete {
+  // ... existing fields ...
+  
+  // 6. Rohstoff-Spezifikationen
+  raw_materials: {
+    aggregates: {
+      bulk_density: number      // kg/m³
+      moisture_content: number  // %
+      supplier_certificate: string // URL/ID
+    }
+    water_quality: 'drinking' | 'tested' | 'certified'
+  }
+  
+  // 7. Mischvorschrift Details
+  mixing_procedure: {
+    sequence: string[]  // ["Zuschlag", "Zement", "Wasser", "Zusatzmittel"]
+    mixer_type: 'forced' | 'free_fall' | 'continuous'
+    mixing_time_dry: number    // Sekunden
+    mixing_time_wet: number    // Sekunden
+  }
+  
+  // 8. WPK/FPC Integration
+  quality_control: {
+    calibration_intervals: {
+      scales: 'quarterly' | 'biannual' | 'annual'
+      mixers: 'annual' | 'biannual'
+      testing_equipment: string
+    }
+    tolerance_limits: {
+      binder: number     // ± %
+      water: number      // ± %
+      temperature: number // ± °C
+    }
+    deviation_actions: {
+      minor: string   // "Nachjustierung"
+      major: string   // "Produktion stoppen, Charge sperren"
+      critical: string // "Rückruf, Kundeninformation"
+    }
+  }
+  
+  // 9. Rückverfolgbarkeit
+  traceability: {
+    batch_linking: boolean
+    retention_samples: {
+      location: string
+      duration_months: number
+      quantity: string
+    }
+    supplier_docs: {
+      document_id: string
+      valid_until: Date
+    }[]
+  }
+  
+  // 10. Versionierung
+  versioning: {
+    recipe_uuid: string  // Zusätzlich zum Code
+    version: string      // "1.0", "1.1", etc.
+    status: 'draft' | 'in_review' | 'approved' | 'active' | 'locked' | 'archived'
+    approved_by: string  // User ID
+    approved_at: Date
+    change_log: {
+      version: string
+      date: Date
+      changes: string[]
+      requires_retest: boolean
+      approved_by: string
+    }[]
+  }
+}
+```
+
+## 🚀 **Priorisierte Umsetzung:**
+
+```typescript
+// Phase 1: KRITISCH (sofort)
+1. Sieblinie implementieren
+2. Estrichtyp-spezifische Pflichtfelder
+3. Verschleißwiderstand-RadioGroup
+
+// Phase 2: WICHTIG (diese Woche)
+4. Prüfalter/Frühfestigkeit
+5. Erweiterte Eigenschaften (E-Modul, λ, etc.)
+
+// Phase 3: VERVOLLSTÄNDIGUNG (nächste Woche)
+6-10. Alle weiteren Punkte für 100% Compliance
+```
+
+Das Feedback ist absolut korrekt und zeigt tiefes Verständnis der EN 13813. Mit diesen Ergänzungen wäre die Software wirklich vollständig normkonform!

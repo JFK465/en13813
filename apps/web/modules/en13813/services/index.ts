@@ -4,6 +4,8 @@ export { DoPGeneratorService } from './dop-generator.service'
 export { PDFGeneratorService } from './pdf-generator.service'
 export { RecipeMaterialsService } from './recipe-materials.service'
 export { ComplianceService } from './compliance.service'
+export { ConformityAssessmentService } from './conformity-assessment.service'
+export { NormDesignationService } from './norm-designation.service'
 
 // Re-export types
 export * from '../types'

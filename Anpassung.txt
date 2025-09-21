@@ -1,0 +1,200 @@
+# EN 13813 Norm-Analyse für Qualitätskontrolle-Software
+
+## Detaillierte EN 13813 Anforderungen und Software-Vergleich
+
+Die EN 13813:2002 "Estrichmörtel und Estrichmassen - Estrichmörtel - Eigenschaften und Anforderungen" definiert umfassende Anforderungen für die Qualitätskontrolle von Estrichmaterialien. Nach eingehender Analyse der Norm und Vergleich mit den drei vorgestellten Software-Seiten ergibt sich folgende Bewertung.
+
+### 1. Pflichtfelder und Dokumentationsanforderungen für Chargenverwaltung
+
+#### Norm-Anforderungen nach EN 13813:
+Die Norm fordert unter **Abschnitt 6.3** eine vollständige Chargendokumentation mit folgenden Pflichtfeldern:
+- **Chargenidentifikation**: Eindeutige Chargennummer mit Datum und Zeitstempel der Produktion
+- **Materialzusammensetzung**: Mengen aller Rohstoffe, Mischungsverhältnisse, Rezeptur-Referenz
+- **Verarbeitungsparameter**: Mischzeit, Temperatur, Umgebungsbedingungen während der Produktion
+- **Qualitätskontrollergebnisse**: Frischmörtelprüfungen, Prüfkörper-Identifikation, Testergebnisse
+- **Verantwortlichkeiten**: Dokumentation des verantwortlichen Personals für Produktion und Kontrolle
+- **Produktkennzeichnung**: Bezeichnung nach EN 13813 Abschnitt 7 (z.B. CT-C25-F4)
+
+#### Software-Seite 1 "Neue Charge anlegen" - Bewertung:
+**✓ Korrekt umgesetzt:**
+- Grunddaten mit Chargennummer und Produktionsumgebung
+- Rohstoff-Rückverfolgbarkeit mit Lieferantendaten
+- Prüfkörper-Management System
+- Qualitätskontrolle-Registerkarte
+
+**✗ Noch erforderlich:**
+- **Mischungsverhältnisse**: Detaillierte Dokumentation der Rezeptur und Mengenangaben
+- **Normkonforme Produktbezeichnung**: Automatische Generierung der EN 13813-Bezeichnung (CT-C25-F4 Format)
+- **Zeitstempel**: Präzise Produktionszeit zusätzlich zum Datum
+- **Verantwortlichkeiten**: Felder für QS-Personal und Produktionsleiter
+
+### 2. ITT und System-Anforderungen
+
+#### Norm-Anforderungen:
+EN 13813 unterliegt dem **AVCP System 1+** (nicht System 3), was bedeutet:
+- **Erstprüfung (ITT)**: Durch akkreditierte Labore vor Markteinführung
+- **Kontinuierliche Überwachung**: Durch benannte Stelle mit jährlichen Audits
+- **Zertifizierung der WPK**: Durch benannte Stelle erforderlich
+
+#### Software-Seite 2 "Neuer Prüfbericht" - Bewertung:
+**✓ Korrekt umgesetzt:**
+- ITT-Berichtstyp verfügbar
+- Festigkeitsprüfungen strukturiert
+- Spezielle Eigenschaften erfassbar
+
+**✗ Noch erforderlich:**
+- **System-Korrektur**: Änderung von "System 3" auf "System 1+" gemäß EU-Entscheidung 97/808/EC
+- **Benannte Stelle**: Pflichtfeld für Notified Body Nummer und Zertifikatsnummer
+- **Prüfmethoden-Referenz**: Automatische Verknüpfung mit EN 13892-Normenreihe
+- **Statistische Auswertung**: Berechnung der 90/90 Konformitätskriterien
+
+### 3. Werkseigene Produktionskontrolle (WPK/FPC)
+
+#### Norm-Anforderungen nach Abschnitt 6.3:
+- **ISO 9001-konforme Dokumentation** aller Prozesse
+- **Kalibrierungsmanagement** für alle Messgeräte
+- **Prozesskontrollen** mit definierten Prüffrequenzen
+- **Nichtkonformitätsbehandlung** mit Korrekturmaßnahmen
+- **Management-Review** der Systemwirksamkeit
+
+#### Software-Implementierung - Bewertung:
+**✓ Teilweise vorhanden:**
+- FPC-Berichtstyp in Seite 2
+
+**✗ Noch erforderlich:**
+- **Prüfplan-Verwaltung**: Modul für Prüffrequenzen und automatische Erinnerungen
+- **Kalibrierungsdatenbank**: Verwaltung von Messgeräten mit Kalibrierfristen
+- **Prozess-Kontrollkarten**: Statistische Prozesskontrolle (SPC) für kritische Parameter
+- **Korrekturmaßnahmen-Tracking**: Workflow für Abweichungen und deren Behebung
+
+### 4. Laborprüfungen und Akzeptanzkriterien
+
+#### Norm-Anforderungen:
+Die genannten Akzeptanzkriterien (Einzelwerte ≥ 0.85 × deklariert, Mittelwert ≥ 0.95 × deklariert) sind **branchenüblich**, aber nicht explizit in EN 13813 definiert. Die Norm fordert stattdessen:
+- **Statistische Bewertung** nach Abschnitt 9.2 mit Akzeptanzkonstanten (kA)
+- **10%-Fraktilwert** mit 5% Annahmewahrscheinlichkeit
+- **Absolute Grenze**: Keine Werte außerhalb 10% ungünstiger Abweichung
+
+#### Software-Seite 3 "Neuer Laborwert" - Bewertung:
+**✓ Gut konzipiert:**
+- Frisch- und Festmörtelprüfung getrennt
+- Akzeptanzkriterien-Felder vorhanden
+
+**✗ Anpassungen erforderlich:**
+- **Statistische Formeln**: Implementation der EN 13813 Konformitätskriterien
+- **kA-Werte**: Automatische Anpassung basierend auf Stichprobengröße (n)
+- **Trendanalyse**: Grafische Darstellung der Prüfergebnisse über Zeit
+- **Warnungen**: Automatische Alerts bei Grenzwertannäherung
+
+### 5. Rückverfolgbarkeit von Rohstoffen
+
+#### Norm-Anforderungen nach Abschnitt 6.3.4:
+- **Vollständige Lieferkette**: Von Rohstoffquelle bis Endprodukt
+- **Lieferantenzertifikate**: Konformitätsbescheinigungen für alle Materialien
+- **Eingangsprüfungen**: Dokumentierte Annahmekriterien
+- **Lagerungsbedingungen**: Überwachung zur Qualitätserhaltung
+
+#### Software-Bewertung:
+**✓ Grundstruktur vorhanden** in Seite 1
+
+**✗ Erweiterungen nötig:**
+- **Zertifikatsverwaltung**: Upload und Verknüpfung von Lieferantenzertifikaten
+- **Eingangsprüfprotokoll**: Strukturierte Erfassung der Wareneingangskontrollen
+- **Lagerbestandsverwaltung**: FIFO-Prinzip und Verfallsdaten
+- **Chargen-zu-Chargen-Verknüpfung**: Lückenlose Rückverfolgbarkeit
+
+### 6. Prüfkörper-Management und Rückstellmuster
+
+#### Norm-Anforderungen:
+Die **2-Jahre-Aufbewahrung** ist nicht direkt in EN 13813 spezifiziert, sondern ergibt sich aus:
+- **Bauproduktenverordnung (CPR)** für Dokumentation
+- **Deutsche WPK-Praxis** als Industriestandard
+- **Haftungsrechtliche Anforderungen**
+
+#### Software-Bewertung:
+**✓ Basis implementiert** mit Prüfkörper-Management
+
+**✗ Zusätzlich erforderlich:**
+- **Automatische Verfallswarnung**: Alert vor Ablauf der 2-Jahres-Frist
+- **Lagerplatzverwaltung**: Physische Standortzuordnung
+- **Prüfkörper-Status**: Verfügbar/In Prüfung/Verworfen/Archiviert
+- **Vernichtungsprotokoll**: Dokumentation nach Ablauf der Aufbewahrungsfrist
+
+### 7. Festigkeitsklassen (C und F)
+
+#### Norm-Klassifizierung:
+**Druckfestigkeit (C-Klassen)**: C5, C7, C12, C16, C20, C25, C30, C35, C40, C50, C60, C70, C80
+**Biegezugfestigkeit (F-Klassen)**: F1, F2, F3, F4, F5, F6, F7, F10, F15, F20, F30, F40, F50
+
+#### Software-Implementierung:
+**✓ Prinzipiell erfassbar** in Seite 2
+
+**✗ Optimierungen:**
+- **Dropdown-Auswahl**: Vordefinierte Klassen statt Freitexteingabe
+- **Automatische Klassenzuordnung**: Basierend auf Prüfergebnissen
+- **Normbezeichnung**: Automatische Generierung (z.B. CT-C25-F4)
+- **Grenzwertprüfung**: Warnung bei Unterschreitung der deklarierten Klasse
+
+### 8. Spezielle Eigenschaften
+
+#### Norm-Eigenschaften nach EN 13813:
+- **RWFC**: RWFC150, RWFC250, RWFC350, RWFC450, RWFC550 (Rollstuhlbefahrbarkeit mit Belag)
+- **Verschleißwiderstand**: A-Klassen (Böhme), AR-Klassen (BCA), RWA-Klassen (Rollrad)
+- **Oberflächenhärte**: SH30 bis SH200 (N/mm²)
+- **Schlagfestigkeit**: IR-Klassen (Nm)
+- **Haftzugfestigkeit**: B0,2 bis B2,0 (N/mm²)
+
+#### Software-Bewertung:
+**✓ Struktur vorhanden** in Seite 2
+
+**✗ Vervollständigung nötig:**
+- **Alle Klassensysteme**: Vollständige Implementation aller Verschleißklassen
+- **Prüfmethoden-Zuordnung**: EN 13892-3 bis -8 Referenzierung
+- **Bindemittel-spezifische Anforderungen**: CT/CA/MA/SR-abhängige Pflichtfelder
+- **Optionale Eigenschaften**: E-Modul, elektrischer Widerstand, chemische Beständigkeit
+
+### 9. Frisch- und Festmörtelprüfungen
+
+#### Norm-Prüfverfahren nach EN 13892-Reihe:
+**Frischmörtel:**
+- Konsistenz (Ausbreitmaß nach prEN 13454-2)
+- Verarbeitungszeit (prEN 13454-2)
+- Erstarrungszeiten (Anfang/Ende)
+- pH-Wert (≥7 für CA-Estriche)
+
+**Festmörtel:**
+- Druck-/Biegezugfestigkeit (EN 13892-2)
+- Verschleißwiderstand (EN 13892-3/4/5)
+- Oberflächenhärte (EN 13892-6)
+- Haftzugfestigkeit (EN 13892-8)
+- Dimensionsstabilität (EN 13892-9)
+
+#### Software-Bewertung:
+**✓ Grundgerüst implementiert** in Seite 3
+
+**✗ Erweiterungen:**
+- **Prüfalter-Verwaltung**: Automatische Berechnung basierend auf Herstelldatum
+- **Normklima-Dokumentation**: 23±2°C, 50±5% r.F. Überwachung
+- **Prüfkörper-Dimensionen**: Normkonforme Größenangaben
+- **Methodenauswahl**: Dropdown mit EN 13892-Teilnormen
+
+## Zusammenfassung der kritischen Anpassungen
+
+### Priorität 1 - Sofortige Korrekturen:
+1. **System-Änderung**: Von "System 3" auf "System 1+" korrigieren
+2. **Statistische Konformität**: EN 13813-konforme Akzeptanzkriterien implementieren
+3. **Normbezeichnung**: Automatische Generierung der Produktbezeichnung
+
+### Priorität 2 - Wichtige Ergänzungen:
+1. **Prüfplan-Modul**: Frequenzen und automatische Erinnerungen
+2. **Kalibrierungsverwaltung**: Messgeräte-Datenbank
+3. **Vollständige Klassensysteme**: Alle Festigkeits- und Eigenschaftsklassen
+4. **Benannte Stelle**: Pflichtfelder für Zertifizierung
+
+### Priorität 3 - Optimierungen:
+1. **Trendanalysen**: Grafische Auswertungen
+2. **Workflow-Automation**: Korrekturmaßnahmen-Tracking
+3. **Dokumenten-Upload**: Zertifikate und Prüfberichte
+4. **Vernetzung**: Chargen-zu-Chargen-Rückverfolgbarkeit
+
+Die Software zeigt bereits eine **solide Grundstruktur** für EN 13813-Konformität. Mit den identifizierten Anpassungen, insbesondere der Korrektur des AVCP-Systems und der Implementation der statistischen Konformitätskriterien, kann eine vollständige Normkonformität erreicht werden. Die modulare Struktur mit drei spezialisierten Seiten (Charge, Prüfbericht, Laborwert) entspricht gut den Anforderungen der werkseigenen Produktionskontrolle.

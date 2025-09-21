@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/core/useAuth'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
@@ -14,8 +14,12 @@ export default function AuthLayout({
   console.log('🔐 AuthLayout rendering')
   const { user, isLoading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   
   console.log('👤 Auth state:', { user: !!user, isLoading, userDetails: user })
+
+  // Check if we're in the EN13813 section
+  const isEN13813Section = pathname?.startsWith('/en13813')
 
   useEffect(() => {
     console.log('🔒 AuthLayout useEffect triggered', { user: !!user, isLoading })
@@ -40,6 +44,11 @@ export default function AuthLayout({
 
   if (!user) {
     return null
+  }
+
+  // If we're in EN13813 section, don't render the sidebar (it will be handled by EN13813 layout)
+  if (isEN13813Section) {
+    return children
   }
 
   return (

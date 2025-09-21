@@ -311,7 +311,7 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Keine Angabe</SelectItem>
+                            <SelectItem value="none">Keine Angabe</SelectItem>
                             {['A1', 'A3', 'A6', 'A9', 'A12', 'A15', 'A22'].map(cls => (
                               <SelectItem key={cls} value={cls}>{cls}</SelectItem>
                             ))}

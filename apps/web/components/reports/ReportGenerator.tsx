@@ -325,7 +325,7 @@ export function ReportGenerator() {
                     <SelectValue placeholder="Alle Typen" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle Typen</SelectItem>
+                    <SelectItem value="all">Alle Typen</SelectItem>
                     <SelectItem value="policy">Richtlinie</SelectItem>
                     <SelectItem value="certificate">Zertifikat</SelectItem>
                     <SelectItem value="report">Bericht</SelectItem>
@@ -349,7 +349,7 @@ export function ReportGenerator() {
                     <SelectValue placeholder="Alle Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle Status</SelectItem>
+                    <SelectItem value="all">Alle Status</SelectItem>
                     <SelectItem value="draft">Entwurf</SelectItem>
                     <SelectItem value="pending_approval">Genehmigung ausstehend</SelectItem>
                     <SelectItem value="approved">Genehmigt</SelectItem>

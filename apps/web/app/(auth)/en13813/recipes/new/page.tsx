@@ -1,12 +1,12 @@
 'use client'
 
-import { RecipeFormAdvanced } from '@/components/en13813/RecipeFormAdvanced'
+import { RecipeFormUltimate } from '@/components/en13813/RecipeFormUltimate'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default function NewRecipePage() {
   return (
-    <div className="container mx-auto py-6 max-w-6xl">
+    <div className="container mx-auto py-6 max-w-7xl">
       <div className="mb-6">
         <Link href="/en13813/recipes" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -18,11 +18,11 @@ export default function NewRecipePage() {
         <div>
           <h1 className="text-3xl font-bold">Neue Rezeptur anlegen</h1>
           <p className="text-muted-foreground mt-1">
-            Erstellen Sie eine neue Estrichmörtel-Rezeptur nach EN 13813 mit vollständiger Materialzusammensetzung
+            Vollständige EN 13813 konforme Rezeptur mit allen erforderlichen Eigenschaften
           </p>
         </div>
 
-        <RecipeFormAdvanced />
+        <RecipeFormUltimate />
       </div>
     </div>
   )
