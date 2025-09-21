@@ -180,7 +180,7 @@ export function RecipeFormComplete() {
   const services = createEN13813Services(supabase)
 
   const form = useForm<CompleteRecipeFormValues>({
-    resolver: zodResolver(completeRecipeSchema),
+    resolver: zodResolver(completeRecipeSchema) as any,
     defaultValues: {
       recipe_code: '',
       name: '',

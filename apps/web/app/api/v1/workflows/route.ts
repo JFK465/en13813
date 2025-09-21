@@ -98,13 +98,14 @@ async function getWorkflows(request: NextRequest) {
   // Parse and validate query parameters
   const url = new URL(request.url)
   const queryParams = Object.fromEntries(url.searchParams.entries())
-  
+
   // Convert string boolean to actual boolean
-  if (queryParams.assignedToMe) {
-    queryParams.assignedToMe = queryParams.assignedToMe === 'true'
+  const processedParams = {
+    ...queryParams,
+    assignedToMe: queryParams.assignedToMe === 'true'
   }
-  
-  const validation = workflowQuerySchema.safeParse(queryParams)
+
+  const validation = workflowQuerySchema.safeParse(processedParams)
   if (!validation.success) {
     return createAPIErrorResponse(
       'Invalid query parameters',

@@ -7,22 +7,22 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Shield, Activity, Calendar, AlertTriangle } from 'lucide-react'
-import { FPCControlPlan } from '@/modules/en13813/services/compliance.service'
+import { FPCControlPlan as FPCControlPlanType } from '@/modules/en13813/services/compliance.service'
 
 interface FPCControlPlanProps {
   recipeId: string
-  controlPlan?: FPCControlPlan
-  onUpdate?: (plan: FPCControlPlan) => Promise<void>
+  controlPlan?: FPCControlPlanType
+  onUpdate?: (plan: FPCControlPlanType) => Promise<void>
   readOnly?: boolean
 }
 
-export function FPCControlPlan({ 
-  recipeId, 
-  controlPlan, 
-  onUpdate, 
-  readOnly = false 
+export function FPCControlPlan({
+  recipeId,
+  controlPlan,
+  onUpdate,
+  readOnly = false
 }: FPCControlPlanProps) {
-  const [plan] = useState<FPCControlPlan>(controlPlan || {
+  const [plan] = useState<FPCControlPlanType>(controlPlan || {
     recipe_id: recipeId,
     incoming_inspection: {
       binder: {

@@ -11,11 +11,25 @@ export interface Recipe extends BaseEntity {
   recipe_code: string
   name: string
   description?: string
+
+  // Mandatory manufacturer info (EN 13813)
+  manufacturer_name?: string
+  manufacturer_address?: string
+  production_date?: string
+  batch_size_kg?: number
+  shelf_life_months?: number
+  storage_conditions?: string
+  max_grain_size?: string
+  layer_thickness_range?: string
   
   // EN 13813 Classification
-  estrich_type: 'CT' | 'CA' | 'MA' | 'AS' | 'SR'
-  compressive_strength: string
-  flexural_strength: string
+  binder_type: 'CT' | 'CA' | 'MA' | 'AS' | 'SR' // Renamed from estrich_type
+  compressive_strength_class: string // Renamed from compressive_strength
+  flexural_strength_class: string // Renamed from flexural_strength
+
+  // CE Marking & AVCP System
+  avcp_system?: '1' | '1+' | '2+' | '3' | '4'
+  notified_body_number?: string
   
   // Verschleißwiderstand - NUR EINE Methode!
   wear_resistance_method?: 'bohme' | 'bca' | 'rolling_wheel' | 'none' | 'NPD'
@@ -28,7 +42,7 @@ export interface Recipe extends BaseEntity {
   indentation_class?: string // IC10-IC100 oder IP10-IP40 für AS
   
   // Rollradprüfung für bedeckte Estriche (EN 13813 Abschnitt 5.2.6)
-  rolling_wheel_floor_covering_class?: string // RWFC150, RWFC250, RWFC350, RWFC450, RWFC550 oder NPD
+  rwfc_class?: string // RWFC150, RWFC250, RWFC350, RWFC450, RWFC550 oder NPD
   
   // Verwendungszweck
   intended_use: {
@@ -86,8 +100,13 @@ export interface Recipe extends BaseEntity {
   }
   oil_resistance?: boolean
   
-  // pH-Wert für CA-Estriche (EN 13813 Abschnitt 5.2.10)
-  ph_value_ca?: number // MUSS ≥ 7 für CA-Estriche
+  // pH-Wert (EN 13813 Abschnitt 5.2.10)
+  ph_value?: number // MUSS ≥ 7 für CA-Estriche, optional für andere
+
+  // Setting Time
+  setting_time_initial_minutes?: number
+  setting_time_final_minutes?: number
+  setting_time_norm?: 'EN 13454-2' | 'EN 196-3'
   
   // Mechanische Zusatzeigenschaften
   creep_coefficient?: number // Kriechzahl

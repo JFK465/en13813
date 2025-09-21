@@ -99,7 +99,7 @@ export function MixingRatioEditor({
     }
 
     const updatedMaterials = [...materials, material]
-    onChange(calculatePercentages(updatedMaterials))
+    onChange(updatedMaterials)
     
     setNewMaterial({
       type: 'aggregate',
@@ -111,7 +111,7 @@ export function MixingRatioEditor({
 
   const removeMaterial = (id: string) => {
     const updatedMaterials = materials.filter(m => m.id !== id)
-    onChange(calculatePercentages(updatedMaterials))
+    onChange(updatedMaterials)
   }
 
   const updateMaterial = (id: string, field: keyof RawMaterial, value: any) => {
@@ -121,7 +121,7 @@ export function MixingRatioEditor({
       }
       return m
     })
-    onChange(calculatePercentages(updatedMaterials))
+    onChange(updatedMaterials)
   }
 
   const totalWeight = calculateTotalWeight()

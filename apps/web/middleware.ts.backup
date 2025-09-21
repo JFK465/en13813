@@ -1,0 +1,55 @@
+// Backup of original middleware
+import { NextRequest, NextResponse } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware-fixed'
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Skip all middleware processing for Next.js static assets and system files
+  if (pathname.startsWith('/_next/') ||
+      pathname.startsWith('/favicon') ||
+      pathname.includes('.')) {
+    return NextResponse.next()
+  }
+
+  // Clear cookies if we detect 431 error pattern (too many/large cookies)
+  const cookieHeader = request.headers.get('cookie') || ''
+  if (cookieHeader.length > 4000) {
+    console.warn('Cookie header too large, clearing old cookies...')
+    const response = NextResponse.redirect(new URL('/login?cleared=true', request.url))
+
+    // Clear all cookies
+    request.cookies.getAll().forEach(cookie => {
+      response.cookies.delete(cookie.name)
+    })
+
+    return response
+  }
+
+  try {
+    // Only run session handling for page routes
+    const response = await updateSession(request)
+    return response
+  } catch (error) {
+    console.error('Middleware error:', error)
+
+    // On any error, clear cookies and redirect to login
+    const response = NextResponse.redirect(new URL('/login', request.url))
+    request.cookies.getAll().forEach(cookie => {
+      response.cookies.delete(cookie.name)
+    })
+    return response
+  }
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for:
+     * - _next/ (all Next.js internals)
+     * - favicon.ico, robots.txt, etc.
+     * - static files with extensions
+     */
+    '/((?!_next/|favicon.ico|robots.txt|.*\\.).*)',
+  ],
+}

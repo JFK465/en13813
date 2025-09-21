@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     
-    const result = await service.list(filters, page, limit)
+    const result = await service.list(filters)
     
     return NextResponse.json(result)
   } catch (error: any) {

@@ -4,7 +4,7 @@ import { createEN13813Services } from '@/modules/en13813/services'
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const services = createEN13813Services(supabase)
     
     const statuses = await services.compliance.getRecipeStatuses()

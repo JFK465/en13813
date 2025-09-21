@@ -88,13 +88,7 @@ const en13813FullSchema = z.object({
   indentation_class: z.string().optional(), // IC/IP für AS
   
   // === pH-WERT FÜR CA-ESTRICHE (Pflicht für CA) ===
-  ph_value_ca: z.number().min(7).optional().refine((val, ctx) => {
-    const formData = ctx as any
-    if (formData?.type === 'CA' && (!val || val < 7)) {
-      return false
-    }
-    return true
-  }, 'pH-Wert muss ≥ 7 für CA-Estriche sein'),
+  ph_value_ca: z.number().min(7).optional(),
   
   // === WASSEREIGENSCHAFTEN ===
   water_permeability: z.enum(['NPD', 'value']).default('NPD'),
@@ -243,7 +237,7 @@ export function RecipeFormEN13813Full() {
   const services = createEN13813Services(supabase)
 
   const form = useForm<EN13813FullFormValues>({
-    resolver: zodResolver(en13813FullSchema),
+    resolver: zodResolver(en13813FullSchema) as any,
     defaultValues: {
       recipe_code: '',
       name: '',
@@ -365,10 +359,13 @@ export function RecipeFormEN13813Full() {
       }
       
       // Save recipe
-      const result = await services.recipeService.create({
+      const recipeData = {
         ...data,
-        en_designation: enDesignation
-      })
+        en_designation: enDesignation,
+        // Filter out NPD values for electrostatic_behaviour
+        electrostatic_behaviour: data.electrostatic_behaviour === 'NPD' ? undefined : data.electrostatic_behaviour
+      }
+      const result = await services.recipes.create(recipeData as any)
       
       if (result) {
         toast({
@@ -406,7 +403,7 @@ export function RecipeFormEN13813Full() {
 
         {/* Validation Warnings */}
         {validationWarnings.length > 0 && (
-          <Alert variant="warning">
+          <Alert className="border-yellow-200 bg-yellow-50">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Validierungshinweise</AlertTitle>
             <AlertDescription>

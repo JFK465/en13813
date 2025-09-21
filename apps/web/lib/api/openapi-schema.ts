@@ -1,6 +1,5 @@
-import { OpenAPIV3 } from 'openapi3-ts'
-
-export const openApiSchema: OpenAPIV3.Document = {
+// OpenAPI schema for API documentation
+export const openApiSchema = {
   openapi: '3.0.0',
   info: {
     title: 'Compliance SaaS API',

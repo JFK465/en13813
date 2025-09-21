@@ -24,6 +24,7 @@ interface Recipe {
   id: string
   name: string
   recipe_code: string
+  version: number
   compressive_strength_class: string
   flexural_strength_class: string
   wear_resistance_method?: string
@@ -67,6 +68,7 @@ export default function NewBatchPage() {
   const [formData, setFormData] = useState({
     // Grunddaten
     recipe_id: '',
+    recipe_version: 0,
     batch_number: '',
     production_date: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
     quantity_tons: '',
@@ -75,6 +77,19 @@ export default function NewBatchPage() {
     deviation_notes: '',
     mixer_id: '',
     itt_reference: '',
+
+    // CE/Lieferschein-Infos
+    ce_delivery_info: {
+      designation: '',
+      max_grain_size: '',
+      thickness_range: '',
+      mixing_instructions: '',
+      processing_instructions: '',
+      safety_instructions: '',
+      manufacturer_address: '',
+      shelf_life: '',
+      storage_conditions: ''
+    },
     
     // Rohstoffe
     raw_materials: {
@@ -118,6 +133,9 @@ export default function NewBatchPage() {
       anzahl_hergestellt: '',
       kennzeichnung: '',
       lagerung: 'Wasserbad 20°C',
+      probenahmedatum: '',
+      probenahme_ort: '',
+      pruefnorm_version: 'EN 13892-2:2002',
       pruefplan: {
         '7_tage': '3',
         '28_tage': '3',
@@ -137,6 +155,7 @@ export default function NewBatchPage() {
     // Produktionsbedingungen
     production_conditions: {
       mischer_kalibrierung: '',
+      waagen_kalibrierung: '',
       aussentemperatur: '',
       materialtemperatur: '',
       luftfeuchtigkeit: ''
@@ -341,6 +360,7 @@ export default function NewBatchPage() {
       // Prepare batch data
       const batchData = {
         recipe_id: formData.recipe_id,
+        recipe_version: formData.recipe_version,
         batch_number: formData.batch_number,
         production_date: formData.production_date,
         quantity_tons: formData.quantity_tons ? parseFloat(formData.quantity_tons) : null,
@@ -355,10 +375,11 @@ export default function NewBatchPage() {
         wear_test: formData.wear_test.methode ? formData.wear_test : {},
         retention_sample: formData.retention_sample.entnommen ? formData.retention_sample : {},
         production_conditions: formData.production_conditions,
+        ce_delivery_info: formData.ce_delivery_info,
         conformity_check: conformity,
-        external_temperature: formData.production_conditions.aussentemperatur ? 
+        external_temperature: formData.production_conditions.aussentemperatur ?
           parseFloat(formData.production_conditions.aussentemperatur) : null,
-        material_temperature: formData.production_conditions.materialtemperatur ? 
+        material_temperature: formData.production_conditions.materialtemperatur ?
           parseFloat(formData.production_conditions.materialtemperatur) : null
       }
 
@@ -439,7 +460,14 @@ export default function NewBatchPage() {
                 <Label htmlFor="recipe">Rezeptur *</Label>
                 <Select
                   value={formData.recipe_id}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, recipe_id: value }))}
+                  onValueChange={(value) => {
+                    const recipe = recipes.find(r => r.id === value)
+                    setFormData(prev => ({
+                      ...prev,
+                      recipe_id: value,
+                      recipe_version: recipe?.version || 0
+                    }))
+                  }}
                   required
                 >
                   <SelectTrigger>
@@ -448,7 +476,7 @@ export default function NewBatchPage() {
                   <SelectContent>
                     {recipes.map(recipe => (
                       <SelectItem key={recipe.id} value={recipe.id}>
-                        {recipe.name} ({recipe.recipe_code})
+                        {recipe.name} ({recipe.recipe_code}) v{recipe.version || 1}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -499,14 +527,14 @@ export default function NewBatchPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="quantity">Menge (Tonnen)</Label>
+                <Label htmlFor="quantity">Menge (kg)</Label>
                 <Input
                   id="quantity"
                   type="number"
                   step="0.1"
-                  value={formData.quantity_tons}
-                  onChange={(e) => setFormData(prev => ({ ...prev, quantity_tons: e.target.value }))}
-                  placeholder="z.B. 25.5"
+                  value={formData.quantity_tons ? (parseFloat(formData.quantity_tons) * 1000).toString() : ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, quantity_tons: e.target.value ? (parseFloat(e.target.value) / 1000).toString() : '' }))}
+                  placeholder="z.B. 25500"
                 />
               </div>
 
@@ -561,7 +589,7 @@ export default function NewBatchPage() {
             <Separator />
 
             <div>
-              <h4 className="text-sm font-medium mb-3">Produktionsumgebung</h4>
+              <h4 className="text-sm font-medium mb-3">Produktionsumgebung & Kalibrierung</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="ext_temp">Außentemperatur (°C)</Label>
@@ -620,6 +648,24 @@ export default function NewBatchPage() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="waagen_calibration">Waagen-Kalibrierung</Label>
+                  <Input
+                    id="waagen_calibration"
+                    type="date"
+                    value={formData.production_conditions.waagen_kalibrierung}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      production_conditions: { ...prev.production_conditions, waagen_kalibrierung: e.target.value }
+                    }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    EN 13813: Regelmäßige Kalibrierung erforderlich
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -631,6 +677,144 @@ export default function NewBatchPage() {
                 placeholder="Besondere Vorkommnisse oder Abweichungen dokumentieren..."
                 rows={2}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* CE/Lieferschein-Informationen */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5" />
+              CE-Kennzeichnung & Lieferschein-Daten
+            </CardTitle>
+            <CardDescription>
+              Pflichtangaben nach EN 13813 Abschnitt 8 für Lieferschein und CE-Kennzeichnung
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="designation">Produktbezeichnung</Label>
+                <Input
+                  id="designation"
+                  value={formData.ce_delivery_info.designation}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    ce_delivery_info: { ...prev.ce_delivery_info, designation: e.target.value }
+                  }))}
+                  placeholder="z.B. Zementestrich CT-C30-F5"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="max_grain">Max. Größtkorn (mm)</Label>
+                <Input
+                  id="max_grain"
+                  value={formData.ce_delivery_info.max_grain_size}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    ce_delivery_info: { ...prev.ce_delivery_info, max_grain_size: e.target.value }
+                  }))}
+                  placeholder="z.B. 8"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="thickness">Dickenbereich (mm)</Label>
+                <Input
+                  id="thickness"
+                  value={formData.ce_delivery_info.thickness_range}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    ce_delivery_info: { ...prev.ce_delivery_info, thickness_range: e.target.value }
+                  }))}
+                  placeholder="z.B. 40-80"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manufacturer">Herstelleranschrift</Label>
+                <Input
+                  id="manufacturer"
+                  value={formData.ce_delivery_info.manufacturer_address}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    ce_delivery_info: { ...prev.ce_delivery_info, manufacturer_address: e.target.value }
+                  }))}
+                  placeholder="Firmierung und Adresse"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mixing">Mischhinweise</Label>
+              <Textarea
+                id="mixing"
+                value={formData.ce_delivery_info.mixing_instructions}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  ce_delivery_info: { ...prev.ce_delivery_info, mixing_instructions: e.target.value }
+                }))}
+                placeholder="Anweisungen für die korrekte Mischung..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="processing">Verarbeitungshinweise</Label>
+              <Textarea
+                id="processing"
+                value={formData.ce_delivery_info.processing_instructions}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  ce_delivery_info: { ...prev.ce_delivery_info, processing_instructions: e.target.value }
+                }))}
+                placeholder="Hinweise zur fachgerechten Verarbeitung..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="safety">Sicherheitshinweise</Label>
+              <Textarea
+                id="safety"
+                value={formData.ce_delivery_info.safety_instructions}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  ce_delivery_info: { ...prev.ce_delivery_info, safety_instructions: e.target.value }
+                }))}
+                placeholder="Sicherheitsvorkehrungen bei der Handhabung..."
+                rows={2}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="shelf_life">Haltbarkeit (falls Trockenmörtel)</Label>
+                <Input
+                  id="shelf_life"
+                  value={formData.ce_delivery_info.shelf_life}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    ce_delivery_info: { ...prev.ce_delivery_info, shelf_life: e.target.value }
+                  }))}
+                  placeholder="z.B. 6 Monate"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="storage">Lagerbedingungen</Label>
+                <Input
+                  id="storage"
+                  value={formData.ce_delivery_info.storage_conditions}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    ce_delivery_info: { ...prev.ce_delivery_info, storage_conditions: e.target.value }
+                  }))}
+                  placeholder="z.B. Trocken und kühl"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -991,7 +1175,7 @@ export default function NewBatchPage() {
                 <Separator />
 
                 <div>
-                  <h4 className="text-sm font-medium mb-3">Frischbetoneigenschaften</h4>
+                  <h4 className="text-sm font-medium mb-3">Frischmörtel-Eigenschaften</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="flow">Fließmaß (mm)</Label>
@@ -1022,7 +1206,7 @@ export default function NewBatchPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="wc">W/Z-Wert</Label>
+                      <Label htmlFor="wc">w/z-Wert</Label>
                       <Input
                         id="wc"
                         type="number"
@@ -1071,7 +1255,7 @@ export default function NewBatchPage() {
         </Collapsible>
 
         {/* Prüfkörper - Collapsible, wird wichtig bei QC */}
-        <Collapsible open={openSections.pruefkoerper || hasQcData} onOpenChange={() => toggleSection('pruefkoerper')}>
+        <Collapsible open={Boolean(openSections.pruefkoerper || hasQcData)} onOpenChange={() => toggleSection('pruefkoerper')}>
           <Card className={hasQcData && !formData.test_specimens.anzahl_hergestellt ? 'ring-2 ring-yellow-500' : ''}>
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -1141,6 +1325,47 @@ export default function NewBatchPage() {
                         <SelectItem value="Baustelle">Baustellenlagerung</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="probenahmedatum">Probenahmedatum</Label>
+                    <Input
+                      id="probenahmedatum"
+                      type="date"
+                      value={formData.test_specimens.probenahmedatum}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        test_specimens: { ...prev.test_specimens, probenahmedatum: e.target.value }
+                      }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="probenahme_ort">Probenahmeort</Label>
+                    <Input
+                      id="probenahme_ort"
+                      value={formData.test_specimens.probenahme_ort}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        test_specimens: { ...prev.test_specimens, probenahme_ort: e.target.value }
+                      }))}
+                      placeholder="z.B. Mischer Auslauf"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pruefnorm_version">Prüfnorm-Version</Label>
+                    <Input
+                      id="pruefnorm_version"
+                      value={formData.test_specimens.pruefnorm_version}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        test_specimens: { ...prev.test_specimens, pruefnorm_version: e.target.value }
+                      }))}
+                      placeholder="EN 13892-2:2002"
+                    />
                   </div>
                 </div>
 
@@ -1219,17 +1444,18 @@ export default function NewBatchPage() {
                   </div>
                   {openSections.rueckstellung ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </div>
-                <CardDescription>WPK-Anforderung: Rückstellmuster für 2 Jahre aufbewahren</CardDescription>
+                <CardDescription>Werksvorgabe (konfigurierbar): Rückstellmuster für 2 Jahre aufbewahren</CardDescription>
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-4 pt-0">
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>WPK-Anforderung</AlertTitle>
+                  <AlertTitle>Werksvorgabe (WPK-Policy)</AlertTitle>
                   <AlertDescription>
-                    Gemäß Werkseigener Produktionskontrolle müssen Rückstellmuster für mindestens 2 Jahre
-                    aufbewahrt werden. Dies dient der nachträglichen Überprüfung bei Reklamationen.
+                    Gemäß interner Werksvorgabe werden Rückstellmuster für 2 Jahre aufbewahrt.
+                    Diese Frist ist konfigurierbar und dient der nachträglichen Überprüfung bei Reklamationen.
+                    (Hinweis: EN 13813 schreibt keine spezifische Aufbewahrungsdauer vor)
                   </AlertDescription>
                 </Alert>
 
@@ -1316,77 +1542,108 @@ export default function NewBatchPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5" />
-                Automatische Konformitätsprüfung
+                Konformitätsbewertung nach EN 13813 (9.2.3 Einzelwert-Ansatz)
               </CardTitle>
-              <CardDescription>Validierung gegen Rezeptur-Anforderungen</CardDescription>
+              <CardDescription>
+                Jeder 28-Tage-Einzelwert muss ≥ deklarierter Klasse sein
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              <Alert className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Konformitätskriterium</AlertTitle>
+                <AlertDescription>
+                  Nach EN 13813, Abschnitt 9.2.3: Bei Einzelprüfung muss jeder Prüfwert die deklarierte
+                  Klasse erreichen oder überschreiten. Bei Nichterfüllung: Alternativ statistischer
+                  Ansatz nach 9.2.2 möglich.
+                </AlertDescription>
+              </Alert>
+
               <div className="flex justify-between items-center p-3 border rounded-lg">
                 <div>
-                  <p className="font-medium">Druckfestigkeit</p>
+                  <p className="font-medium">Druckfestigkeit (Einzelwert)</p>
                   <p className="text-sm text-muted-foreground">
-                    Soll: ≥ {parseInt(selectedRecipe.compressive_strength_class.replace('C', ''))} N/mm² | 
-                    Ist: {formData.qc_data.compressive_strength_28d} N/mm²
+                    Deklariert: C{parseInt(selectedRecipe.compressive_strength_class.replace('C', ''))} (≥ {parseInt(selectedRecipe.compressive_strength_class.replace('C', ''))} N/mm²)
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Gemessen: {formData.qc_data.compressive_strength_28d} N/mm²
                   </p>
                 </div>
-                {parseFloat(formData.qc_data.compressive_strength_28d) >= 
+                {parseFloat(formData.qc_data.compressive_strength_28d) >=
                  parseInt(selectedRecipe.compressive_strength_class.replace('C', '')) ? (
                   <Badge variant="success" className="gap-1">
                     <CheckCircle2 className="w-4 h-4" />
-                    PASS
+                    KONFORM
                   </Badge>
                 ) : (
                   <Badge variant="destructive" className="gap-1">
                     <AlertTriangle className="w-4 h-4" />
-                    FAIL
+                    NICHT KONFORM
                   </Badge>
                 )}
               </div>
 
               <div className="flex justify-between items-center p-3 border rounded-lg">
                 <div>
-                  <p className="font-medium">Biegezugfestigkeit</p>
+                  <p className="font-medium">Biegezugfestigkeit (Einzelwert)</p>
                   <p className="text-sm text-muted-foreground">
-                    Soll: ≥ {parseInt(selectedRecipe.flexural_strength_class.replace('F', ''))} N/mm² | 
-                    Ist: {formData.qc_data.flexural_strength_28d} N/mm²
+                    Deklariert: F{parseInt(selectedRecipe.flexural_strength_class.replace('F', ''))} (≥ {parseInt(selectedRecipe.flexural_strength_class.replace('F', ''))} N/mm²)
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Gemessen: {formData.qc_data.flexural_strength_28d} N/mm²
                   </p>
                 </div>
-                {parseFloat(formData.qc_data.flexural_strength_28d) >= 
+                {parseFloat(formData.qc_data.flexural_strength_28d) >=
                  parseInt(selectedRecipe.flexural_strength_class.replace('F', '')) ? (
                   <Badge variant="success" className="gap-1">
                     <CheckCircle2 className="w-4 h-4" />
-                    PASS
+                    KONFORM
                   </Badge>
                 ) : (
                   <Badge variant="destructive" className="gap-1">
                     <AlertTriangle className="w-4 h-4" />
-                    FAIL
+                    NICHT KONFORM
                   </Badge>
                 )}
               </div>
 
               {(() => {
                 const conformity = calculateConformity()
-                const isConform = conformity && 
-                  conformity.druckfestigkeit.status === 'PASS' && 
+                const isConform = conformity &&
+                  conformity.druckfestigkeit.status === 'PASS' &&
                   conformity.biegezug.status === 'PASS'
-                
-                return isConform ? (
-                  <Alert>
-                    <CheckCircle2 className="h-4 w-4" />
-                    <AlertTitle>Charge konform</AlertTitle>
-                    <AlertDescription>
-                      Alle Qualitätsanforderungen wurden erfüllt. Die Charge kann freigegeben werden.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Charge nicht konform</AlertTitle>
-                    <AlertDescription>
-                      Die Qualitätsanforderungen wurden nicht erfüllt. Bitte prüfen Sie die Abweichungen.
-                    </AlertDescription>
-                  </Alert>
+
+                return (
+                  <>
+                    {isConform ? (
+                      <Alert>
+                        <CheckCircle2 className="h-4 w-4" />
+                        <AlertTitle>Gesamtbewertung: KONFORM</AlertTitle>
+                        <AlertDescription>
+                          Alle Einzelwerte erfüllen die deklarierten Klassen. Die Charge entspricht
+                          den Anforderungen nach EN 13813, Abschnitt 9.2.3.
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Gesamtbewertung: NICHT KONFORM</AlertTitle>
+                        <AlertDescription>
+                          Mindestens ein Einzelwert unterschreitet die deklarierte Klasse.
+                          Option: Prüfung nach statistischem Ansatz (9.2.2) oder Neuklassifizierung.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    <div className="mt-3 p-3 bg-muted rounded-lg">
+                      <p className="text-sm font-medium mb-2">Weitere Optionen bei Nichtkonformität:</p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Statistischer Ansatz nach 9.2.2 mit Stichprobenplan</li>
+                        <li>• Neuklassifizierung in niedrigere Festigkeitsklasse</li>
+                        <li>• Produktionsparameter überprüfen und anpassen</li>
+                      </ul>
+                    </div>
+                  </>
                 )
               })()}
             </CardContent>

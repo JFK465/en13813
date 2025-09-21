@@ -16,7 +16,7 @@ export class RecipeService {
       }
 
       if (filter?.type) {
-        query = query.eq('estrich_type', filter.type)
+        query = query.eq('binder_type', filter.type)
       }
 
       if (filter?.search) {
@@ -52,10 +52,11 @@ export class RecipeService {
   async create(recipe: Partial<Recipe>): Promise<Recipe> {
     try {
       // Generate recipe code if not provided
-      if (!recipe.recipe_code && recipe.estrich_type && recipe.compressive_strength && recipe.flexural_strength) {
-        recipe.recipe_code = `${recipe.estrich_type}-${recipe.compressive_strength}-${recipe.flexural_strength}`
-        if (recipe.wear_resistance) {
-          recipe.recipe_code += `-${recipe.wear_resistance}`
+      if (!recipe.recipe_code && recipe.binder_type && recipe.compressive_strength_class && recipe.flexural_strength_class) {
+        recipe.recipe_code = `${recipe.binder_type}-${recipe.compressive_strength_class}-${recipe.flexural_strength_class}`
+        if (recipe.wear_resistance_bohme_class || recipe.wear_resistance_bca_class || recipe.wear_resistance_rollrad_class) {
+          const wearClass = recipe.wear_resistance_bohme_class || recipe.wear_resistance_bca_class || recipe.wear_resistance_rollrad_class
+          recipe.recipe_code += `-${wearClass}`
         }
       }
 
@@ -63,11 +64,9 @@ export class RecipeService {
       const recipeData = {
         ...recipe,
         status: recipe.status || 'draft',
-        is_validated: false,
         fire_class: recipe.fire_class || 'A1fl',
-        emissions: recipe.emissions || {},
-        additives: recipe.additives || [],
-        validation_errors: []
+        avcp_system: recipe.avcp_system || '4', // Default System 4 for standard recipes
+        setting_time_norm: recipe.setting_time_norm || 'EN 13454-2' // EN 13813 compliant norm
       }
 
       const { data, error } = await this.supabase
@@ -87,12 +86,14 @@ export class RecipeService {
   async update(id: string, updates: Partial<Recipe>): Promise<Recipe> {
     try {
       // Regenerate recipe code if classification changed
-      if (updates.estrich_type || updates.compressive_strength || updates.flexural_strength) {
+      if (updates.binder_type || updates.compressive_strength_class || updates.flexural_strength_class) {
         const existing = await this.getById(id)
         if (existing) {
-          updates.recipe_code = `${updates.estrich_type || existing.estrich_type}-${updates.compressive_strength || existing.compressive_strength}-${updates.flexural_strength || existing.flexural_strength}`
-          if (updates.wear_resistance || existing.wear_resistance) {
-            updates.recipe_code += `-${updates.wear_resistance || existing.wear_resistance}`
+          updates.recipe_code = `${updates.binder_type || existing.binder_type}-${updates.compressive_strength_class || existing.compressive_strength_class}-${updates.flexural_strength_class || existing.flexural_strength_class}`
+          const wearClass = updates.wear_resistance_bohme_class || updates.wear_resistance_bca_class || updates.wear_resistance_rollrad_class ||
+                           existing.wear_resistance_bohme_class || existing.wear_resistance_bca_class || existing.wear_resistance_rollrad_class
+          if (wearClass) {
+            updates.recipe_code += `-${wearClass}`
           }
         }
       }

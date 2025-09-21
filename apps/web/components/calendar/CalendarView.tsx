@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState, useEffect, useMemo } from 'react'
-import { Calendar, momentLocalizer, View, Views } from 'react-big-calendar'
+import { Calendar, momentLocalizer, Views } from 'react-big-calendar'
 import moment from 'moment'
 import { useCalendar } from '@/hooks/useCalendar'
 import { useAuth } from '@/hooks/core/useAuth'
@@ -22,7 +22,7 @@ interface CalendarEvent {
 interface CalendarViewProps {
   onSelectEvent?: (task: CalendarTask) => void
   onSelectSlot?: (slotInfo: { start: Date; end: Date; slots: Date[] }) => void
-  defaultView?: View
+  defaultView?: any
   showToolbar?: boolean
   height?: number
   category?: TaskCategory
@@ -40,7 +40,7 @@ export function CalendarView({
 }: CalendarViewProps) {
   const { user } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [currentView, setCurrentView] = useState<View>(defaultView)
+  const [currentView, setCurrentView] = useState<any>(defaultView)
   
   // Calculate date range based on current view
   const dateRange = useMemo(() => {
@@ -160,7 +160,7 @@ export function CalendarView({
   }, [])
 
   // Handle view change
-  const handleViewChange = useCallback((view: View) => {
+  const handleViewChange = useCallback((view: any) => {
     setCurrentView(view)
   }, [])
 

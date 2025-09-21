@@ -38,11 +38,11 @@ export function MaterialComposition({
           tolerance_mm: 10
         },
         setting_time: {
-          initial_minutes: null,
-          final_minutes: null
+          initial_minutes: undefined,
+          final_minutes: undefined
         },
-        ph_value: null,
-        processing_time_minutes: null,
+        ph_value: undefined,
+        processing_time_minutes: undefined,
         temperature_range: {
           min_celsius: 5,
           max_celsius: 30
@@ -349,7 +349,7 @@ export function MaterialComposition({
                     </SelectContent>
                   </Select>
                 </div>
-                {materials.fibers?.type && materials.fibers.type !== 'none' && (
+                {materials.fibers?.type && (
                   <>
                     <div>
                       <Label htmlFor="fiber_length">Länge (mm)</Label>

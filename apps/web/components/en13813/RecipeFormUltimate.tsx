@@ -82,6 +82,10 @@ const ultimateRecipeSchema = z.object({
   recipe_code: z.string().min(1, 'Rezeptur-Code ist erforderlich'),
   name: z.string().min(1, 'Bezeichnung ist erforderlich'),
   type: z.enum(['CT', 'CA', 'MA', 'SR', 'AS']),
+
+  // === CE-KENNZEICHNUNG & AVCP ===
+  avcp_system: z.enum(['4', '3', '2+', '1+', '1']).default('4'), // System 4 für CT mit A1fl "ohne Prüfung"
+  notified_body_number: z.string().optional(), // Nur bei System 1, 1+, 2+, 3
   
   // === VERSIONIERUNG ===
   version: z.string().default('1.0'),
@@ -100,14 +104,17 @@ const ultimateRecipeSchema = z.object({
   // === VERSCHLEIßWIDERSTAND (NUR EINE METHODE!) ===
   wear_resistance_method: z.enum(['none', 'bohme', 'bca', 'rolling_wheel']).default('none'),
   wear_resistance_class: z.string().optional(),
+
+  // === RWFC (Resistance to Rolling Wheel with Floor Covering) ===
+  rwfc_class: z.string().optional(), // RWFC150, RWFC250, RWFC350, RWFC450, RWFC550
   
   // === ESTRICHTYP-SPEZIFISCHE PFLICHTFELDER ===
   // AS (Gussasphalt)
   indentation_class: z.string().optional(), // IC10, IC15, IC40, IC100, IP10, IP15, IP40
   heated_indicator: z.boolean().optional(), // H-Kennzeichnung
   
-  // SR (Kunstharz)
-  bond_strength_class: z.string().optional(), // B0.5, B1.0, B1.5, B2.0
+  // SR (Kunstharz) & allgemein verwendbar für CT/CA
+  bond_strength_class: z.string().optional(), // B0.5, B1.0, B1.5, B2.0 - Pflicht für SR, optional für CT/CA
   impact_resistance_class: z.string().optional(), // IR1, IR2, IR4, IR10, IR20
   
   // MA (Magnesit) - SH ist PFLICHT bei MA!
@@ -137,6 +144,12 @@ const ultimateRecipeSchema = z.object({
     binder_amount_kg_m3: z.number().min(0),
     binder_supplier: z.string().optional(),
     binder_certificate: z.string().optional(), // Konformitätsnachweis
+
+    // === KENNZEICHNUNGSPFLICHTFELDER (EN 13813 Anforderung) ===
+    batch_size_kg: z.number().optional(), // Gebindegröße/Menge
+    production_date: z.string().optional(), // Herstellungsdatum
+    shelf_life_months: z.number().optional(), // Haltbarkeit
+    storage_conditions: z.string().optional(), // Lagerbedingungen
     
     // Zuschlagstoffe
     aggregate_type: z.enum(['natural', 'recycled', 'lightweight', 'other']).optional(),
@@ -200,13 +213,14 @@ const ultimateRecipeSchema = z.object({
     consistency_target: z.number().optional(),
     consistency_tolerance: z.number().optional(),
     consistency_unit: z.string().default('mm'),
-    
+
     setting_time_initial_minutes: z.number().optional(),
     setting_time_final_minutes: z.number().optional(),
-    
+    setting_time_norm: z.enum(['EN 13454-2', 'EN 196-3']).default('EN 13454-2'), // EN 13454-2 ist korrekt für EN 13813
+
     density_kg_m3: z.number().optional(),
     air_content_percent: z.number().optional(),
-    ph_value: z.number().min(0).max(14).optional(),
+    ph_value: z.number().min(0).max(14).optional(), // Pflicht nur für CA (pH ≥ 7)
     
     processing_time_minutes: z.number().optional(),
     temperature_min_celsius: z.number().default(5),
@@ -341,12 +355,13 @@ export function RecipeFormUltimate() {
     return randomId
   })
   const [currentSection, setCurrentSection] = useState(0)
+  const [enDesignation, setEnDesignation] = useState('')
   const router = useRouter()
   const supabase = createClientComponentClient()
   const services = createEN13813Services(supabase)
 
   const form = useForm<UltimateRecipeFormValues>({
-    resolver: zodResolver(ultimateRecipeSchema),
+    resolver: zodResolver(ultimateRecipeSchema) as any,
     defaultValues: {
       recipe_code: '',
       name: '',
@@ -486,12 +501,17 @@ export function RecipeFormUltimate() {
       designation += `-${watchedValues.surface_hardness_class}`
     }
     
-    // Verschleiß bei Wearing Surface
-    if (watchedValues.intended_use?.wearing_surface && 
+    // Verschleiß bei Wearing Surface ohne Bodenbelag
+    if (watchedValues.intended_use?.wearing_surface &&
         !watchedValues.intended_use?.with_flooring &&
-        watchedValues.wear_resistance_class && 
+        watchedValues.wear_resistance_class &&
         watchedValues.wear_resistance_method !== 'none') {
       designation += `-${watchedValues.wear_resistance_class}`
+    }
+
+    // RWFC bei mit Bodenbelag
+    if (watchedValues.intended_use?.with_flooring && watchedValues.rwfc_class) {
+      designation += `-${watchedValues.rwfc_class}`
     }
     
     // Prüfalter bei Frühfestigkeit
@@ -558,7 +578,7 @@ export function RecipeFormUltimate() {
     }
     
     // Verschleißwiderstand bei Nutzschicht ohne Bodenbelag - PFLICHT
-    if (watchedValues.intended_use?.wearing_surface && 
+    if (watchedValues.intended_use?.wearing_surface &&
         !watchedValues.intended_use?.with_flooring) {
       if (watchedValues.wear_resistance_method === 'none' || !watchedValues.wear_resistance_method) {
         errors.push('Verschleißwiderstand-Methode ist bei Nutzschicht ohne Bodenbelag erforderlich')
@@ -566,7 +586,33 @@ export function RecipeFormUltimate() {
         errors.push('Verschleißwiderstand-Klasse muss ausgewählt werden')
       }
     }
-    
+
+    // RWFC bei mit Bodenbelag - EMPFOHLEN (aber nicht Pflicht)
+    if (watchedValues.intended_use?.with_flooring && !watchedValues.rwfc_class) {
+      // Nur Warnung, kein Fehler
+      console.log('Hinweis: RWFC-Klasse sollte bei "mit Bodenbelag" angegeben werden')
+    }
+
+    // pH-Wert für CA - PFLICHT und muss ≥ 7 sein
+    if (type === 'CA') {
+      if (!watchedValues.fresh_mortar?.ph_value) {
+        errors.push('pH-Wert ist bei Calciumsulfatestrich (CA) erforderlich')
+      } else if (watchedValues.fresh_mortar.ph_value < 7) {
+        errors.push('pH-Wert muss bei CA ≥ 7 sein (EN 13813 Anforderung)')
+      }
+    }
+
+    // AVCP System Validierung - NB-Nummer nur bei System 1
+    if (watchedValues.avcp_system === '1' && !watchedValues.notified_body_number) {
+      errors.push('Notified Body Nummer ist bei AVCP System 1 erforderlich (erscheint im CE-Zeichen)')
+    }
+
+    // Automatische AVCP System 4 Regel für CT mit A1fl
+    if (type === 'CT' && watchedValues.fire_class === 'A1fl' &&
+        watchedValues.avcp_system && watchedValues.avcp_system !== '4') {
+      console.log('Hinweis: CT mit A1fl "ohne Prüfung" sollte normalerweise System 4 verwenden')
+    }
+
     return errors
   }
 
@@ -863,7 +909,7 @@ export function RecipeFormUltimate() {
             />
 
             {/* EN-Bezeichnung LIVE */}
-            <NormDesignationDisplay 
+            <NormDesignationDisplay
               binderType={watchedValues.type}
               compressiveClass={watchedValues.compressive_strength_class}
               flexuralClass={watchedValues.flexural_strength_class}
@@ -877,6 +923,102 @@ export function RecipeFormUltimate() {
               <p className="text-lg font-mono font-semibold mt-2 text-blue-900">
                 {enDesignation}
               </p>
+            </div>
+
+            <Separator />
+
+            {/* AVCP System und CE-Kennzeichnung */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                CE-Kennzeichnung & AVCP System
+              </h3>
+
+              <Alert className="border-blue-200 bg-blue-50">
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  {watchedValues.type === 'CT' && watchedValues.fire_class === 'A1fl' && (
+                    <span>
+                      <strong>System 4</strong>: Zementestrich mit Brandklasse A1fl "ohne Prüfung" erfordert
+                      <strong> kein Notified Body</strong>. Nur bei speziellen Brandklassen oder Zusatzstoffen
+                      sind System 1 oder 3 erforderlich.
+                    </span>
+                  )}
+                  {watchedValues.type === 'CA' && (
+                    <span>
+                      <strong>System 4</strong>: Calciumsulfatestrich mit üblicher Zusammensetzung.
+                      Nur bei speziellen Anforderungen System 1 oder 3.
+                    </span>
+                  )}
+                  {['MA', 'SR', 'AS'].includes(watchedValues.type) && (
+                    <span>
+                      Je nach Brandklasse und Verwendungszweck: System 1, 3 oder 4.
+                    </span>
+                  )}
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="avcp_system"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>AVCP System*</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="4">System 4 (Herstellererklärung)</SelectItem>
+                          <SelectItem value="3">System 3 (Prüfbericht notifizierte Stelle, keine NB-Nr. im CE)</SelectItem>
+                          <SelectItem value="1">System 1 (Zertifizierung notifizierte Stelle, NB-Nr. im CE)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Gem. Tabelle ZA.2 der EN 13813
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="notified_body_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Notified Body Nr.
+                        {watchedValues.avcp_system === '1' && (
+                          <span className="text-red-500">*</span>
+                        )}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            watchedValues.avcp_system === '1'
+                              ? "z.B. 1234 (4-stellig)"
+                              : watchedValues.avcp_system === '3'
+                              ? "Nicht im CE-Zeichen (nur Prüfbericht)"
+                              : "Nicht erforderlich bei System 4"
+                          }
+                          {...field}
+                          disabled={watchedValues.avcp_system !== '1'}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {watchedValues.avcp_system === '4'
+                          ? "Kein Notified Body bei System 4"
+                          : "4-stellige Kennnummer"}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Freigabe-Informationen */}
@@ -1160,6 +1302,77 @@ export function RecipeFormUltimate() {
               </div>
             )}
 
+            {/* Bond Strength (B-Klassen) - Optional für CT/CA, Pflicht für SR */}
+            {(['CT', 'CA'].includes(watchedValues.type)) && (
+              <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Link className="h-4 w-4" />
+                  Optionale Eigenschaften für {watchedValues.type}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="bond_strength_class"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Verbundfestigkeit (B-Klasse)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Optional" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="NPD">NPD - No Performance Determined</SelectItem>
+                            <SelectItem value="B0.5">B0.5 (≥ 0.5 N/mm²)</SelectItem>
+                            <SelectItem value="B1.0">B1.0 (≥ 1.0 N/mm²)</SelectItem>
+                            <SelectItem value="B1.5">B1.5 (≥ 1.5 N/mm²)</SelectItem>
+                            <SelectItem value="B2.0">B2.0 (≥ 2.0 N/mm²)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Nach EN 13892-8 (häufig bei Verbundestrichen gefordert)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Oberflächenhärte für CT/CA (optional) */}
+                  <FormField
+                    control={form.control}
+                    name="surface_hardness_class"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Oberflächenhärte (SH-Klasse)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Optional" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="NPD">NPD - No Performance Determined</SelectItem>
+                            <SelectItem value="SH30">SH30</SelectItem>
+                            <SelectItem value="SH40">SH40</SelectItem>
+                            <SelectItem value="SH50">SH50</SelectItem>
+                            <SelectItem value="SH70">SH70</SelectItem>
+                            <SelectItem value="SH100">SH100</SelectItem>
+                            <SelectItem value="SH150">SH150</SelectItem>
+                            <SelectItem value="SH200">SH200</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Nach EN 13892-6 (optional für CT/CA)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* MA (Magnesit) - Oberflächenhärte PFLICHT */}
             {watchedValues.type === 'MA' && (
               <div className="p-4 bg-green-50 rounded-lg space-y-4">
@@ -1232,8 +1445,11 @@ export function RecipeFormUltimate() {
                         <div className="flex items-start space-x-2">
                           <RadioGroupItem value="bohme" id="bohme" />
                           <div className="grid gap-1.5 leading-none flex-1">
-                            <Label htmlFor="bohme">
+                            <Label htmlFor="bohme" className="flex items-center gap-2">
                               Böhme-Verfahren (A-Klassen) - EN 13892-3
+                              <span className="text-xs text-muted-foreground">
+                                (Wert in cm³/50cm²)
+                              </span>
                             </Label>
                             {watchedValues.wear_resistance_method === 'bohme' && (
                               <FormField
@@ -1263,8 +1479,11 @@ export function RecipeFormUltimate() {
                         <div className="flex items-start space-x-2">
                           <RadioGroupItem value="bca" id="bca" />
                           <div className="grid gap-1.5 leading-none flex-1">
-                            <Label htmlFor="bca">
+                            <Label htmlFor="bca" className="flex items-center gap-2">
                               BCA-Verfahren (AR-Klassen) - EN 13892-4
+                              <span className="text-xs text-muted-foreground">
+                                (max. Abtrag ×10⁻² mm)
+                              </span>
                             </Label>
                             {watchedValues.wear_resistance_method === 'bca' && (
                               <FormField
@@ -1292,8 +1511,11 @@ export function RecipeFormUltimate() {
                         <div className="flex items-start space-x-2">
                           <RadioGroupItem value="rolling_wheel" id="rolling" />
                           <div className="grid gap-1.5 leading-none flex-1">
-                            <Label htmlFor="rolling">
+                            <Label htmlFor="rolling" className="flex items-center gap-2">
                               Rollrad-Verfahren (RWA-Klassen) - EN 13892-5
+                              <span className="text-xs text-muted-foreground">
+                                (Wert in cm³)
+                              </span>
                             </Label>
                             {watchedValues.wear_resistance_method === 'rolling_wheel' && (
                               <FormField
@@ -2187,24 +2409,19 @@ export function RecipeFormUltimate() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="fresh_mortar.consistency"
+                name="fresh_mortar.consistency_target"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Konsistenz</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Wählen..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="earth_moist">Erdfeucht</SelectItem>
-                        <SelectItem value="plastic">Plastisch</SelectItem>
-                        <SelectItem value="soft">Weich</SelectItem>
-                        <SelectItem value="flowable">Fließfähig</SelectItem>
-                        <SelectItem value="self_leveling">Selbstverlaufend</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Konsistenz-Zielwert (mm)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="z.B. 160"
+                        {...field}
+                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormDescription>Zielwert für Ausbreitmaß</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -2212,7 +2429,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="fresh_mortar.flow_diameter_mm"
+                name="fresh_mortar.consistency_tolerance"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ausbreitmaß (mm)</FormLabel>
@@ -2231,7 +2448,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="fresh_mortar.working_time_minutes"
+                name="fresh_mortar.processing_time_minutes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Verarbeitungszeit (Min.)</FormLabel>
@@ -2250,7 +2467,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="fresh_mortar.setting_time_start_minutes"
+                name="fresh_mortar.setting_time_initial_minutes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Erstarrungsbeginn (Min.)</FormLabel>
@@ -2262,7 +2479,11 @@ export function RecipeFormUltimate() {
                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
-                    <FormDescription>Nach EN 196-3</FormDescription>
+                    <FormDescription>
+                      {watchedValues.fresh_mortar?.setting_time_norm === 'EN 13454-2'
+                        ? 'Nach EN 13454-2 (korrekt für EN 13813)'
+                        : 'Nach EN 196-3 (Zement-Vicat, Info-Zweck)'}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -2270,7 +2491,32 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="fresh_mortar.setting_time_end_minutes"
+                name="fresh_mortar.setting_time_norm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prüfnorm für Erstarrungszeit</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="EN 13454-2">EN 13454-2 (EN 13813 konform)</SelectItem>
+                        <SelectItem value="EN 196-3">EN 196-3 (Zement-Vicat, Info)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      EN 13454-2 ist das Verfahren nach EN 13813
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="fresh_mortar.setting_time_final_minutes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Erstarrungsende (Min.)</FormLabel>
@@ -2282,7 +2528,11 @@ export function RecipeFormUltimate() {
                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
-                    <FormDescription>Nach EN 196-3</FormDescription>
+                    <FormDescription>
+                      {watchedValues.fresh_mortar?.setting_time_norm === 'EN 13454-2'
+                        ? 'Nach EN 13454-2 (korrekt für EN 13813)'
+                        : 'Nach EN 196-3 (Zement-Vicat, Info-Zweck)'}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -2293,9 +2543,11 @@ export function RecipeFormUltimate() {
                 name="fresh_mortar.ph_value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>pH-Wert</FormLabel>
+                    <FormLabel>
+                      pH-Wert {watchedValues.type === 'CA' && <span className="text-red-500">*</span>}
+                    </FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="number"
                         step="0.1"
                         placeholder="z.B. 12.5"
@@ -2303,7 +2555,15 @@ export function RecipeFormUltimate() {
                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
-                    <FormDescription>pH-Wert des Frischmörtels</FormDescription>
+                    <FormDescription>
+                      {watchedValues.type === 'CA' ? (
+                        <span className="text-orange-600">
+                          Pflicht für CA: pH ≥ 7 (EN 13813 Anforderung)
+                        </span>
+                      ) : (
+                        'pH-Wert des Frischmörtels (optional)'
+                      )}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -2327,7 +2587,7 @@ export function RecipeFormUltimate() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="processing.min_temperature"
+                name="fresh_mortar.temperature_min_celsius"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Min. Verarbeitungstemperatur (°C)</FormLabel>
@@ -2346,7 +2606,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="processing.max_temperature"
+                name="fresh_mortar.temperature_max_celsius"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Max. Verarbeitungstemperatur (°C)</FormLabel>
@@ -2365,7 +2625,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="processing.min_layer_thickness_mm"
+                name="processing.layer_thickness_min_mm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Min. Schichtdicke (mm)</FormLabel>
@@ -2384,7 +2644,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="processing.max_layer_thickness_mm"
+                name="processing.layer_thickness_max_mm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Max. Schichtdicke (mm)</FormLabel>
@@ -2419,20 +2679,29 @@ export function RecipeFormUltimate() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="extended_properties.elastic_modulus_gpa"
+                name="extended_properties.elastic_modulus_class"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-Modul (GPa)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.1"
-                        placeholder="z.B. 25"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormDescription>Nach EN 13412</FormDescription>
+                    <FormLabel>E-Modul Klasse (Biegemodul)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Wählen Sie eine E-Klasse" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="NPD">NPD - No Performance Determined</SelectItem>
+                        <SelectItem value="E1">E1 (≥ 1 kN/mm²)</SelectItem>
+                        <SelectItem value="E2">E2 (≥ 2 kN/mm²)</SelectItem>
+                        <SelectItem value="E5">E5 (≥ 5 kN/mm²)</SelectItem>
+                        <SelectItem value="E10">E10 (≥ 10 kN/mm²)</SelectItem>
+                        <SelectItem value="E15">E15 (≥ 15 kN/mm²)</SelectItem>
+                        <SelectItem value="E20">E20 (≥ 20 kN/mm²)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Modulus of elasticity in flexure nach EN ISO 178
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -2440,7 +2709,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="extended_properties.shrinkage_swelling_mm_m"
+                name="extended_properties.shrinkage_mm_m"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Schwinden/Quellen (mm/m)</FormLabel>
@@ -2484,7 +2753,7 @@ export function RecipeFormUltimate() {
 
               <FormField
                 control={form.control}
-                name="extended_properties.fire_class"
+                name="fire_class"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Brandverhalten</FormLabel>
@@ -2514,7 +2783,7 @@ export function RecipeFormUltimate() {
                   <FormItem className="md:col-span-2">
                     <FormLabel>Chemische Beständigkeit</FormLabel>
                     <div className="flex flex-wrap gap-2">
-                      {['oil', 'acid', 'alkali', 'solvent'].map((type) => (
+                      {(['oil', 'acid', 'alkali', 'salt', 'solvent'] as const).map((type) => (
                         <label key={type} className="flex items-center space-x-2">
                           <Checkbox 
                             checked={field.value?.includes(type)}
@@ -2787,7 +3056,7 @@ export function RecipeFormUltimate() {
 
                 <FormField
                   control={form.control}
-                  name="quality_control.tolerance_temperature_c"
+                  name="quality_control.tolerance_temperature_celsius"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Temperatur (± °C)</FormLabel>
@@ -2881,7 +3150,7 @@ export function RecipeFormUltimate() {
           <CardContent className="space-y-4">
             <FormField
               control={form.control}
-              name="traceability.batch_linking"
+              name="traceability.batch_linking_enabled"
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-2">
                   <FormControl>
@@ -2897,9 +3166,10 @@ export function RecipeFormUltimate() {
               )}
             />
 
-            <div>
+            {false && <div>
               <h3 className="text-sm font-medium mb-4">Rückstellmuster</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Fields don't exist in schema yet - commenting out
                 <FormField
                   control={form.control}
                   name="traceability.retention_location"
@@ -2921,7 +3191,7 @@ export function RecipeFormUltimate() {
                     <FormItem>
                       <FormLabel>Aufbewahrungsdauer (Monate)</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="number"
                           placeholder="z.B. 6"
                           {...field}
@@ -2932,8 +3202,9 @@ export function RecipeFormUltimate() {
                     </FormItem>
                   )}
                 />
+                */}
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="traceability.retention_quantity"
                   render={({ field }) => (
@@ -2945,9 +3216,9 @@ export function RecipeFormUltimate() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
-            </div>
+            </div>}
           </CardContent>
         </Card>
 
@@ -3111,7 +3382,7 @@ export function RecipeFormUltimate() {
               </div>
             </div>
 
-            {/* Hersteller-Informationen */}
+            {/* Hersteller-Informationen - Fields don't exist in schema
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Hersteller-Informationen (erforderlich für DoP)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3164,39 +3435,64 @@ export function RecipeFormUltimate() {
                   )}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* AVCP-System und Notified Body */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium">AVCP-System und Konformitätsbewertung</h3>
               
-              {/* AVCP System Anzeige */}
-              <Alert className={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' ? "border-orange-200 bg-orange-50" : "border-blue-200 bg-blue-50"}>
-                <Info className={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' ? "h-4 w-4 text-orange-600" : "h-4 w-4 text-blue-600"} />
-                <AlertDescription className={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' ? "text-orange-900" : "text-blue-900"}>
-                  <strong>AVCP-System: {watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' ? 'System 1+' : 'System 4'}</strong><br />
-                  {watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' ? (
+              {/* AVCP System Anzeige - Verwende das ausgewählte AVCP System */}
+              <Alert className={
+                watchedValues.avcp_system === '1' ? "border-orange-200 bg-orange-50" :
+                watchedValues.avcp_system === '3' ? "border-yellow-200 bg-yellow-50" :
+                "border-blue-200 bg-blue-50"
+              }>
+                <Info className={
+                  watchedValues.avcp_system === '1' ? "h-4 w-4 text-orange-600" :
+                  watchedValues.avcp_system === '3' ? "h-4 w-4 text-yellow-600" :
+                  "h-4 w-4 text-blue-600"
+                } />
+                <AlertDescription className={
+                  watchedValues.avcp_system === '1' ? "text-orange-900" :
+                  watchedValues.avcp_system === '3' ? "text-yellow-900" :
+                  "text-blue-900"
+                }>
+                  <strong>AVCP-System: System {watchedValues.avcp_system || '4'}</strong><br />
+                  {watchedValues.avcp_system === '1' && (
                     <>
-                      • <strong>System 1+ wegen Brandklasse {watchedValues.extended_properties.fire_class}</strong><br />
-                      • Prüfung durch notifizierte Stelle erforderlich<br />
-                      • Klassifizierungsbericht nach EN 13501-1 erforderlich<br />
-                      • Notified Body Nummer im CE-Zeichen anzugeben
+                      • <strong>System 1</strong>: Zertifizierung durch notifizierte Zertifizierungsstelle<br />
+                      • ITT-Prüfung und laufende Überwachung der WPK<br />
+                      • <strong>NB-Nummer {watchedValues.notified_body_number ? `(${watchedValues.notified_body_number})` : ''} im CE-Zeichen erforderlich</strong><br />
+                      • Zertifikat der Leistungsbeständigkeit erforderlich
                     </>
-                  ) : (
+                  )}
+                  {watchedValues.avcp_system === '3' && (
                     <>
-                      • System 4 - Keine Brandklasse deklariert<br />
-                      • Eigenprüfung durch Hersteller ausreichend<br />
+                      • <strong>System 3</strong>: Reaktion-auf-Feuer durch notifizierte Prüfstelle<br />
+                      • ITT-Prüfbericht durch notifizierte Stelle<br />
+                      • <strong>Keine NB-Nummer im CE-Zeichen</strong><br />
+                      • Prüfbericht in technischer Dokumentation aufbewahren
+                    </>
+                  )}
+                  {(!watchedValues.avcp_system || watchedValues.avcp_system === '4') && (
+                    <>
+                      • <strong>System 4</strong>: Herstellererklärung<br />
+                      • {watchedValues.type === 'CT' && watchedValues.fire_class === 'A1fl' ?
+                        <>Brandverhalten A1fl "ohne Prüfung" (CWFT)<br />
+                        • <span className="text-sm text-muted-foreground">gem. Entscheidung 96/603/EG</span></> :
+                        "Eigenverantwortliche Deklaration"}<br />
                       • ITT-Prüfungen in eigenem oder externem Labor<br />
-                      • Keine notifizierte Stelle erforderlich
+                      • <strong>Keine notifizierte Stelle erforderlich</strong><br />
+                      • <strong>CE-Zeichen ohne NB-Nummer</strong>
                     </>
                   )}
                 </AlertDescription>
               </Alert>
-              
-              {/* Notified Body Felder bei System 1+ */}
-              {watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' && (
+
+              {/* Notified Body Felder - nur bei System 1 anzeigen */}
+              {watchedValues.avcp_system === '1' && (
                 <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-4">
-                  <h4 className="font-medium text-orange-900">Notifizierte Stelle (Pflicht bei System 1+)</h4>
+                  <h4 className="font-medium text-orange-900">Notifizierte Stelle (Pflicht bei System 1)</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -3208,7 +3504,7 @@ export function RecipeFormUltimate() {
                             <Input 
                               {...field} 
                               placeholder="z.B. 0123" 
-                              required={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD'}
+                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
                             />
                           </FormControl>
                           <FormDescription>
@@ -3228,7 +3524,7 @@ export function RecipeFormUltimate() {
                             <Input 
                               {...field} 
                               placeholder="z.B. MPA Stuttgart" 
-                              required={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD'}
+                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
                             />
                           </FormControl>
                         </FormItem>
@@ -3245,7 +3541,7 @@ export function RecipeFormUltimate() {
                             <Input 
                               {...field} 
                               placeholder="z.B. PB-2024-123" 
-                              required={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD'}
+                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
                             />
                           </FormControl>
                           <FormDescription>
@@ -3265,7 +3561,7 @@ export function RecipeFormUltimate() {
                             <Input 
                               {...field} 
                               type="date"
-                              required={watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD'}
+                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
                             />
                           </FormControl>
                         </FormItem>
@@ -3273,7 +3569,7 @@ export function RecipeFormUltimate() {
                     />
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Zusammenfassung automatisch ermittelt */}
@@ -3359,7 +3655,7 @@ export function RecipeFormUltimate() {
                     )}
                     
                     {/* Optionale Eigenschaften */}
-                    {watchedValues.wear_resistance_class && watchedValues.wear_resistance_method !== 'none' && watchedValues.wear_resistance_method !== 'NPD' && (
+                    {watchedValues.wear_resistance_class && watchedValues.wear_resistance_method !== 'none' && (
                       <tr className="border-b">
                         <td className="p-2">Verschleißwiderstand</td>
                         <td className="p-2 font-medium">{watchedValues.wear_resistance_class}</td>
@@ -3372,7 +3668,7 @@ export function RecipeFormUltimate() {
                       </tr>
                     )}
                     
-                    {(!watchedValues.wear_resistance_class || watchedValues.wear_resistance_method === 'none' || watchedValues.wear_resistance_method === 'NPD') && (
+                    {(!watchedValues.wear_resistance_class || watchedValues.wear_resistance_method === 'none') && (
                       <tr className="border-b">
                         <td className="p-2">Verschleißwiderstand</td>
                         <td className="p-2 font-medium">NPD</td>
@@ -3380,17 +3676,18 @@ export function RecipeFormUltimate() {
                       </tr>
                     )}
                     
-                    {watchedValues.rwfc_class && watchedValues.rwfc_class !== 'NPD' && (
+                    {/* RWFC bei "mit Bodenbelag" */}
+                    {watchedValues.intended_use?.with_flooring && watchedValues.rwfc_class && (
                       <tr className="border-b">
-                        <td className="p-2">Rollwiderstand mit Belag</td>
-                        <td className="p-2 font-medium">{watchedValues.rwfc_class}</td>
-                        <td className="p-2 text-muted-foreground">EN 13813:2002</td>
+                        <td className="p-2">Rollwiderstand mit Belag (RWFC)</td>
+                        <td className="p-2 font-medium">{watchedValues.rwfc_class} N</td>
+                        <td className="p-2 text-muted-foreground">EN 13892-7</td>
                       </tr>
                     )}
                     
                     <tr className="border-b">
                       <td className="p-2">Brandverhalten</td>
-                      <td className="p-2 font-medium">{watchedValues.extended_properties?.fire_class || 'NPD'}</td>
+                      <td className="p-2 font-medium">{watchedValues.fire_class || 'NPD'}</td>
                       <td className="p-2 text-muted-foreground">EN 13813:2002</td>
                     </tr>
                     
@@ -3425,17 +3722,17 @@ export function RecipeFormUltimate() {
                     <div className="text-3xl font-bold">{new Date().getFullYear().toString().slice(-2)}</div>
                   </div>
                   
-                  {/* Notified Body bei System 1+ */}
-                  {watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' && (
+                  {/* Notified Body NUR bei System 1 */}
+                  {watchedValues.avcp_system === '1' && (
                     <div className="text-2xl font-bold">
-                      {watchedValues.notified_body?.number || '####'}
+                      {watchedValues.notified_body_number || '####'}
                     </div>
                   )}
                   
                   {/* Hersteller */}
                   <div className="border-t-2 border-black pt-3">
-                    <p className="font-bold text-lg">{watchedValues.manufacturer?.name || '[Hersteller Name]'}</p>
-                    <p className="text-sm">{watchedValues.manufacturer?.address || '[Vollständige Anschrift]'}</p>
+                    <p className="font-bold text-lg">{'[Hersteller Name]'}</p>
+                    <p className="text-sm">{'[Vollständige Anschrift]'}</p>
                   </div>
                   
                   {/* DoP-Nummer */}
@@ -3447,8 +3744,8 @@ export function RecipeFormUltimate() {
                   
                   {/* Produktidentifikation */}
                   <div className="border-t border-gray-400 pt-2">
-                    <p className="text-sm"><strong>Produkt-Typ:</strong> {watchedValues.product_name || `${watchedValues.type || 'XX'} Estrichmörtel`}</p>
-                    <p className="text-sm"><strong>Chargennummer:</strong> {watchedValues.batch_number || 'JJMMTT-###'}</p>
+                    <p className="text-sm"><strong>Produkt-Typ:</strong> {`${watchedValues.type || 'XX'} Estrichmörtel`}</p>
+                    <p className="text-sm"><strong>Chargennummer:</strong> {'JJMMTT-###'}</p>
                   </div>
                   
                   {/* Verwendungszweck */}
@@ -3461,7 +3758,7 @@ export function RecipeFormUltimate() {
                   {/* AVCP-System */}
                   <div className="text-sm">
                     <strong>System zur Bewertung und Überprüfung der Leistungsbeständigkeit:</strong><br/>
-                    {watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' ? 'System 1+' : 'System 4'}
+                    System {watchedValues.avcp_system || '4'}
                   </div>
                   
                   {/* Erklärte Leistungen - Kurzform */}
@@ -3501,10 +3798,10 @@ export function RecipeFormUltimate() {
                             <td className="border border-black p-1 font-bold">{watchedValues.wear_resistance_class}</td>
                           </tr>
                         )}
-                        {watchedValues.extended_properties?.fire_class && watchedValues.extended_properties.fire_class !== 'NPD' && (
+                        {watchedValues.fire_class && watchedValues.fire_class !== 'NPD' && (
                           <tr>
                             <td className="border border-black p-1">Brandverhalten</td>
-                            <td className="border border-black p-1 font-bold">{watchedValues.extended_properties.fire_class}</td>
+                            <td className="border border-black p-1 font-bold">{watchedValues.fire_class}</td>
                           </tr>
                         )}
                       </tbody>
@@ -3515,7 +3812,7 @@ export function RecipeFormUltimate() {
                   <div className="text-xs border-t border-gray-400 pt-2 mt-3">
                     Die Leistung entspricht der erklärten Leistung.<br/>
                     Die vollständige Leistungserklärung ist verfügbar unter:<br/>
-                    <strong>www.{watchedValues.manufacturer?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'hersteller'}.de/dop</strong>
+                    <strong>www.hersteller.de/dop</strong>
                   </div>
                 </div>
               </div>
@@ -3527,7 +3824,8 @@ export function RecipeFormUltimate() {
                   <strong>Wichtige Hinweise zur CE-Kennzeichnung:</strong>
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>CE-Zeichen muss mindestens 5 mm hoch sein</li>
-                    <li>Bei System 1+: Notified Body Nummer direkt unter CE-Zeichen</li>
+                    <li>Bei System 1: Notified Body Nummer direkt unter CE-Zeichen</li>
+                    <li>Bei System 3 und 4: CE-Zeichen ohne NB-Nummer</li>
                     <li>Alle Pflichtangaben nach Anhang ZA müssen enthalten sein</li>
                     <li>CE-Kennzeichnung auf Produkt, Verpackung oder Begleitdokumenten</li>
                     <li>DoP muss 10 Jahre aufbewahrt werden</li>

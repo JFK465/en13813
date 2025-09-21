@@ -193,14 +193,14 @@ export function DocumentList({ onDocumentSelect, className }: DocumentListProps)
                       {document.title}
                     </h3>
                     <p className="text-sm text-gray-500">
-                      {documentTypeLabels[document.type]}
+                      {document.type ? (documentTypeLabels as any)[document.type] || 'Unknown' : 'Unknown'}
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex flex-col items-end space-y-1">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[document.status]}`}>
-                    {statusLabels[document.status]}
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${document.status ? (statusColors as any)[document.status] || 'bg-gray-100 text-gray-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {document.status ? (statusLabels as any)[document.status] || 'Unknown' : 'Unknown'}
                   </span>
                 </div>
               </div>

@@ -358,7 +358,7 @@ export default function NewLabValuePage() {
       // Erstelle Laborwert
       const labValue = {
         recipe_id: data.recipe_id,
-        batch_id: data.batch_id === 'none' ? null : data.batch_id,
+        batch_id: data.batch_id === 'none' ? undefined : data.batch_id,
         sample_id: data.sample_id,
         sample_datetime: data.sample_datetime,
         sample_location: data.sample_location,

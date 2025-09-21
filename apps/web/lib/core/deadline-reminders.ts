@@ -56,7 +56,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
           reminderMinutes: minutes,
           scheduledFor: scheduledFor.toISOString(),
           status: 'pending',
-          createdAt: now.toISOString()
+          created_at: now.toISOString()
         })
       }
     }
@@ -159,18 +159,8 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       title: `Deadline Reminder: ${task.title}`,
       message: `Task "${task.title}" is due ${timeUntilDue}`,
       recipientId: task.assigned_to,
-      tenantId: task.tenant_id,
       priority: urgencyLevel,
-      channels: ['email', 'in_app'],
-      metadata: {
-        taskId: task.id,
-        dueDate: task.due_date,
-        reminderMinutes: reminder.reminderMinutes,
-        category: task.category,
-        complianceFramework: task.compliance_framework,
-        regulatoryReference: task.regulatory_reference
-      },
-      actionUrl: `/calendar?task=${task.id}`
+      channels: ['email', 'in_app']
     })
   }
 
@@ -267,14 +257,14 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       .lt('due_date', now)
       .neq('status', 'completed')
       .neq('status', 'cancelled')
-      .eq('tenant_id', this.getCurrentTenantId())
       .order('due_date', { ascending: true })
 
     if (error) {
       throw new Error(`Failed to fetch overdue tasks: ${error.message}`)
     }
 
-    return data?.map(task => this.transformFromDb(task)) || []
+    // Return tasks as CalendarTask array
+    return (data || []) as CalendarTask[]
   }
 
   /**
@@ -288,7 +278,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       try {
         // Update task status to overdue if not already
         if (task.status !== 'overdue') {
-          await this.calendarService.updateTask(task.id, { status: 'overdue' })
+          await this.calendarService.updateTask(task.id, { status: 'overdue' }, 'system')
         }
 
         // Send overdue notification
@@ -296,18 +286,9 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
           type: 'workflow_overdue',
           title: `Overdue: ${task.title}`,
           message: `Task "${task.title}" is overdue and requires immediate attention`,
-          recipientId: task.assignedTo,
-          tenantId: task.tenantId,
+          recipientId: task.assignedTo || 'admin',
           priority: 'high',
-          channels: ['email', 'in_app'],
-          metadata: {
-            taskId: task.id,
-            dueDate: task.dueDate,
-            daysPastDue: Math.floor((new Date().getTime() - new Date(task.dueDate!).getTime()) / (1000 * 60 * 60 * 24)),
-            category: task.category,
-            complianceFramework: task.complianceFramework
-          },
-          actionUrl: `/calendar?task=${task.id}`
+          channels: ['email', 'in_app']
         })
 
         processedCount++
@@ -345,7 +326,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       reminderMinutes: dbRecord.reminder_minutes,
       scheduledFor: dbRecord.scheduled_for,
       status: dbRecord.status,
-      createdAt: dbRecord.created_at
+      created_at: dbRecord.created_at
     }
   }
 

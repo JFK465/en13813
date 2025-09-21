@@ -49,11 +49,11 @@ export function useReports(filters?: {
 export function useReport(reportId: string) {
   return useQuery({
     queryKey: ['report', reportId],
-    queryFn: () => reportService.findById(reportId),
+    queryFn: () => reportService.getById(reportId),
     enabled: !!reportId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Refetch more frequently if report is generating
-      return data?.status === 'generating' ? 5000 : 30000
+      return query.state.data?.status === 'generating' ? 5000 : 30000
     },
   })
 }

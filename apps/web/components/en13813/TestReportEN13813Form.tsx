@@ -28,7 +28,7 @@ import {
   Zap,
   Activity
 } from 'lucide-react'
-import { TestReportEN13813, EN13813_CLASSES } from '@/modules/en13813/services/test-reports-en13813-complete.service'
+import { TestReportEN13813, TestResultsEN13813, SamplingDetails, EN13813_CLASSES } from '@/modules/en13813/services/test-reports-en13813-complete.service'
 
 interface TestReportEN13813FormProps {
   recipeId: string
@@ -59,6 +59,25 @@ export default function TestReportEN13813Form({
   const [activeTab, setActiveTab] = useState('general')
   const [validationErrors, setValidationErrors] = useState<any[]>([])
   const [isCalculating, setIsCalculating] = useState(false)
+
+  // Helper function to update sampling with defaults
+  const updateSampling = (updates: Partial<SamplingDetails>) => {
+    const defaultSampling: SamplingDetails = {
+      sampling_method: 'random',
+      sampling_location: '',
+      sampler_name: '',
+      number_of_samples: 0,
+      sample_size_kg: 0,
+      sample_preparation: '',
+      storage_conditions: '',
+      ...formData.sampling,
+      ...updates
+    }
+    setFormData({
+      ...formData,
+      sampling: defaultSampling
+    })
+  }
 
   // Bestimme erforderliche Tests basierend auf Estrichtyp
   const getRequiredTests = () => {
@@ -140,10 +159,10 @@ export default function TestReportEN13813Form({
       
       // Prüfe erforderliche Tests
       for (const test of requiredTests) {
-        if (!formData.test_results?.[test]) {
-          errors.push({ 
-            field: test, 
-            error: `${test.replace('_', ' ')} ist erforderlich für ${estrichType}` 
+        if (!formData.test_results?.[test as keyof TestResultsEN13813]) {
+          errors.push({
+            field: test,
+            error: `${test.replace('_', ' ')} ist erforderlich für ${estrichType}`
           })
         }
       }
@@ -344,10 +363,7 @@ export default function TestReportEN13813Form({
                   <Label>Probenahmeverfahren*</Label>
                   <Select
                     value={formData.sampling?.sampling_method}
-                    onValueChange={(value) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, sampling_method: value as any}
-                    })}
+                    onValueChange={(value) => updateSampling({ sampling_method: value as any })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Wähle Verfahren" />
@@ -363,10 +379,7 @@ export default function TestReportEN13813Form({
                   <Label>Probenahmeort*</Label>
                   <Input
                     value={formData.sampling?.sampling_location || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, sampling_location: e.target.value}
-                    })}
+                    onChange={(e) => updateSampling({ sampling_location: e.target.value })}
                     required
                   />
                 </div>
@@ -374,10 +387,7 @@ export default function TestReportEN13813Form({
                   <Label>Probenehmer*</Label>
                   <Input
                     value={formData.sampling?.sampler_name || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, sampler_name: e.target.value}
-                    })}
+                    onChange={(e) => updateSampling({ sampler_name: e.target.value })}
                     required
                   />
                 </div>
@@ -385,10 +395,7 @@ export default function TestReportEN13813Form({
                   <Label>Qualifikation</Label>
                   <Input
                     value={formData.sampling?.sampler_qualification || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, sampler_qualification: e.target.value}
-                    })}
+                    onChange={(e) => updateSampling({ sampler_qualification: e.target.value })}
                   />
                 </div>
                 <div>
@@ -396,10 +403,7 @@ export default function TestReportEN13813Form({
                   <Input
                     type="number"
                     value={formData.sampling?.number_of_samples || 3}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, number_of_samples: parseInt(e.target.value)}
-                    })}
+                    onChange={(e) => updateSampling({ number_of_samples: parseInt(e.target.value) })}
                     min={1}
                     required
                   />
@@ -410,10 +414,7 @@ export default function TestReportEN13813Form({
                     type="number"
                     step="0.1"
                     value={formData.sampling?.sample_size_kg || 5}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, sample_size_kg: parseFloat(e.target.value)}
-                    })}
+                    onChange={(e) => updateSampling({ sample_size_kg: parseFloat(e.target.value) })}
                     min={0.1}
                     required
                   />
@@ -425,10 +426,7 @@ export default function TestReportEN13813Form({
                   <Label>Probenvorbereitung*</Label>
                   <Textarea
                     value={formData.sampling?.sample_preparation || 'Nach EN 13892-1'}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, sample_preparation: e.target.value}
-                    })}
+                    onChange={(e) => updateSampling({ sample_preparation: e.target.value })}
                     required
                   />
                 </div>
@@ -436,10 +434,7 @@ export default function TestReportEN13813Form({
                   <Label>Lagerbedingungen*</Label>
                   <Input
                     value={formData.sampling?.storage_conditions || '20°C, 65% RH'}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, storage_conditions: e.target.value}
-                    })}
+                    onChange={(e) => updateSampling({ storage_conditions: e.target.value })}
                     required
                   />
                 </div>
@@ -447,10 +442,7 @@ export default function TestReportEN13813Form({
                   <Label>Transportbedingungen</Label>
                   <Input
                     value={formData.sampling?.transport_conditions || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      sampling: {...formData.sampling, transport_conditions: e.target.value}
-                    })}
+                    onChange={(e) => updateSampling({ transport_conditions: e.target.value })}
                   />
                 </div>
               </div>

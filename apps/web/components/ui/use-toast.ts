@@ -9,6 +9,8 @@ type ToasterToast = {
   description?: React.ReactNode
   action?: ToastActionElement
   variant?: "default" | "destructive"
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 type ToastActionElement = React.ReactElement<{

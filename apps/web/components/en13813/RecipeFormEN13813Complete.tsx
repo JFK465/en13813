@@ -213,7 +213,7 @@ export function RecipeFormEN13813Complete() {
   const services = createEN13813Services(supabase)
 
   const form = useForm<EN13813CompleteFormValues>({
-    resolver: zodResolver(en13813CompleteSchema),
+    resolver: zodResolver(en13813CompleteSchema) as any,
     defaultValues: {
       recipe_code: '',
       name: '',

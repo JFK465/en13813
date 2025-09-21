@@ -322,8 +322,8 @@ export function TaskModal({
                 <Label htmlFor="priority">Priority</Label>
                 {isViewMode ? (
                   <div className="flex items-center gap-2 mt-1">
-                    <div className={`w-3 h-3 rounded ${getPriorityColor(formData.priority)}`}></div>
-                    <span className="capitalize">{formData.priority}</span>
+                    <div className={`w-3 h-3 rounded ${formData.priority ? getPriorityColor(formData.priority) : 'bg-gray-500'}`}></div>
+                    <span className="capitalize">{formData.priority || 'medium'}</span>
                   </div>
                 ) : (
                   <Select
@@ -482,24 +482,24 @@ export function TaskModal({
           )}
 
           {/* Tags */}
-          {(formData.tags.length > 0 || !isViewMode) && (
+          {((formData.tags?.length ?? 0) > 0 || !isViewMode) && (
             <>
               <Separator />
               <div>
                 <Label>Tags</Label>
                 {isViewMode ? (
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {formData.tags.map((tag, index) => (
+                    {formData.tags?.map((tag, index) => (
                       <Badge key={index} variant="outline">
                         <Tag className="h-3 w-3 mr-1" />
                         {tag}
                       </Badge>
                     ))}
-                    {formData.tags.length === 0 && <p className="text-gray-500">No tags</p>}
+                    {(formData.tags?.length ?? 0) === 0 && <p className="text-gray-500">No tags</p>}
                   </div>
                 ) : (
                   <Input
-                    value={formData.tags.join(', ')}
+                    value={formData.tags?.join(', ') ?? ''}
                     onChange={(e) => setFormData(prev => ({ 
                       ...prev, 
                       tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)

@@ -62,8 +62,15 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
   const isEditing = !!recipe
 
   const form = useForm<RecipeFormValues>({
-    resolver: zodResolver(recipeFormSchema),
-    defaultValues: recipe || {
+    resolver: zodResolver(recipeFormSchema) as any,
+    defaultValues: recipe ? {
+      ...recipe,
+      status: recipe.status || 'draft',
+      fire_class: recipe.fire_class || 'A1fl',
+      wear_resistance: recipe.wear_resistance || '',
+      hardness: recipe.hardness || '',
+      description: recipe.description || ''
+    } : {
       name: '',
       description: '',
       estrich_type: 'CT',

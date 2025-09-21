@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { createEN13813Services } from '@/modules/en13813/services'
-import { Recipe } from '@/modules/en13813/services/recipe.service'
+import { createEN13813Services, Recipe } from '@/modules/en13813/services'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -69,7 +68,7 @@ export default function RecipesPage() {
       if (searchTerm) filter.search = searchTerm
 
       const result = await services.recipes.list(filter)
-      setRecipes(result.data)
+      setRecipes(result)
     } catch (error) {
       console.error('Error loading recipes:', error)
       toast({
@@ -113,7 +112,9 @@ export default function RecipesPage() {
     if (!newCode) return
 
     try {
-      await services.recipes.cloneRecipe(recipe.id, newCode)
+      // Clone recipe by creating a copy
+      const newRecipe = { ...recipe, recipe_code: newCode, id: undefined }
+      await services.recipes.create(newRecipe)
       toast({
         title: 'Erfolg',
         description: 'Rezeptur wurde kopiert'
@@ -243,13 +244,18 @@ export default function RecipesPage() {
                 <TableRow key={recipe.id}>
                   <TableCell className="font-mono">{recipe.recipe_code}</TableCell>
                   <TableCell>{recipe.name}</TableCell>
-                  <TableCell>{getTypeBadge(recipe.type)}</TableCell>
+                  <TableCell>{getTypeBadge((recipe as any).binder_type || (recipe as any).type || 'CT')}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Badge variant="secondary">{recipe.compressive_strength_class}</Badge>
-                      <Badge variant="secondary">{recipe.flexural_strength_class}</Badge>
-                      {recipe.wear_resistance_class && (
-                        <Badge variant="secondary">{recipe.wear_resistance_class}</Badge>
+                      <Badge variant="secondary">{(recipe as any).compressive_strength_class || (recipe as any).compressive_strength || 'C25'}</Badge>
+                      <Badge variant="secondary">{(recipe as any).flexural_strength_class || (recipe as any).flexural_strength || 'F4'}</Badge>
+                      {((recipe as any).wear_resistance_bohme_class || (recipe as any).wear_resistance_bca_class || (recipe as any).wear_resistance_rollrad_class) && (
+                        <Badge variant="secondary">
+                          {(recipe as any).wear_resistance_bohme_class || (recipe as any).wear_resistance_bca_class || (recipe as any).wear_resistance_rollrad_class}
+                        </Badge>
+                      )}
+                      {(recipe as any).rwfc_class && (
+                        <Badge variant="secondary">{(recipe as any).rwfc_class}</Badge>
                       )}
                     </div>
                   </TableCell>

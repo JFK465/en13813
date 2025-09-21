@@ -115,7 +115,7 @@ export function RecipeFormEN13813({ recipe, onSuccess, onCancel }: RecipeFormPro
   const isEditing = !!recipe
 
   const form = useForm<RecipeFormValues>({
-    resolver: zodResolver(recipeFormSchema),
+    resolver: zodResolver(recipeFormSchema) as any,
     defaultValues: recipe || {
       name: '',
       description: '',

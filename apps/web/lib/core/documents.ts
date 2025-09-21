@@ -117,7 +117,7 @@ export class DocumentService extends BaseService<Document> {
     const tenantId = await this.getCurrentTenantId()
     
     // Check if document exists and user has permission
-    const document = await this.findById(documentId)
+    const document = await this.getById(documentId)
     if (!document) {
       throw new AppError('Document not found', 'DOCUMENT_NOT_FOUND', 404)
     }

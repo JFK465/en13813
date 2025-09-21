@@ -53,7 +53,7 @@ export async function PUT(
     if (body.type || body.compressive_strength_class || body.flexural_strength_class) {
       const existing = await service.getById(params.id)
       if (existing) {
-        body.recipe_code = `${body.type || existing.type}-${body.compressive_strength_class || existing.compressive_strength_class}-${body.flexural_strength_class || existing.flexural_strength_class}`
+        body.recipe_code = `${body.type || (existing as any).type || 'CT'}-${body.compressive_strength_class || (existing as any).compressive_strength_class || 'C25'}-${body.flexural_strength_class || (existing as any).flexural_strength_class || 'F4'}`
       }
     }
     

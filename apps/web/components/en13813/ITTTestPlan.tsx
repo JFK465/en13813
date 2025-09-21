@@ -7,17 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { ClipboardCheck, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
-import { ITTTestPlan } from '@/modules/en13813/services/compliance.service'
+import { ITTTestPlan as ITTTestPlanType } from '@/modules/en13813/services/compliance.service'
 
 interface ITTTestPlanProps {
   recipeId: string
-  testPlan?: ITTTestPlan
-  onUpdate?: (testPlan: ITTTestPlan) => Promise<void>
+  testPlan?: ITTTestPlanType
+  onUpdate?: (testPlan: ITTTestPlanType) => Promise<void>
   readOnly?: boolean
 }
 
 export function ITTTestPlan({ recipeId, testPlan, onUpdate, readOnly = false }: ITTTestPlanProps) {
-  const [plan, setPlan] = useState<ITTTestPlan>(testPlan || {
+  const [plan, setPlan] = useState<ITTTestPlanType>(testPlan || {
     recipe_id: recipeId,
     required_tests: [],
     optional_tests: [],

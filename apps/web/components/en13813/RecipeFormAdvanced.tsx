@@ -93,7 +93,7 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
   const isEditing = !!recipe
 
   const form = useForm<RecipeFormValues>({
-    resolver: zodResolver(recipeFormSchema),
+    resolver: zodResolver(recipeFormSchema) as any,
     defaultValues: recipe || {
       name: '',
       description: '',
@@ -132,8 +132,8 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
 
   // Generate EN designation
   const generateENDesignation = () => {
-    const parts = [estrichType]
-    
+    const parts: string[] = [estrichType]
+
     // Add strength classes for CT/CA/MA
     if (['CT', 'CA', 'MA'].includes(estrichType)) {
       parts.push(compressiveStrength)
@@ -146,17 +146,21 @@ export function RecipeFormAdvanced({ recipe, onSuccess, onCancel }: RecipeFormAd
     }
     
     // Add special properties based on type
-    if (estrichType === 'MA' && form.watch('surface_hardness_class')) {
-      parts.push(form.watch('surface_hardness_class'))
+    if (estrichType === 'MA') {
+      const hardness = form.watch('surface_hardness_class')
+      if (hardness) parts.push(hardness)
     }
     
     if (estrichType === 'SR') {
-      if (form.watch('bond_strength_class')) parts.push(form.watch('bond_strength_class'))
-      if (form.watch('impact_resistance_class')) parts.push(form.watch('impact_resistance_class'))
+      const bond = form.watch('bond_strength_class')
+      const impact = form.watch('impact_resistance_class')
+      if (bond) parts.push(bond)
+      if (impact) parts.push(impact)
     }
     
-    if (estrichType === 'AS' && form.watch('indentation_class')) {
-      parts.push(form.watch('indentation_class'))
+    if (estrichType === 'AS') {
+      const indentation = form.watch('indentation_class')
+      if (indentation) parts.push(indentation)
     }
     
     // Add H for heated screed

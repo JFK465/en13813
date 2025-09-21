@@ -74,6 +74,9 @@ export function useCalendar(options: UseCalendarOptions = {}) {
       // Transform data
       const transformedTasks: CalendarTask[] = (data || []).map(task => ({
         id: task.id,
+        tenant_id: task.tenant_id,
+        created_at: task.created_at,
+        updated_at: task.updated_at,
         title: task.title,
         description: task.description,
         category: task.category,
@@ -291,6 +294,9 @@ export function useCalendar(options: UseCalendarOptions = {}) {
 
       return {
         id: data.id,
+        tenant_id: data.tenant_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
         title: data.title,
         description: data.description,
         category: data.category,

@@ -70,10 +70,10 @@ export default function ImportRecipesPage() {
         })
       }
 
-      if (result.failed > 0) {
+      if (result.errors.length > 0) {
         toast({
           title: 'Import teilweise fehlgeschlagen',
-          description: `${result.failed} Rezepturen konnten nicht importiert werden`,
+          description: `${result.errors.length} Fehler beim Import`,
           variant: 'destructive'
         })
       }

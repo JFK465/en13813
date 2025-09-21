@@ -176,7 +176,7 @@ export function ReportList({ showFilters = true }: ReportListProps) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {Object.entries(analytics.reportsByType)[0]?.[1] || 0}
+                {Number(Object.entries(analytics.reportsByType)[0]?.[1]) || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 {typeLabels[Object.entries(analytics.reportsByType)[0]?.[0] as keyof typeof typeLabels] || 'N/A'}

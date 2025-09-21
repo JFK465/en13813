@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || undefined
     
-    const supabase = createClient()
+    const supabase = await createClient()
     const services = createEN13813Services(supabase)
     
     const tasks = await services.compliance.getTasks(status)
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   try {
     const data = await request.json()
     
-    const supabase = createClient()
+    const supabase = await createClient()
     const services = createEN13813Services(supabase)
     
     const task = await services.compliance.createTask(data)
@@ -55,7 +55,7 @@ export async function PATCH(request: Request) {
     
     const updates = await request.json()
     
-    const supabase = createClient()
+    const supabase = await createClient()
     const services = createEN13813Services(supabase)
     
     const task = await services.compliance.updateTask(id, updates)

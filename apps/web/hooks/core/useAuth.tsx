@@ -42,32 +42,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: demoData.id,
           email: demoData.email,
           user_metadata: { tenant_id: demoData.tenant_id }
-        } as User
+        } as unknown as User
         
         setUser(mockUser)
         
         // Set mock profile and tenant
         setProfile({
           id: demoData.id,
-          email: demoData.email,
+          user_id: demoData.id,
           full_name: 'Demo User',
           tenant_id: demoData.tenant_id,
-          role: 'owner' as any,
+          role: 'owner',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         
         setTenant({
           id: demoData.tenant_id,
+          name: 'Demo Company',
           slug: 'demo-company',
-          company_name: 'Demo Company',
-          plan: 'professional' as any,
-          status: 'active' as any,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          trial_ends_at: null,
-          stripe_customer_id: null,
-          stripe_subscription_id: null
+          updated_at: new Date().toISOString()
         })
         
         setIsLoading(false)

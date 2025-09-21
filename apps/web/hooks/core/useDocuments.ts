@@ -144,7 +144,7 @@ export function useDocument(documentId: string) {
     error
   } = useQuery({
     queryKey: ['document', documentId],
-    queryFn: () => documentService.findById(documentId),
+    queryFn: () => documentService.getById(documentId),
     enabled: !!documentId,
   })
   

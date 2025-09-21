@@ -156,7 +156,7 @@ export default function LabValuesPage() {
       if (selectedRecipe) {
         try {
           const spcResult = await labValuesService.calculateSPC(selectedRecipe, 'compressive_strength_28d', 90)
-          setSpcData([spcResult])
+          setSpcData([spcResult as any])
         } catch (error) {
           console.log('Nicht genug Daten für SPC')
         }
@@ -563,7 +563,7 @@ export default function LabValuesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-xl font-bold">
-                    {currentSPC.out_of_control_points || 0}
+                    {(currentSPC as any).out_of_control_points || 0}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Punkte außerhalb</p>
                 </CardContent>
