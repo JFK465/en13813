@@ -4,116 +4,158 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Compliance Management SaaS platform built as a monorepo using Next.js, Supabase, and TypeScript. The main focus is the EN13813 compliance module for quality management in floor screed materials.
+Compliance Management SaaS platform focused on EN13813 compliance for quality management in floor screed materials. Built as a pnpm monorepo with Next.js frontend and Supabase backend.
 
 ## Architecture
 
-- **Monorepo Structure**: Uses pnpm workspaces with Turborepo for build orchestration
-- **Frontend**: Next.js 14 with App Router (`apps/web`)
-  - Port 3001 for development
-  - Components organized by feature module (e.g., `components/en13813/`)
-  - Modules contain services, types, and utilities (`modules/en13813/`)
-- **Backend**: Supabase for database, auth, storage, and real-time features
-- **Database**: PostgreSQL with Row-Level Security (RLS)
-- **State Management**: React Query (TanStack Query) for server state
-- **Form Handling**: React Hook Form with Zod validation
-- **UI Components**: Radix UI with Tailwind CSS
-- **PDF Generation**: pdf-lib and jsPDF for document generation
-- **Email**: Resend for transactional emails
+### Tech Stack
+- **Monorepo**: pnpm workspaces (v8.14.0) with Turborepo
+- **Frontend**: Next.js 14 App Router on port 3001
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime)
+- **State**: TanStack Query for server state
+- **Forms**: React Hook Form + Zod validation
+- **UI**: Radix UI + Tailwind CSS
+- **PDF**: pdf-lib, jsPDF, puppeteer-core
+- **Email**: Resend
 
-## Common Commands
+### Directory Structure
+```
+/
+├── apps/web/                         # Next.js application
+│   ├── app/
+│   │   ├── (auth)/en13813/          # Protected EN13813 pages
+│   │   └── api/en13813/             # API routes
+│   ├── components/en13813/          # UI components
+│   ├── modules/en13813/             # Business logic
+│   │   ├── services/                # Core services
+│   │   ├── types/                   # TypeScript types
+│   │   └── schemas/                 # Zod schemas
+│   ├── types/database.types.ts      # Generated DB types
+│   └── supabase/migrations/         # Database migrations
+├── scripts/                          # Demo data scripts
+└── start-en13813.command            # macOS start script
+```
 
+## Commands
+
+### Development
 ```bash
-# Development
-pnpm dev                    # Start development server on port 3001
-pnpm build                  # Build production bundle
+pnpm dev                    # Start dev server (port 3001)
+pnpm build                  # Build production
 pnpm lint                   # Run ESLint
-pnpm typecheck             # Run TypeScript type checking
-pnpm format                # Format code with Prettier
+pnpm typecheck             # TypeScript type checking
+pnpm format                # Prettier formatting
 
-# Database
+# Alternative start method
+./start-en13813.command    # Interactive start with port conflict handling
+```
+
+### Database
+```bash
 pnpm db:start              # Start local Supabase
 pnpm db:stop               # Stop local Supabase
 pnpm db:reset              # Reset database
 pnpm db:migrate            # Create new migration
 pnpm db:push               # Push migrations to remote
-pnpm gen:types             # Generate TypeScript types from database schema
+pnpm gen:types             # Generate TypeScript types from database
+```
 
-# Demo Data Scripts (run from root)
+### Demo Data (run from repository root)
+```bash
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/create-demo-data.js
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/create-demo-data-standalone.js
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/create-demo-data-production.js
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/setup-production-demo.js
-
-# Start script
-./start-en13813.command
 ```
 
-## EN13813 Module Structure
+## EN13813 Module
 
-The EN13813 module is the core compliance feature:
-- **Components**: `apps/web/components/en13813/` - UI components for recipes, batches, testing, etc.
-- **Services**: `apps/web/modules/en13813/services/` - Business logic and API interactions
-- **Types**: `apps/web/modules/en13813/types/` - TypeScript type definitions
-- **API Routes**: `apps/web/app/api/en13813/` - Next.js API endpoints
-- **Pages**: `apps/web/app/(auth)/en13813/` - Protected pages
+### Core Features
+- **Recipe Management**: Material recipes with compliance validation (RecipeFormUltimate.tsx)
+- **Batch Processing**: Production batch tracking and statistics
+- **Testing**: ITT (Initial Type Testing) and FPC (Factory Production Control)
+- **Documentation**: DoP (Declaration of Performance) generation
+- **Delivery**: Delivery notes with PDF export
+- **Marking**: CE marking and labeling
+- **Quality**: Deviation management and CAPA (Corrective/Preventive Actions)
+- **Calibration**: Equipment calibration tracking
 
-Key features:
-- Recipe management (RecipeFormUltimate.tsx)
-- Batch processing and statistics
-- Test plans (ITT and FPC)
-- Declaration of Performance (DoP) generation
-- Delivery notes with PDF generation
-- Marking and CE labeling
-- Deviation/CAPA management
+### Key Services
+- `recipe.service.ts`: Recipe CRUD and validation
+- `deviation.service.ts`: CAPA management per EN 13813 § 6.3
+- `dop-generator.service.ts`: DoP PDF generation
+- `marking-delivery-note.service.ts`: CE marking documents
+- `conformity-assessment.service.ts`: Compliance evaluation
+- `fpc.service.ts`: Factory production control
+- `test-reports.service.ts`: Test result management
 
-## Database Schema
-
-Generated types are in `apps/web/types/database.types.ts`. Key tables:
-- `en13813_recipes`: Recipe definitions
+### Database Tables
+- `en13813_recipes`: Recipe definitions with materials
 - `en13813_batches`: Production batches
-- `en13813_tests`: Test results
+- `en13813_tests`: Test results (ITT/FPC)
 - `en13813_deviations`: Quality deviations
 - `en13813_marking`: CE marking information
+- `en13813_calibrations`: Equipment calibration
+- `en13813_dops`: Declaration of Performance
 
-## API Pattern
+## API Routes Pattern
 
-API routes follow this pattern:
 ```typescript
 // apps/web/app/api/en13813/[resource]/route.ts
-export async function GET/POST/PUT/DELETE(request: Request) {
-  // Supabase client initialization
-  // Input validation with Zod
-  // Business logic
-  // Return NextResponse.json()
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { z } from 'zod'
+
+const schema = z.object({ /* validation */ })
+
+export async function POST(request: Request) {
+  const supabase = createRouteHandlerClient({ cookies })
+  const body = await request.json()
+  const validated = schema.parse(body)
+
+  // Business logic with proper error handling
+  const { data, error } = await supabase
+    .from('en13813_table')
+    .insert(validated)
+
+  if (error) return NextResponse.json({ error }, { status: 400 })
+  return NextResponse.json(data)
 }
 ```
 
-## Testing
+## Conventions
 
-Currently no automated tests are configured for the EN13813 module (as noted in package.json).
+### Authentication & Security
+- Routes under `/(auth)` require authentication
+- Multi-tenancy via Supabase RLS policies
+- Never commit sensitive data (use `.env.local`)
 
-## Important Conventions
+### Code Quality
+- Use generated types from `database.types.ts`
+- Validate with Zod schemas before DB operations
+- Handle errors with try-catch and proper HTTP status codes
+- Use TanStack Query for data fetching (avoid useState for server data)
 
-1. **Authentication**: All routes under `/(auth)` require authentication
-2. **Multi-tenancy**: Tenant isolation via Supabase RLS policies
-3. **Error Handling**: Use try-catch blocks with proper error responses
-4. **Type Safety**: Always use generated database types from `database.types.ts`
-5. **State Management**: Use React Query for server state, avoid unnecessary client state
-6. **Forms**: Use React Hook Form with Zod schemas for validation
-7. **Styling**: Tailwind CSS with `cn()` utility for conditional classes
+### UI Development
+- Use Radix UI primitives with Tailwind styling
+- Apply conditional classes with `cn()` utility from `lib/utils`
+- Forms: React Hook Form with Zod resolver
+- Keep components in feature folders (`components/en13813/`)
+
+### Testing
+No automated tests configured yet (`pnpm test` returns "No tests configured")
 
 ## Environment Variables
 
 Required in `.env.local`:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `RESEND_API_KEY`
-- Additional variables for monitoring and rate limiting
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+RESEND_API_KEY=
+```
 
 ## Deployment
 
-- Frontend: Vercel
-- Database: Supabase Cloud
-- Edge Functions: Supabase Edge Runtime
+- **Frontend**: Vercel
+- **Database**: Supabase Cloud (instance: fhftgdffhkhmbwqbwiyt)
+- **Edge Functions**: Supabase Edge Runtime

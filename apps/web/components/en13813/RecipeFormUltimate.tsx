@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createEN13813Services } from '@/modules/en13813/services'
 import { useRouter } from 'next/navigation'
-import { useNormDesignation } from '@/hooks/useNormDesignation'
 import { NormDesignationDisplay } from './NormDesignationDisplay'
 import { 
   COMPRESSIVE_STRENGTH_CLASSES,
@@ -75,6 +74,15 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// ========== UTILITY FUNCTIONS ==========
+// Safe number coercion to avoid NaN in form
+function numOrUndef(e: React.ChangeEvent<HTMLInputElement>) {
+  const v = e.target.value;
+  if (v === '' || v === undefined || v === null) return undefined;
+  const n = e.target.type === 'number' ? e.target.valueAsNumber : Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 // ========== UMFASSENDES SCHEMA MIT ALLEN EN13813 ANFORDERUNGEN ==========
 const ultimateRecipeSchema = z.object({
   // === GRUNDDATEN & IDENTIFIKATION ===
@@ -85,7 +93,7 @@ const ultimateRecipeSchema = z.object({
 
   // === CE-KENNZEICHNUNG & AVCP ===
   avcp_system: z.enum(['4', '3', '2+', '1+', '1']).default('4'), // System 4 für CT mit A1fl "ohne Prüfung"
-  notified_body_number: z.string().optional(), // Nur bei System 1, 1+, 2+, 3
+  notified_body_number: z.string().optional(), // 1 / 1+ / 2+ erforderlich (bei 3 nur Prüfbericht, nicht im CE-Zeichen)
   
   // === VERSIONIERUNG ===
   version: z.string().default('1.0'),
@@ -114,8 +122,9 @@ const ultimateRecipeSchema = z.object({
   heated_indicator: z.boolean().optional(), // H-Kennzeichnung
   
   // SR (Kunstharz) & allgemein verwendbar für CT/CA
-  bond_strength_class: z.string().optional(), // B0.5, B1.0, B1.5, B2.0 - Pflicht für SR, optional für CT/CA
-  impact_resistance_class: z.string().optional(), // IR1, IR2, IR4, IR10, IR20
+  bond_strength_class: z.string().optional(), // B0.2, B0.5, B1.0, B1.5, B2.0 - Pflicht für SR (≥B1.5), optional für CT/CA
+  impact_resistance_class: z.string().optional(), // (legacy) IR1, IR2, IR4, IR10, IR20
+  impact_resistance_nm: z.number().optional(), // NEU: numerisch in Nm (EN ISO 6272)
   
   // MA (Magnesit) - SH ist PFLICHT bei MA!
   surface_hardness_class: z.string().optional(), // SH30, SH50, SH75, SH100, SH150, SH200
@@ -173,7 +182,7 @@ const ultimateRecipeSchema = z.object({
     
     // Zusatzmittel
     additives: z.array(z.object({
-      type: z.enum(['plasticizer', 'retarder', 'accelerator', 'air_entrainer', 'waterproofer', 'other']),
+      type: z.enum(['plasticizer', 'retarder', 'accelerator', 'air_entrainer', 'waterproofer', 'shrinkage_reducer', 'fibers', 'other']),
       name: z.string(),
       dosage_percent: z.number(),
       supplier: z.string().optional(),
@@ -250,6 +259,7 @@ const ultimateRecipeSchema = z.object({
   extended_properties: z.object({
     // Mechanische Eigenschaften
     elastic_modulus_gpa: z.number().optional(),
+    elastic_modulus_class: z.enum(['NPD','E1','E2','E5','E10','E15','E20']).optional(),
     shrinkage_mm_m: z.number().optional(),
     swelling_mm_m: z.number().optional(),
     creep_coefficient: z.number().optional(),
@@ -300,7 +310,7 @@ const ultimateRecipeSchema = z.object({
     deviation_critical: z.string().default('Charge sperren, Ursachenanalyse, ggf. Rückruf'),
     
     // Akzeptanzkriterien
-    acceptance_criteria: z.string().default('≥ 95% der deklarierten Werte')
+    acceptance_criteria: z.string().default('Beurteilung gemäß EN 13813 Abschnitt 9 (statistische/Einzelwert-Prüfung)')
   }),
   
   // === RÜCKVERFOLGBARKEIT ===
@@ -342,6 +352,33 @@ const ultimateRecipeSchema = z.object({
   // === NOTIZEN ===
   notes: z.string().optional(),
   internal_notes: z.string().optional() // Nicht für DoP
+}).superRefine((data, ctx) => {
+  // NB number for 1, 1+, 2+
+  if (['1', '1+', '2+'].includes(data.avcp_system) && !data.notified_body_number) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['notified_body_number'],
+      message: `Notified Body Nummer ist bei AVCP System ${data.avcp_system} erforderlich`
+    });
+  }
+
+  // CA requires pH ≥ 7
+  if (data.type === 'CA') {
+    const pH = data.fresh_mortar?.ph_value;
+    if (pH == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fresh_mortar','ph_value'],
+        message: 'pH-Wert ist bei Calciumsulfatestrich (CA) erforderlich'
+      });
+    } else if (pH < 7) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fresh_mortar','ph_value'],
+        message: 'pH-Wert muss bei CA ≥ 7 sein (EN 13813 Anforderung)'
+      });
+    }
+  }
 })
 
 type UltimateRecipeFormValues = z.infer<typeof ultimateRecipeSchema>
@@ -356,12 +393,13 @@ export function RecipeFormUltimate() {
   })
   const [currentSection, setCurrentSection] = useState(0)
   const [enDesignation, setEnDesignation] = useState('')
+  const sectionRefs = useRef<HTMLDivElement[]>([])  // Für Progress Chips Navigation
   const router = useRouter()
   const supabase = createClientComponentClient()
   const services = createEN13813Services(supabase)
 
   const form = useForm<UltimateRecipeFormValues>({
-    resolver: zodResolver(ultimateRecipeSchema) as any,
+    resolver: zodResolver(ultimateRecipeSchema),
     defaultValues: {
       recipe_code: '',
       name: '',
@@ -428,7 +466,7 @@ export function RecipeFormUltimate() {
         deviation_minor: 'Nachjustierung und Dokumentation',
         deviation_major: 'Produktion stoppen, Charge prüfen',
         deviation_critical: 'Charge sperren, Ursachenanalyse, ggf. Rückruf',
-        acceptance_criteria: '≥ 95% der deklarierten Werte'
+        acceptance_criteria: 'Beurteilung gemäß EN 13813 Abschnitt 9 (statistische/Einzelwert-Prüfung)'
       },
       traceability: {
         batch_linking_enabled: true,
@@ -448,78 +486,68 @@ export function RecipeFormUltimate() {
     name: 'materials.additives'
   })
 
-  // EN-Bezeichnung generieren (vollständig dynamisch)
+  // Helper functions for validation
+  const parseBondStrength = (b?: string) => {
+    if (!b) return NaN;
+    // "B1.5" -> 1.5
+    const v = parseFloat(b.replace(/^B/, '').replace(',', '.'));
+    return isNaN(v) ? NaN : v;
+  };
+
+  const irClassToNm = (cls?: string) => {
+    // Legacy-Mapping für vorhandene UI-Werte
+    const map: Record<string, number> = { IR1:1, IR2:2, IR4:4, IR10:10, IR20:20 };
+    return cls ? (map[cls] ?? NaN) : NaN;
+  };
+
+  // EN-Bezeichnung generieren (robust ohne Duplikate)
   useEffect(() => {
-    const type = watchedValues.type
-    const compressive = watchedValues.compressive_strength_class
-    const flexural = watchedValues.flexural_strength_class
+    const t = watchedValues.type
+    const C = watchedValues.compressive_strength_class
+    const F = watchedValues.flexural_strength_class
     const testAge = watchedValues.test_age_days
-    const earlyStrength = watchedValues.early_strength
-    
-    let designation = `EN 13813 ${type}`
-    
-    // Pflichtklassen für CT/CA
-    if (['CT', 'CA'].includes(type)) {
-      designation += `-${compressive}-${flexural}`
-    }
-    
-    // MA spezifisch - Oberflächenhärte ist PFLICHT!
-    if (type === 'MA') {
-      designation += `-${compressive}-${flexural}`
-      if (watchedValues.surface_hardness_class) {
-        designation += `-${watchedValues.surface_hardness_class}`
-      }
-    }
-    
-    // AS spezifisch - Eindrückklasse ist PFLICHT!
-    if (type === 'AS') {
-      if (watchedValues.indentation_class) {
-        designation += `-${watchedValues.indentation_class}`
-      }
-      if (watchedValues.heated_indicator) {
-        designation += '-H'
-      }
-    }
-    
-    // SR spezifisch - Verbundfestigkeit ist PFLICHT!
-    if (type === 'SR') {
-      if (watchedValues.bond_strength_class) {
-        designation += `-${watchedValues.bond_strength_class}`
-      }
-      if (watchedValues.impact_resistance_class) {
-        designation += `-${watchedValues.impact_resistance_class}`
-      }
-    }
-    
-    // Verschleißwiderstand (für alle Typen möglich)
-    if (watchedValues.wear_resistance_class && watchedValues.wear_resistance_method !== 'none') {
-      designation += `-${watchedValues.wear_resistance_class}`
-    }
-    
-    // Oberflächenhärte (optional für CT/CA)
-    if (['CT', 'CA'].includes(type) && watchedValues.surface_hardness_class) {
-      designation += `-${watchedValues.surface_hardness_class}`
-    }
-    
-    // Verschleiß bei Wearing Surface ohne Bodenbelag
-    if (watchedValues.intended_use?.wearing_surface &&
-        !watchedValues.intended_use?.with_flooring &&
-        watchedValues.wear_resistance_class &&
-        watchedValues.wear_resistance_method !== 'none') {
-      designation += `-${watchedValues.wear_resistance_class}`
+    const early = watchedValues.early_strength
+    const useWear = watchedValues.wear_resistance_method && watchedValues.wear_resistance_method !== 'none'
+    const wear = watchedValues.wear_resistance_class
+    const SH = watchedValues.surface_hardness_class
+    const B = watchedValues.bond_strength_class
+    const IRnm = watchedValues.impact_resistance_nm ?? irClassToNm(watchedValues.impact_resistance_class)
+    const RWFC = watchedValues.rwfc_class
+    const wearing = watchedValues.intended_use?.wearing_surface
+    const withFloor = watchedValues.intended_use?.with_flooring
+
+    let d = `EN 13813 ${t}`
+
+    if (['CT','CA','MA'].includes(t)) d += `-${C}-${F}`
+
+    if (t === 'AS') {
+      if (watchedValues.indentation_class) d += `-${watchedValues.indentation_class}`
+      if (watchedValues.heated_indicator) d += `-H`
     }
 
-    // RWFC bei mit Bodenbelag
-    if (watchedValues.intended_use?.with_flooring && watchedValues.rwfc_class) {
-      designation += `-${watchedValues.rwfc_class}`
+    if (t === 'SR') {
+      if (B) d += `-${B}`
+      if (useWear && wear) d += `-${wear}` // AR… oder RWA…
+      if (IRnm && !isNaN(IRnm)) d += `-IR${IRnm}`
     }
-    
-    // Prüfalter bei Frühfestigkeit
-    if (earlyStrength && testAge < 28) {
-      designation += ` (${testAge}d)`
+
+    // CT/CA: optional SH
+    if (['CT','CA'].includes(t) && SH && SH !== 'NPD') d += `-${SH}`
+
+    // MA: SH nur bei Nutzschicht ohne Belag
+    if (t === 'MA' && wearing && !withFloor && SH && SH !== 'NPD') d += `-${SH}`
+
+    // CT-Nutzschicht: Verschleiß genau einmal anhängen
+    if (t === 'CT' && wearing && !withFloor && useWear && wear) {
+      d += `-${wear}`
     }
-    
-    setEnDesignation(designation)
+
+    // RWFC nur wenn mit Belag
+    if (withFloor && RWFC && RWFC !== 'NPD') d += `-${RWFC}`
+
+    if (early && testAge && testAge < 28) d += ` (${testAge}d)`
+
+    setEnDesignation(d)
   }, [watchedValues])
 
   // W/B-Wert automatisch berechnen
@@ -530,11 +558,31 @@ export function RecipeFormUltimate() {
     }
   }, [watchedValues.materials?.water_content, watchedValues.materials?.binder_amount_kg_m3, form])
 
+  // SR + Böhme Konflikt automatisch korrigieren
+  useEffect(() => {
+    if (watchedValues.type === 'SR' && watchedValues.wear_resistance_method === 'bohme') {
+      // Bei SR ist nur BCA oder Rolling Wheel zulässig, nicht Böhme
+      form.setValue('wear_resistance_method', 'bca')
+      form.setValue('wear_resistance_class', undefined)  // Reset class too
+      toast({
+        title: 'Verschleißwiderstand angepasst',
+        description: 'Böhme ist für Kunstharzestrich (SR) nicht zulässig. Automatisch auf BCA umgestellt.',
+      })
+    }
+  }, [watchedValues.type, watchedValues.wear_resistance_method, form])
+
+  // Clear RWFC when "with flooring" is turned off
+  useEffect(() => {
+    if (!watchedValues.intended_use?.with_flooring && watchedValues.rwfc_class) {
+      form.setValue('rwfc_class', undefined)
+    }
+  }, [watchedValues.intended_use?.with_flooring, watchedValues.rwfc_class, form])
+
   // Estrichtyp-spezifische Validierung
   const validateTypeSpecificFields = () => {
     const type = watchedValues.type
     const errors: string[] = []
-    
+
     // Pflichtfelder für CT/CA/MA - Druckfestigkeit und Biegezugfestigkeit
     if (['CT', 'CA', 'MA'].includes(type)) {
       if (!watchedValues.compressive_strength_class) {
@@ -551,47 +599,66 @@ export function RecipeFormUltimate() {
         errors.push(`Biegezugfestigkeit darf bei ${type} nicht NPD sein`)
       }
     }
-    
-    // MA spezifisch - Oberflächenhärte ist PFLICHT
-    if (type === 'MA') {
-      if (!watchedValues.surface_hardness_class) {
-        errors.push('Oberflächenhärte (SH) ist bei Magnesiaestrich (MA) erforderlich')
-      }
-      if (watchedValues.surface_hardness_class === 'NPD') {
-        errors.push('Oberflächenhärte darf bei MA nicht NPD sein')
+
+    // MA: SH nur pflichtig bei Nutzschicht ohne Belag (≥ SH30 sinnvoll)
+    if (type === 'MA' && watchedValues.intended_use?.wearing_surface && !watchedValues.intended_use?.with_flooring) {
+      if (!watchedValues.surface_hardness_class || watchedValues.surface_hardness_class === 'NPD') {
+        errors.push('MA-Nutzschicht: Oberflächenhärte (SH) deklarieren (nicht NPD)')
       }
     }
-    
+
     // AS spezifisch - Eindrückklasse ist PFLICHT
     if (type === 'AS' && !watchedValues.indentation_class) {
       errors.push('Eindrückklasse (IC/IP) ist bei Gussasphaltestrich (AS) erforderlich')
     }
-    
-    // SR spezifisch - Verbundfestigkeit ist PFLICHT
-    if (type === 'SR' && !watchedValues.bond_strength_class) {
-      errors.push('Verbundfestigkeit (B) ist bei Kunstharzestrich (SR) erforderlich')
-    }
-    
-    // Heizestrich - Wärmeleitfähigkeit ist PFLICHT
-    if (watchedValues.intended_use?.heated_screed && !watchedValues.extended_properties?.thermal_conductivity_w_mk) {
-      errors.push('Wärmeleitfähigkeit (λ) ist bei Heizestrich erforderlich')
-    }
-    
-    // Verschleißwiderstand bei Nutzschicht ohne Bodenbelag - PFLICHT
-    if (watchedValues.intended_use?.wearing_surface &&
-        !watchedValues.intended_use?.with_flooring) {
-      if (watchedValues.wear_resistance_method === 'none' || !watchedValues.wear_resistance_method) {
-        errors.push('Verschleißwiderstand-Methode ist bei Nutzschicht ohne Bodenbelag erforderlich')
-      } else if (!watchedValues.wear_resistance_class) {
-        errors.push('Verschleißwiderstand-Klasse muss ausgewählt werden')
+
+    // SR: B ist Pflicht und muss ≥ B1.5 sein
+    if (type === 'SR') {
+      const bVal = parseBondStrength(watchedValues.bond_strength_class)
+      if (!watchedValues.bond_strength_class || isNaN(bVal)) {
+        errors.push('SR: Verbundfestigkeit (B) ist erforderlich')
+      } else if (bVal < 1.5) {
+        errors.push('SR: Verbundfestigkeit mindestens B1.5')
       }
     }
 
-    // RWFC bei mit Bodenbelag - EMPFOHLEN (aber nicht Pflicht)
-    if (watchedValues.intended_use?.with_flooring && !watchedValues.rwfc_class) {
-      // Nur Warnung, kein Fehler
-      console.log('Hinweis: RWFC-Klasse sollte bei "mit Bodenbelag" angegeben werden')
+    // Heizestrich – λ empfehlenswert, aber nicht harte Normpflicht
+    if (watchedValues.intended_use?.heated_screed && !watchedValues.extended_properties?.thermal_conductivity_w_mk) {
+      // Hinweis statt Fehler
+      console.warn('Hinweis: Heizestrich – Wärmeleitfähigkeit λ angeben (empfohlen)')
     }
+
+    // Verschleißpflicht nur differenziert:
+    // CT: bei Nutzschicht ohne Belag -> Verschleiß (A/AR/RWA) deklarieren
+    if (type === 'CT' &&
+        watchedValues.intended_use?.wearing_surface && !watchedValues.intended_use?.with_flooring) {
+      if (!watchedValues.wear_resistance_method || watchedValues.wear_resistance_method === 'none') {
+        errors.push('CT-Nutzschicht: Verschleiß-Prüfmethode wählen (A/AR/RWA)')
+      } else if (!watchedValues.wear_resistance_class) {
+        errors.push('CT-Nutzschicht: Verschleiß-Klasse angeben')
+      }
+    }
+    // SR: bei Nutzschicht ohne Belag -> AR oder RWA zulässig (Böhme nicht)
+    if (type === 'SR' &&
+        watchedValues.intended_use?.wearing_surface && !watchedValues.intended_use?.with_flooring) {
+      if (watchedValues.wear_resistance_method === 'bohme') {
+        errors.push('SR: Böhme ist nicht zulässig – AR (BCA) oder RWA (Rollrad) wählen')
+      }
+    }
+
+    // SR: Impact (IR) bei Nutzschicht deklarieren (≥ 4 Nm)
+    if (type === 'SR' &&
+        watchedValues.intended_use?.wearing_surface && !watchedValues.intended_use?.with_flooring) {
+      const irNm = watchedValues.impact_resistance_nm ??
+                   irClassToNm(watchedValues.impact_resistance_class)
+      if (!irNm || isNaN(irNm)) {
+        errors.push('SR-Nutzschicht: Schlagfestigkeit (Nm) angeben')
+      } else if (irNm < 4) {
+        errors.push('SR-Nutzschicht: Schlagfestigkeit mindestens 4 Nm')
+      }
+    }
+
+    // RWFC bei mit Bodenbelag – optional (nur Hinweis, keine Pflicht)
 
     // pH-Wert für CA - PFLICHT und muss ≥ 7 sein
     if (type === 'CA') {
@@ -602,9 +669,10 @@ export function RecipeFormUltimate() {
       }
     }
 
-    // AVCP System Validierung - NB-Nummer nur bei System 1
-    if (watchedValues.avcp_system === '1' && !watchedValues.notified_body_number) {
-      errors.push('Notified Body Nummer ist bei AVCP System 1 erforderlich (erscheint im CE-Zeichen)')
+    // AVCP System Validierung - NB-Nummer bei System 1, 1+, 2+
+    if ((watchedValues.avcp_system === '1' || watchedValues.avcp_system === '1+' || watchedValues.avcp_system === '2+')
+        && !watchedValues.notified_body_number) {
+      errors.push(`Notified Body Nummer ist bei AVCP System ${watchedValues.avcp_system} erforderlich (erscheint im CE-Zeichen)`)
     }
 
     // Automatische AVCP System 4 Regel für CT mit A1fl
@@ -617,45 +685,57 @@ export function RecipeFormUltimate() {
   }
 
   // ITT-Tests automatisch generieren
-  const generateITTTests = () => {
-    const tests = []
-    const type = watchedValues.type
-    
-    // Pflicht für CT/CA/MA
-    if (['CT', 'CA', 'MA'].includes(type)) {
+  // ITT-Tests automatisch generieren basierend auf Formularwerten
+  const buildITTTests = (data: UltimateRecipeFormValues) => {
+    const tests: any[] = []
+    const type = data.type
+
+    // Grundlegende mechanische Tests
+    if (['CT','CA','MA'].includes(type)) {
       tests.push(
-        { property: 'Druckfestigkeit', norm: 'EN 13892-2', test_age_days: watchedValues.test_age_days || 28 },
-        { property: 'Biegezugfestigkeit', norm: 'EN 13892-2', test_age_days: watchedValues.test_age_days || 28 }
+        { property: 'Druckfestigkeit', norm: 'EN 13892-2', test_age_days: data.test_age_days || 28 },
+        { property: 'Biegezugfestigkeit', norm: 'EN 13892-2', test_age_days: data.test_age_days || 28 }
       )
     }
-    
-    // Verschleiß
-    if (watchedValues.wear_resistance_method && watchedValues.wear_resistance_method !== 'none') {
-      const norms = {
-        'bohme': 'EN 13892-3',
-        'bca': 'EN 13892-4',
-        'rolling_wheel': 'EN 13892-5'
+
+    // Verschleißwiderstand
+    if (data.wear_resistance_method && data.wear_resistance_method !== 'none') {
+      const norms = { bohme: 'EN 13892-3', bca: 'EN 13892-4', rolling_wheel: 'EN 13892-5' } as const
+      const m = data.wear_resistance_method
+      if (type === 'SR' && m === 'bohme') {
+        // SR: Böhme nicht zulässig, überspringen
+      } else {
+        tests.push({ property: `Verschleißwiderstand (${m})`, norm: norms[m], test_age_days: 28 })
       }
-      tests.push({
-        property: `Verschleißwiderstand (${watchedValues.wear_resistance_method})`,
-        norm: norms[watchedValues.wear_resistance_method],
-        test_age_days: 28
-      })
     }
-    
-    // Oberflächenhärte
-    if (watchedValues.surface_hardness_class) {
+
+    // Zusätzliche Tests basierend auf Eigenschaften
+    if (data.bond_strength_class) {
+      tests.push({ property: 'Haftzugfestigkeit', norm: 'EN 13892-8', test_age_days: 28 })
+    }
+
+    if (data.surface_hardness_class) {
       tests.push({ property: 'Oberflächenhärte', norm: 'EN 13892-6', test_age_days: 28 })
     }
-    
-    // Verbundfestigkeit
-    if (watchedValues.bond_strength_class) {
-      tests.push({ property: 'Verbundfestigkeit', norm: 'EN 13892-8', test_age_days: 28 })
+
+    if (data.impact_resistance_nm) {
+      tests.push({ property: 'Stoßfestigkeit', norm: 'EN ISO 6272', test_age_days: 28 })
     }
-    
-    // Brandverhalten
-    tests.push({ property: 'Brandverhalten', norm: 'EN 13501-1', test_age_days: 0 })
-    
+
+    if (data.rwfc_class && data.rwfc_class !== 'NPD') {
+      tests.push({ property: 'RWFC Widerstand', norm: 'EN 13892-7', test_age_days: 28 })
+    }
+
+    if (data.fire_class && data.fire_class !== 'A1fl') {
+      tests.push({ property: 'Brandverhalten', norm: 'EN 13501-1', test_age_days: 0 })
+    }
+
+    return tests
+  }
+
+  // ITT-Tests manuell generieren (für Button)
+  const generateITTTests = () => {
+    const tests = buildITTTests(watchedValues)
     form.setValue('itt_test_plan.required_tests', tests)
   }
 
@@ -669,6 +749,28 @@ export function RecipeFormUltimate() {
         variant: 'destructive'
       })
       return
+    }
+
+    // Automatisch ITT-Tests generieren bevor die Rezeptur gespeichert wird
+    const generatedTests = buildITTTests(data)
+    if (generatedTests.length > 0) {
+      // Füge generierte Tests zu den bestehenden hinzu (ohne Duplikate)
+      const existingTests = data.itt_test_plan?.required_tests || []
+      const mergedTests = [...existingTests]
+
+      generatedTests.forEach(newTest => {
+        const exists = existingTests.some(t =>
+          t.property === newTest.property && t.norm === newTest.norm
+        )
+        if (!exists) {
+          mergedTests.push(newTest)
+        }
+      })
+
+      data.itt_test_plan = {
+        ...data.itt_test_plan,
+        required_tests: mergedTests
+      }
     }
 
     setLoading(true)
@@ -764,7 +866,13 @@ export function RecipeFormUltimate() {
                   key={index}
                   variant={currentSection === index ? 'default' : 'outline'}
                   className="cursor-pointer"
-                  onClick={() => setCurrentSection(index)}
+                  onClick={() => {
+                    setCurrentSection(index)
+                    sectionRefs.current[index]?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start'
+                    })
+                  }}
                 >
                   {index + 1}. {section}
                 </Badge>
@@ -774,7 +882,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 1: GRUNDDATEN & IDENTIFIKATION === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[0] = el }}>
           <CardHeader>
             <CardTitle>1. Grunddaten & Identifikation</CardTitle>
             <CardDescription>
@@ -939,7 +1047,7 @@ export function RecipeFormUltimate() {
                 <AlertDescription>
                   {watchedValues.type === 'CT' && watchedValues.fire_class === 'A1fl' && (
                     <span>
-                      <strong>System 4</strong>: Zementestrich mit Brandklasse A1fl "ohne Prüfung" erfordert
+                      <strong>System 4</strong>: Zementestrich mit Brandklasse A1fl &quot;ohne Prüfung&quot; erfordert
                       <strong> kein Notified Body</strong>. Nur bei speziellen Brandklassen oder Zusatzstoffen
                       sind System 1 oder 3 erforderlich.
                     </span>
@@ -973,7 +1081,9 @@ export function RecipeFormUltimate() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="4">System 4 (Herstellererklärung)</SelectItem>
-                          <SelectItem value="3">System 3 (Prüfbericht notifizierte Stelle, keine NB-Nr. im CE)</SelectItem>
+                          <SelectItem value="3">System 3 (Reaktion-auf-Feuer durch notifizierte Prüfstelle, keine NB-Nr. im CE)</SelectItem>
+                          <SelectItem value="2+">System 2+ (Werkseigene Produktionskontrolle mit notifizierter Stelle)</SelectItem>
+                          <SelectItem value="1+">System 1+ (Produktzertifizierung mit Audit-Tests)</SelectItem>
                           <SelectItem value="1">System 1 (Zertifizierung notifizierte Stelle, NB-Nr. im CE)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -992,27 +1102,31 @@ export function RecipeFormUltimate() {
                     <FormItem>
                       <FormLabel>
                         Notified Body Nr.
-                        {watchedValues.avcp_system === '1' && (
+                        {(watchedValues.avcp_system === '1' || watchedValues.avcp_system === '1+' || watchedValues.avcp_system === '2+') && (
                           <span className="text-red-500">*</span>
                         )}
                       </FormLabel>
                       <FormControl>
                         <Input
                           placeholder={
-                            watchedValues.avcp_system === '1'
-                              ? "z.B. 1234 (4-stellig)"
+                            watchedValues.avcp_system === '1' || watchedValues.avcp_system === '1+'
+                              ? "z.B. 1234 (4-stellig, erscheint im CE-Zeichen)"
+                              : watchedValues.avcp_system === '2+'
+                              ? "z.B. 1234 (4-stellig, erscheint im CE-Zeichen)"
                               : watchedValues.avcp_system === '3'
                               ? "Nicht im CE-Zeichen (nur Prüfbericht)"
                               : "Nicht erforderlich bei System 4"
                           }
                           {...field}
-                          disabled={watchedValues.avcp_system !== '1'}
+                          disabled={watchedValues.avcp_system === '4'}
                         />
                       </FormControl>
                       <FormDescription>
                         {watchedValues.avcp_system === '4'
                           ? "Kein Notified Body bei System 4"
-                          : "4-stellige Kennnummer"}
+                          : watchedValues.avcp_system === '3'
+                          ? "NB erstellt Prüfbericht, Nr. nicht im CE"
+                          : "4-stellige Kennnummer (im CE-Zeichen)"}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1056,7 +1170,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 2: FESTIGKEITSKLASSEN & PRÜFALTER === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[1] = el }}>
           <CardHeader>
             <CardTitle>2. Festigkeitsklassen & Prüfalter</CardTitle>
             <CardDescription>
@@ -1098,7 +1212,7 @@ export function RecipeFormUltimate() {
                           min="1"
                           max="27"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormDescription>
@@ -1256,10 +1370,21 @@ export function RecipeFormUltimate() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="B0.5">B0.5 N/mm²</SelectItem>
-                            <SelectItem value="B1.0">B1.0 N/mm²</SelectItem>
-                            <SelectItem value="B1.5">B1.5 N/mm²</SelectItem>
-                            <SelectItem value="B2.0">B2.0 N/mm²</SelectItem>
+                            {watchedValues.type === 'SR' ? (
+                              <>
+                                {BOND_STRENGTH_CLASSES.filter(cls => cls === 'B1.5' || cls === 'B2.0').map(cls => (
+                                  <SelectItem key={cls} value={cls}>
+                                    {cls} N/mm² {cls === 'B1.5' && '(Minimum für SR)'}
+                                  </SelectItem>
+                                ))}
+                              </>
+                            ) : (
+                              <>
+                                {BOND_STRENGTH_CLASSES.map(cls => (
+                                  <SelectItem key={cls} value={cls}>{cls} N/mm²</SelectItem>
+                                ))}
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -1272,10 +1397,34 @@ export function RecipeFormUltimate() {
 
                   <FormField
                     control={form.control}
+                    name="impact_resistance_nm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Schlagfestigkeit (Nm)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            placeholder="z.B. 4"
+                            {...field}
+                            onChange={(e) => field.onChange(numOrUndef(e))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Nach EN ISO 6272 (≥ 4 Nm für SR-Nutzschicht)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="impact_resistance_class"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Schlagfestigkeit (IR-Klasse)</FormLabel>
+                        <FormLabel>Schlagfestigkeit (Legacy IR-Klasse)</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -1284,15 +1433,15 @@ export function RecipeFormUltimate() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="NPD">NPD - No Performance Determined</SelectItem>
-                            <SelectItem value="IR1">IR1</SelectItem>
-                            <SelectItem value="IR2">IR2</SelectItem>
-                            <SelectItem value="IR4">IR4</SelectItem>
-                            <SelectItem value="IR10">IR10</SelectItem>
-                            <SelectItem value="IR20">IR20</SelectItem>
+                            <SelectItem value="IR1">IR1 (1 Nm)</SelectItem>
+                            <SelectItem value="IR2">IR2 (2 Nm)</SelectItem>
+                            <SelectItem value="IR4">IR4 (4 Nm)</SelectItem>
+                            <SelectItem value="IR10">IR10 (10 Nm)</SelectItem>
+                            <SelectItem value="IR20">IR20 (20 Nm)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          Nach EN ISO 6272
+                          Legacy-Mapping (Wert in Nm verwenden)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1324,10 +1473,14 @@ export function RecipeFormUltimate() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="NPD">NPD - No Performance Determined</SelectItem>
-                            <SelectItem value="B0.5">B0.5 (≥ 0.5 N/mm²)</SelectItem>
-                            <SelectItem value="B1.0">B1.0 (≥ 1.0 N/mm²)</SelectItem>
-                            <SelectItem value="B1.5">B1.5 (≥ 1.5 N/mm²)</SelectItem>
-                            <SelectItem value="B2.0">B2.0 (≥ 2.0 N/mm²)</SelectItem>
+                            {BOND_STRENGTH_CLASSES.map(cls => {
+                              const value = parseFloat(cls.replace('B', ''))
+                              return (
+                                <SelectItem key={cls} value={cls}>
+                                  {cls} (≥ {value} N/mm²)
+                                </SelectItem>
+                              )
+                            })}
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -1385,7 +1538,12 @@ export function RecipeFormUltimate() {
                   name="surface_hardness_class"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Oberflächenhärte (SH-Klasse)*</FormLabel>
+                      <FormLabel>
+                        Oberflächenhärte (SH-Klasse)
+                        {watchedValues.intended_use?.wearing_surface && !watchedValues.intended_use?.with_flooring && (
+                          <span className="text-red-500"> *</span>
+                        )}
+                      </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -1443,15 +1601,21 @@ export function RecipeFormUltimate() {
 
                       <div className="border rounded-lg p-4">
                         <div className="flex items-start space-x-2">
-                          <RadioGroupItem value="bohme" id="bohme" />
+                          <RadioGroupItem value="bohme" id="bohme" disabled={watchedValues.type === 'SR'} />
                           <div className="grid gap-1.5 leading-none flex-1">
-                            <Label htmlFor="bohme" className="flex items-center gap-2">
+                            <Label htmlFor="bohme" className={cn(
+                              "flex items-center gap-2",
+                              watchedValues.type === 'SR' && "opacity-50"
+                            )}>
                               Böhme-Verfahren (A-Klassen) - EN 13892-3
                               <span className="text-xs text-muted-foreground">
                                 (Wert in cm³/50cm²)
                               </span>
+                              {watchedValues.type === 'SR' && (
+                                <span className="text-xs text-red-500">(Nicht für SR)</span>
+                              )}
                             </Label>
-                            {watchedValues.wear_resistance_method === 'bohme' && (
+                            {watchedValues.wear_resistance_method === 'bohme' && watchedValues.type !== 'SR' && (
                               <FormField
                                 control={form.control}
                                 name="wear_resistance_class"
@@ -1527,7 +1691,7 @@ export function RecipeFormUltimate() {
                                       <SelectValue placeholder="RWA-Klasse wählen" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {['RWA300', 'RWA200', 'RWA100', 'RWA50', 'RWA20', 'RWA10', 'RWA1'].map(cls => (
+                                      {['RWA300', 'RWA100', 'RWA20', 'RWA10', 'RWA1'].map(cls => (
                                         <SelectItem key={cls} value={cls}>{cls}</SelectItem>
                                       ))}
                                     </SelectContent>
@@ -1560,7 +1724,7 @@ export function RecipeFormUltimate() {
                   name="rwfc_class"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>RWFC-Klasse (EN 13892-7)</FormLabel>
+                      <FormLabel>RWFC-Klasse (EN 13892-7, optional)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -1588,7 +1752,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 3: VERWENDUNGSZWECK === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[2] = el }}>
           <CardHeader>
             <CardTitle>3. Verwendungszweck</CardTitle>
             <CardDescription>
@@ -1756,7 +1920,7 @@ export function RecipeFormUltimate() {
               <Alert className="border-blue-200 bg-blue-50">
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-900">
-                  <strong>Wärmeleitfähigkeit erforderlich!</strong> Bei Heizestrich muss die Wärmeleitfähigkeit λ angegeben werden (siehe Erweiterte Eigenschaften).
+                  <strong>Wärmeleitfähigkeit empfohlen.</strong> Bei Heizestrich sollte die Wärmeleitfähigkeit λ angegeben werden (siehe Erweiterte Eigenschaften).
                 </AlertDescription>
               </Alert>
             )}
@@ -1775,7 +1939,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 4: MATERIALZUSAMMENSETZUNG === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[3] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calculator className="h-5 w-5" />
@@ -1828,7 +1992,7 @@ export function RecipeFormUltimate() {
                         <Input 
                           type="number" 
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1950,7 +2114,7 @@ export function RecipeFormUltimate() {
                           type="number"
                           placeholder="z.B. 1800"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1969,7 +2133,7 @@ export function RecipeFormUltimate() {
                           type="number"
                           placeholder="z.B. 2650"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1989,7 +2153,7 @@ export function RecipeFormUltimate() {
                           step="0.1"
                           placeholder="z.B. 2.5"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -2015,7 +2179,7 @@ export function RecipeFormUltimate() {
                         <Input 
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -2034,7 +2198,7 @@ export function RecipeFormUltimate() {
                           type="number"
                           step="0.01"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormDescription>
@@ -2165,7 +2329,7 @@ export function RecipeFormUltimate() {
                                 type="number"
                                 step="0.1"
                                 {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                onChange={(e) => field.onChange(numOrUndef(e))}
                               />
                             </FormControl>
                             <FormMessage />
@@ -2214,7 +2378,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 5: SIEBLINIE / KORNGRÖßENVERTEILUNG === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[4] = el }}>
           <CardHeader>
             <CardTitle>5. Sieblinie / Korngrößenverteilung</CardTitle>
             <CardDescription>
@@ -2233,7 +2397,7 @@ export function RecipeFormUltimate() {
                     placeholder="Durchgang %"
                     onChange={(e) => {
                       const current = form.getValues('materials.sieve_curve.passing_percent') || []
-                      current[index] = parseFloat(e.target.value)
+                      current[index] = numOrUndef(e) ?? 0
                       form.setValue('materials.sieve_curve.passing_percent', current)
                     }}
                   />
@@ -2257,7 +2421,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 6: MISCHVORSCHRIFT === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[5] = el }}>
           <CardHeader>
             <CardTitle>6. Mischvorschrift</CardTitle>
             <CardDescription>
@@ -2329,7 +2493,7 @@ export function RecipeFormUltimate() {
                       <Input 
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2347,7 +2511,7 @@ export function RecipeFormUltimate() {
                       <Input 
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2365,7 +2529,7 @@ export function RecipeFormUltimate() {
                       <Input 
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2383,7 +2547,7 @@ export function RecipeFormUltimate() {
                       <Input 
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2395,7 +2559,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 7: FRISCHMÖRTEL-EIGENSCHAFTEN === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[6] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Droplet className="h-5 w-5" />
@@ -2432,15 +2596,16 @@ export function RecipeFormUltimate() {
                 name="fresh_mortar.consistency_tolerance"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ausbreitmaß (mm)</FormLabel>
+                    <FormLabel>Toleranz (± mm)</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="number"
-                        placeholder="z.B. 280"
+                        placeholder="z.B. 10"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
+                    <FormDescription>Zulässige Abweichung vom Zielwert</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -2457,7 +2622,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 45"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2476,7 +2641,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 180"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormDescription>
@@ -2525,7 +2690,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 360"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormDescription>
@@ -2552,7 +2717,7 @@ export function RecipeFormUltimate() {
                         step="0.1"
                         placeholder="z.B. 12.5"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormDescription>
@@ -2573,7 +2738,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 8: VERARBEITUNGSPARAMETER === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[7] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Thermometer className="h-5 w-5" />
@@ -2596,7 +2761,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 5"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2615,7 +2780,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 30"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2634,7 +2799,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 35"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2653,7 +2818,7 @@ export function RecipeFormUltimate() {
                         type="number"
                         placeholder="z.B. 80"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2665,7 +2830,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 9: ERWEITERTE EIGENSCHAFTEN === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[8] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
@@ -2719,7 +2884,7 @@ export function RecipeFormUltimate() {
                         step="0.01"
                         placeholder="z.B. 0.5"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(numOrUndef(e))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2733,18 +2898,17 @@ export function RecipeFormUltimate() {
                   name="extended_properties.thermal_conductivity_w_mk"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Wärmeleitfähigkeit λ (W/mK)*</FormLabel>
+                      <FormLabel>Wärmeleitfähigkeit λ (W/mK)</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="number"
                           step="0.01"
                           placeholder="z.B. 1.2"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                          required
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
-                      <FormDescription>Pflichtangabe bei Heizestrich</FormDescription>
+                      <FormDescription>Empfohlen bei Heizestrich (EN 12524/EN 12664)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -2764,11 +2928,12 @@ export function RecipeFormUltimate() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="A1">A1 - Nicht brennbar</SelectItem>
-                        <SelectItem value="A1fl">A1fl - Nicht brennbar (Bodenbelag)</SelectItem>
-                        <SelectItem value="A2">A2 - Nicht brennbar</SelectItem>
-                        <SelectItem value="B">B - Schwer entflammbar</SelectItem>
-                        <SelectItem value="C">C - Normal entflammbar</SelectItem>
+                        {FIRE_CLASSES.map(cls => (
+                          <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                        ))}
+                        <SelectItem value="Cfl-s1">Cfl-s1</SelectItem>
+                        <SelectItem value="Dfl-s1">Dfl-s1</SelectItem>
+                        <SelectItem value="Efl">Efl</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -2894,7 +3059,7 @@ export function RecipeFormUltimate() {
                               step="0.1"
                               placeholder="z.B. 250"
                               {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              onChange={(e) => field.onChange(numOrUndef(e))}
                             />
                           </FormControl>
                           <FormDescription>Nach EN 16516</FormDescription>
@@ -2934,7 +3099,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 10: QUALITÄTSKONTROLLE / WPK / FPC === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[9] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
@@ -3026,7 +3191,7 @@ export function RecipeFormUltimate() {
                           step="0.1"
                           placeholder="z.B. 2"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -3046,7 +3211,7 @@ export function RecipeFormUltimate() {
                           step="0.1"
                           placeholder="z.B. 3"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -3066,7 +3231,7 @@ export function RecipeFormUltimate() {
                           step="0.5"
                           placeholder="z.B. 2"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -3137,7 +3302,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 11: RÜCKVERFOLGBARKEIT === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[10] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Link className="h-5 w-5" />
@@ -3195,7 +3360,7 @@ export function RecipeFormUltimate() {
                           type="number"
                           placeholder="z.B. 6"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) => field.onChange(numOrUndef(e))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -3223,7 +3388,7 @@ export function RecipeFormUltimate() {
         </Card>
 
         {/* === SECTION 12: VERSIONIERUNG & ÄNDERUNGSHISTORIE === */}
-        <Card>
+        <Card ref={(el) => { if (el) sectionRefs.current[11] = el }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
@@ -3331,9 +3496,9 @@ export function RecipeFormUltimate() {
                 {watchedValues.itt_test_plan.required_tests.map((test: any, index: number) => (
                   <div key={index} className="grid grid-cols-4 gap-2 text-sm py-2 border-b">
                     <div>{test.property}</div>
-                    <div className="text-muted-foreground">{test.standard}</div>
-                    <div>{test.age || '28 Tage'}</div>
-                    <div className="font-medium">{test.requirement}</div>
+                    <div className="text-muted-foreground">{test.norm}</div>
+                    <div>{typeof test.test_age_days === 'number' ? `${test.test_age_days} Tage` : '—'}</div>
+                    <div className="font-medium">{test.target_value ?? '—'}</div>
                   </div>
                 ))}
               </div>
@@ -3477,10 +3642,12 @@ export function RecipeFormUltimate() {
                   {(!watchedValues.avcp_system || watchedValues.avcp_system === '4') && (
                     <>
                       • <strong>System 4</strong>: Herstellererklärung<br />
-                      • {watchedValues.type === 'CT' && watchedValues.fire_class === 'A1fl' ?
-                        <>Brandverhalten A1fl "ohne Prüfung" (CWFT)<br />
-                        • <span className="text-sm text-muted-foreground">gem. Entscheidung 96/603/EG</span></> :
-                        "Eigenverantwortliche Deklaration"}<br />
+                      • {watchedValues.type === 'CT' && watchedValues.fire_class === 'A1fl' ? (
+                        <>Brandverhalten A1fl &quot;ohne Prüfung&quot; (CWFT)<br />
+                        • <span className="text-sm text-muted-foreground">gem. Entscheidung 96/603/EG</span></>
+                      ) : (
+                        <>Eigenverantwortliche Deklaration</>
+                      )}<br />
                       • ITT-Prüfungen in eigenem oder externem Labor<br />
                       • <strong>Keine notifizierte Stelle erforderlich</strong><br />
                       • <strong>CE-Zeichen ohne NB-Nummer</strong>
@@ -3488,88 +3655,6 @@ export function RecipeFormUltimate() {
                   )}
                 </AlertDescription>
               </Alert>
-
-              {/* Notified Body Felder - nur bei System 1 anzeigen */}
-              {watchedValues.avcp_system === '1' && (
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-4">
-                  <h4 className="font-medium text-orange-900">Notifizierte Stelle (Pflicht bei System 1)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="notified_body.number"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>NB-Kennnummer*</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="z.B. 0123" 
-                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            4-stellige Nummer der notifizierten Stelle
-                          </FormDescription>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="notified_body.name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name der Stelle*</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="z.B. MPA Stuttgart" 
-                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="notified_body.test_report"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prüfbericht-Nr.*</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="z.B. PB-2024-123" 
-                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Klassifizierungsbericht nach EN 13501-1
-                          </FormDescription>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="notified_body.test_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prüfdatum*</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              type="date"
-                              required={watchedValues.fire_class && watchedValues.fire_class !== 'NPD'}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              )} */
             </div>
 
             {/* Zusammenfassung automatisch ermittelt */}
@@ -3594,7 +3679,7 @@ export function RecipeFormUltimate() {
                     <tr>
                       <th className="text-left p-2 border-b">Wesentliche Merkmale</th>
                       <th className="text-left p-2 border-b">Leistung</th>
-                      <th className="text-left p-2 border-b">Harmonisierte Norm</th>
+                      <th className="text-left p-2 border-b">Prüfnorm</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3634,13 +3719,17 @@ export function RecipeFormUltimate() {
                         <tr className="border-b">
                           <td className="p-2">Verbundfestigkeit</td>
                           <td className="p-2 font-medium">{watchedValues.bond_strength_class || 'NPD'}</td>
-                          <td className="p-2 text-muted-foreground">EN 13813:2002</td>
+                          <td className="p-2 text-muted-foreground">EN 13892-8</td>
                         </tr>
-                        {watchedValues.impact_resistance_class && (
+                        {(watchedValues.impact_resistance_class || watchedValues.impact_resistance_nm) && (
                           <tr className="border-b">
                             <td className="p-2">Schlagfestigkeit</td>
-                            <td className="p-2 font-medium">{watchedValues.impact_resistance_class}</td>
-                            <td className="p-2 text-muted-foreground">EN 13813:2002</td>
+                            <td className="p-2 font-medium">
+                              {watchedValues.impact_resistance_nm
+                                ? `${watchedValues.impact_resistance_nm} Nm`
+                                : watchedValues.impact_resistance_class}
+                            </td>
+                            <td className="p-2 text-muted-foreground">EN ISO 6272</td>
                           </tr>
                         )}
                       </>
@@ -3650,7 +3739,7 @@ export function RecipeFormUltimate() {
                       <tr className="border-b">
                         <td className="p-2">Oberflächenhärte</td>
                         <td className="p-2 font-medium">{watchedValues.surface_hardness_class}</td>
-                        <td className="p-2 text-muted-foreground">EN 13813:2002</td>
+                        <td className="p-2 text-muted-foreground">EN 13892-6</td>
                       </tr>
                     )}
                     
@@ -3680,7 +3769,7 @@ export function RecipeFormUltimate() {
                     {watchedValues.intended_use?.with_flooring && watchedValues.rwfc_class && (
                       <tr className="border-b">
                         <td className="p-2">Rollwiderstand mit Belag (RWFC)</td>
-                        <td className="p-2 font-medium">{watchedValues.rwfc_class} N</td>
+                        <td className="p-2 font-medium">{watchedValues.rwfc_class}</td>
                         <td className="p-2 text-muted-foreground">EN 13892-7</td>
                       </tr>
                     )}
@@ -3688,7 +3777,7 @@ export function RecipeFormUltimate() {
                     <tr className="border-b">
                       <td className="p-2">Brandverhalten</td>
                       <td className="p-2 font-medium">{watchedValues.fire_class || 'NPD'}</td>
-                      <td className="p-2 text-muted-foreground">EN 13813:2002</td>
+                      <td className="p-2 text-muted-foreground">EN 13501-1</td>
                     </tr>
                     
                     <tr>
@@ -3722,8 +3811,8 @@ export function RecipeFormUltimate() {
                     <div className="text-3xl font-bold">{new Date().getFullYear().toString().slice(-2)}</div>
                   </div>
                   
-                  {/* Notified Body NUR bei System 1 */}
-                  {watchedValues.avcp_system === '1' && (
+                  {/* Notified Body bei System 1 / 1+ / 2+ */}
+                  {['1','1+','2+'].includes(watchedValues.avcp_system || '') && (
                     <div className="text-2xl font-bold">
                       {watchedValues.notified_body_number || '####'}
                     </div>

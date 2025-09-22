@@ -1,0 +1,81 @@
+
+> web@0.1.0 lint /Users/jonaskruger/Dev/en13813/apps/web
+> next lint
+
+
+./app/(auth)/en13813/batches/[id]/page.tsx
+85:6  Warning: React Hook useEffect has a missing dependency: 'loadBatch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/batches/new/page.tsx
+167:6  Warning: React Hook useEffect has a missing dependency: 'loadRecipes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+173:6  Warning: React Hook useEffect has missing dependencies: 'formData.batch_number' and 'generateBatchNumber'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/batches/page.tsx
+68:6  Warning: React Hook useEffect has missing dependencies: 'loadBatches' and 'loadStatistics'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/calibration/page.tsx
+21:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/deviations/page.tsx
+65:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/dops/[id]/page.tsx
+42:6  Warning: React Hook useEffect has a missing dependency: 'loadDoPDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+372:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(auth)/en13813/dops/new/page.tsx
+52:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+60:6  Warning: React Hook useEffect has missing dependencies: 'loadBatches', 'loadRecipeDetails', and 'loadTestReports'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/dops/page.tsx
+61:6  Warning: React Hook useEffect has a missing dependency: 'loadDops'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/lab-values/new/page.tsx
+158:6  Warning: React Hook useEffect has missing dependencies: 'loadBatches' and 'loadRecipes'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/lab-values/page.tsx
+90:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/page.tsx
+44:6  Warning: React Hook useEffect has a missing dependency: 'loadDashboardData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/recipes/page.tsx
+61:6  Warning: React Hook useEffect has a missing dependency: 'loadRecipes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/test-plans/page.tsx
+30:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/test-reports/new/page.tsx
+146:6  Warning: React Hook useEffect has a missing dependency: 'loadRecipes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+156:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+167:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+167:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+178:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+178:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+189:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+189:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+200:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+200:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+211:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+211:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+223:6  Warning: React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+223:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+223:43  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+
+./app/(auth)/en13813/test-reports/page.tsx
+71:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/en13813/BatchStatistics.tsx
+65:6  Warning: React Hook useEffect has a missing dependency: 'loadRecipes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+70:6  Warning: React Hook useEffect has missing dependencies: 'loadStatistics' and 'loadTrendData'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/en13813/QCDashboard.tsx
+62:6  Warning: React Hook useEffect has a missing dependency: 'loadQCMetrics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/notifications/NotificationPreferences.tsx
+109:6  Warning: React Hook useEffect has a missing dependency: 'loadPreferences'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/email/templates/dop-notification.tsx
+87:7  Warning: Do not use `<head>` element. Use `<Head />` from `next/head` instead. See: https://nextjs.org/docs/messages/no-head-element  @next/next/no-head-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
