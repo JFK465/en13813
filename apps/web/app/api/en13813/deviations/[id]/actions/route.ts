@@ -88,7 +88,7 @@ export async function POST(
   } catch (error) {
     console.error('Error creating action:', error)
     return NextResponse.json(
-      { error: 'Failed to create action', details: error.message },
+      { error: 'Failed to create action', details: error instanceof Error ? error.message : 'Unbekannter Fehler' },
       { status: 500 }
     )
   }

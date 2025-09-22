@@ -102,7 +102,8 @@ export class DeliveryNotePDFService {
     // Footer
     this.addFooter(doc, data.footer)
 
-    return doc.output('arraybuffer') as Uint8Array
+    const arrayBuffer = doc.output('arraybuffer')
+    return new Uint8Array(arrayBuffer)
   }
 
   /**
@@ -560,7 +561,8 @@ export class DeliveryNotePDFService {
       doc.text(line, 50, y, { align: 'center' })
     })
 
-    return doc.output('arraybuffer') as Uint8Array
+    const arrayBuffer = doc.output('arraybuffer')
+    return new Uint8Array(arrayBuffer)
   }
 }
 

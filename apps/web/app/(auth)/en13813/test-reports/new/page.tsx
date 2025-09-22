@@ -54,7 +54,7 @@ import {
 
 const testReportSchema = z.object({
   recipe_id: z.string().min(1, 'Rezeptur ist erforderlich'),
-  report_type: z.enum(['ITT', 'System1', 'System3', 'System4', 'FPC', 'External']),
+  report_type: z.enum(['ITT', 'System1+', 'System1', 'System3', 'System4', 'FPC', 'External']),
   test_lab: z.string().min(1, 'Prüflabor ist erforderlich'),
   test_lab_address: z.string().optional(),
   notified_body_number: z.string().optional(),

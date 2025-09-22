@@ -29,7 +29,7 @@ export function exportTasksToICal(
 
   tasks.forEach(task => {
     const event = calendar.createEvent({
-      uid: task.id,
+      id: task.id,
       start: new Date(task.startDate),
       end: task.endDate ? new Date(task.endDate) : new Date(task.startDate),
       allDay: task.allDay,
@@ -42,7 +42,7 @@ export function exportTasksToICal(
         }
       ],
       priority: getPriorityNumber(task.priority),
-      status: getEventStatus(task.status),
+      status: getEventStatus(task.status) as any,
       created: new Date(),
       lastModified: new Date()
     })
@@ -51,10 +51,10 @@ export function exportTasksToICal(
     if (task.dueDate && task.reminderIntervals.length > 0) {
       task.reminderIntervals.forEach(minutes => {
         event.createAlarm({
-          type: 'display',
+          type: 'display' as any,
           trigger: minutes * 60, // Convert minutes to seconds
           description: `Reminder: ${task.title}`
-        })
+        } as any)
       })
     }
 

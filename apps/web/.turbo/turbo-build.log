@@ -85,16 +85,206 @@
 87:7  Warning: Do not use `<head>` element. Use `<Head />` from `next/head` instead. See: https://nextjs.org/docs/messages/no-head-element  @next/next/no-head-element
 
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
-Failed to compile.
+   Collecting page data ...
+   Generating static pages (0/58) ...
+Error fetching statistics: n [Error]: Dynamic server usage: Route /api/en13813/deviations/statistics couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/2138.js:1:37248)
+    at Object.u [as cookies] (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:87693)
+    at S.getCookie (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/8.js:1:5521)
+    at S.getItem (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/8.js:1:14439)
+    at e9 (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:25894)
+    at a$.__loadSession (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:57403)
+    at a$._useSession (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:57140)
+    at /Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:56210
+    at /Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:56449 {
+  description: "Route /api/en13813/deviations/statistics couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error fetching compliance stats: n [Error]: Dynamic server usage: Route /api/en13813/compliance/stats couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/2138.js:1:37248)
+    at Object.u [as cookies] (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:87693)
+    at S.getCookie (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/8.js:1:5521)
+    at S.getItem (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/8.js:1:14439)
+    at e9 (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:25894)
+    at a$.__loadSession (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:57403)
+    at a$._useSession (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:57140)
+    at /Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:56210
+    at /Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:56449 {
+  description: "Route /api/en13813/compliance/stats couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error fetching devices: n [Error]: Dynamic server usage: Route /api/en13813/devices couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/2138.js:1:37248)
+    at Object.u [as cookies] (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:87693)
+    at S.getCookie (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/8.js:1:5521)
+    at S.getItem (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/8.js:1:14439)
+    at e9 (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:25894)
+    at a$.__loadSession (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:57403)
+    at a$._useSession (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:57140)
+    at /Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:56210
+    at /Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:56449 {
+  description: "Route /api/en13813/devices couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (14/58) 
+🔐 AuthLayout rendering
+Error fetching recipe compliance statuses: n [Error]: Dynamic server usage: Route /api/en13813/compliance/recipe-status couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+    at l (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/2138.js:1:37248)
+    at u (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/1564.js:21:87693)
+    at i (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/chunks/275.js:1:167)
+    at c (/Users/jonaskruger/Dev/en13813/apps/web/.next/server/app/api/en13813/compliance/recipe-status/route.js:1:1224)
+    at /Users/jonaskruger/Dev/en13813/node_modules/.pnpm/next@14.2.5_@babel+core@7.28.3_@playwright+test@1.54.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36264
+    at /Users/jonaskruger/Dev/en13813/node_modules/.pnpm/next@14.2.5_@babel+core@7.28.3_@playwright+test@1.54.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/jonaskruger/Dev/en13813/node_modules/.pnpm/next@14.2.5_@babel+core@7.28.3_@playwright+test@1.54.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/jonaskruger/Dev/en13813/node_modules/.pnpm/next@14.2.5_@babel+core@7.28.3_@playwright+test@1.54.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/jonaskruger/Dev/en13813/node_modules/.pnpm/next@14.2.5_@babel+core@7.28.3_@playwright+test@1.54.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/jonaskruger/Dev/en13813/node_modules/.pnpm/next@14.2.5_@babel+core@7.28.3_@playwright+test@1.54.2_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/en13813/compliance/recipe-status couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+   Generating static pages (28/58) 
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+   Generating static pages (43/58) 
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+🔐 AuthLayout rendering
+👤 Auth state: { user: false, isLoading: true, userDetails: null }
+ ✓ Generating static pages (58/58)
+   Finalizing page optimization ...
+   Collecting build traces ...
 
-./app/(auth)/en13813/deviations/new/page.tsx:224:22
-Type error: 'error' is of type 'unknown'.
+Route (app)                                     Size     First Load JS
+┌ ○ /                                           40 kB           144 kB
+├ ○ /_not-found                                 879 B          88.5 kB
+├ ƒ /api/admin/migrate-en13813                  0 B                0 B
+├ ○ /api/docs                                   0 B                0 B
+├ ○ /api/docs/swagger                           5.58 kB        93.2 kB
+├ ƒ /api/en13813/capa                           0 B                0 B
+├ ƒ /api/en13813/compliance/recipe-status       0 B                0 B
+├ ƒ /api/en13813/compliance/stats               0 B                0 B
+├ ƒ /api/en13813/compliance/tasks               0 B                0 B
+├ ƒ /api/en13813/deviations                     0 B                0 B
+├ ƒ /api/en13813/deviations/[id]                0 B                0 B
+├ ƒ /api/en13813/deviations/[id]/actions        0 B                0 B
+├ ƒ /api/en13813/deviations/[id]/effectiveness  0 B                0 B
+├ ƒ /api/en13813/deviations/statistics          0 B                0 B
+├ ƒ /api/en13813/devices                        0 B                0 B
+├ ƒ /api/en13813/dops                           0 B                0 B
+├ ƒ /api/en13813/dops/[id]                      0 B                0 B
+├ ƒ /api/en13813/dops/[id]/pdf                  0 B                0 B
+├ ƒ /api/en13813/marking                        0 B                0 B
+├ ƒ /api/en13813/recipes                        0 B                0 B
+├ ƒ /api/en13813/recipes/[id]                   0 B                0 B
+├ ƒ /api/en13813/recipes/compliant              0 B                0 B
+├ ƒ /api/upload                                 0 B                0 B
+├ ƒ /api/v1/api-keys                            0 B                0 B
+├ ƒ /api/v1/api-keys/[id]                       0 B                0 B
+├ ƒ /api/v1/documents                           0 B                0 B
+├ ƒ /api/v1/documents/[id]                      0 B                0 B
+├ ƒ /api/v1/reports                             0 B                0 B
+├ ƒ /api/v1/reports/[id]                        0 B                0 B
+├ ƒ /api/v1/reports/[id]/download               0 B                0 B
+├ ƒ /api/v1/webhooks                            0 B                0 B
+├ ƒ /api/v1/webhooks/[id]                       0 B                0 B
+├ ƒ /api/v1/workflows                           0 B                0 B
+├ ƒ /api/v1/workflows/[id]/steps/[stepId]       0 B                0 B
+├ ƒ /auth/callback                              0 B                0 B
+├ ○ /calendar                                   96.5 kB         271 kB
+├ ○ /clear-cookies                              794 B          88.4 kB
+├ ○ /dashboard                                  153 B          87.7 kB
+├ ○ /documents                                  24.5 kB         174 kB
+├ ○ /en13813                                    4.39 kB         159 kB
+├ ○ /en13813/admin/migrate                      7 kB            103 kB
+├ ○ /en13813/batches                            10.3 kB         199 kB
+├ ƒ /en13813/batches/[id]                       12.7 kB         181 kB
+├ ○ /en13813/batches/new                        15.1 kB         201 kB
+├ ○ /en13813/calibration                        4.72 kB         154 kB
+├ ○ /en13813/calibration/new                    5.65 kB         182 kB
+├ ○ /en13813/compliance                         6.05 kB         128 kB
+├ ○ /en13813/dashboard                          7.73 kB         117 kB
+├ ○ /en13813/deviations                         11.5 kB         120 kB
+├ ○ /en13813/deviations/new                     12 kB           167 kB
+├ ○ /en13813/dops                               4.22 kB         396 kB
+├ ƒ /en13813/dops/[id]                          6.16 kB         160 kB
+├ ○ /en13813/dops/new                           6.59 kB         186 kB
+├ ○ /en13813/lab-values                         105 kB          269 kB
+├ ○ /en13813/lab-values/new                     10.4 kB         416 kB
+├ ○ /en13813/marking                            14.1 kB         147 kB
+├ ○ /en13813/recipes                            4.07 kB         395 kB
+├ ○ /en13813/recipes/import                     6.64 kB         156 kB
+├ ○ /en13813/recipes/new                        25.4 kB         426 kB
+├ ○ /en13813/settings                           10.4 kB         142 kB
+├ ○ /en13813/test-plans                         6.81 kB         154 kB
+├ ○ /en13813/test-reports                       9.13 kB         170 kB
+├ ○ /en13813/test-reports/new                   14.4 kB         216 kB
+├ ○ /forgot-password                            4.45 kB         153 kB
+├ ○ /login                                      5.01 kB         153 kB
+├ ○ /notifications                              13.9 kB         171 kB
+├ ƒ /public/dop/[number]                        153 B          87.7 kB
+├ ○ /register                                   4.98 kB         153 kB
+├ ○ /reports                                    4.8 kB          321 kB
+├ ƒ /reports/[id]                               4.41 kB         297 kB
+├ ○ /reports/generate                           26.8 kB         346 kB
+├ ○ /workflows                                  4.84 kB         181 kB
+└ ƒ /workflows/[id]                             7.75 kB         188 kB
++ First Load JS shared by all                   87.6 kB
+  ├ chunks/8297-53d176bac0e4c7a0.js             31.7 kB
+  ├ chunks/d24dde1e-5a4ec3d1f7353756.js         53.6 kB
+  └ other shared chunks (total)                 2.27 kB
 
-[0m [90m 222 |[39m       toast({[0m
-[0m [90m 223 |[39m         title[33m:[39m [32m'Fehler'[39m[33m,[39m[0m
-[0m[31m[1m>[22m[39m[90m 224 |[39m         description[33m:[39m error[33m.[39mmessage [33m||[39m [32m'Abweichung konnte nicht erstellt werden'[39m[33m,[39m[0m
-[0m [90m     |[39m                      [31m[1m^[22m[39m[0m
-[0m [90m 225 |[39m         variant[33m:[39m [32m'destructive'[39m[0m
-[0m [90m 226 |[39m       })[0m
-[0m [90m 227 |[39m     } [36mfinally[39m {[0m
- ELIFECYCLE  Command failed with exit code 1.
+
+ƒ Middleware                                    27.5 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

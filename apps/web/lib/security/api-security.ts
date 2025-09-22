@@ -39,11 +39,11 @@ export async function validateAPIKey(request: NextRequest): Promise<APIKeyValida
 }
 
 // Request signature validation (for webhooks)
-export function validateWebhookSignature(
+export async function validateWebhookSignature(
   request: NextRequest,
   secret: string,
   body: string
-): boolean {
+): Promise<boolean> {
   const signature = request.headers.get('X-Webhook-Signature') || 
                    request.headers.get('X-Hub-Signature-256')
   
@@ -57,21 +57,24 @@ export function validateWebhookSignature(
   const keyData = encoder.encode(secret)
   const bodyData = encoder.encode(body)
   
-  return crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  ).then(key => 
-    crypto.subtle.sign('HMAC', key, bodyData)
-  ).then(signature => {
-    const calculatedSignature = Array.from(new Uint8Array(signature))
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', key, bodyData)
+    const calculatedSignature = Array.from(new Uint8Array(signatureBuffer))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('')
-    
+
     return calculatedSignature === signatureValue
-  }).catch(() => false)
+  } catch {
+    return false
+  }
 }
 
 // API response wrapper with security headers
@@ -189,7 +192,7 @@ export function sanitizeAPIInput(input: any): any {
   if (typeof input === 'string') {
     return input
       .trim()
-      .replace(/<script[^>]*>.*?<\/script>/gis, '')
+      .replace(/<script[^>]*>.*?<\/script>/gi, '')
       .replace(/javascript:/gi, '')
       .replace(/on\w+\s*=/gi, '')
   }

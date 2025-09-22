@@ -88,7 +88,7 @@ const ittTestSchema = z.object({
   electrical_resistance: z.number().optional(),
 
   // === KONFORMITÄT ===
-  compliant: z.boolean().default(false),
+  compliant: z.boolean(),
   deviations: z.string().optional(),
 
   // === DOKUMENTATION ===
@@ -158,14 +158,16 @@ export function ITTTestModule({ initialData, recipeId, onSubmit }: ITTTestModule
 
     // Check compressive strength
     if (compressiveResult && recipe.compressive_strength_class) {
-      const requiredStrength = STRENGTH_CLASSES.compressive[recipe.compressive_strength_class]
-      if (compressiveResult < requiredStrength) return false
+      const classKey = recipe.compressive_strength_class as keyof typeof STRENGTH_CLASSES.compressive
+      const requiredStrength = STRENGTH_CLASSES.compressive[classKey]
+      if (requiredStrength && compressiveResult < requiredStrength) return false
     }
 
     // Check flexural strength
     if (flexuralResult && recipe.flexural_strength_class) {
-      const requiredStrength = STRENGTH_CLASSES.flexural[recipe.flexural_strength_class]
-      if (flexuralResult < requiredStrength) return false
+      const classKey = recipe.flexural_strength_class as keyof typeof STRENGTH_CLASSES.flexural
+      const requiredStrength = STRENGTH_CLASSES.flexural[classKey]
+      if (requiredStrength && flexuralResult < requiredStrength) return false
     }
 
     return true
@@ -353,8 +355,8 @@ export function ITTTestModule({ initialData, recipeId, onSubmit }: ITTTestModule
                     <Alert>
                       <AlertDescription>
                         <strong>Anforderungen der Rezeptur:</strong><br />
-                        Druckfestigkeit: {recipe.compressive_strength_class} ({STRENGTH_CLASSES.compressive[recipe.compressive_strength_class]} N/mm²)<br />
-                        Biegezugfestigkeit: {recipe.flexural_strength_class} ({STRENGTH_CLASSES.flexural[recipe.flexural_strength_class]} N/mm²)
+                        Druckfestigkeit: {recipe.compressive_strength_class} ({STRENGTH_CLASSES.compressive[recipe.compressive_strength_class as keyof typeof STRENGTH_CLASSES.compressive]} N/mm²)<br />
+                        Biegezugfestigkeit: {recipe.flexural_strength_class} ({STRENGTH_CLASSES.flexural[recipe.flexural_strength_class as keyof typeof STRENGTH_CLASSES.flexural]} N/mm²)
                       </AlertDescription>
                     </Alert>
                   )}

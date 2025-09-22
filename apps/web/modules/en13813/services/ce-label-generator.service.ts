@@ -126,17 +126,17 @@ export class CELabelGeneratorService {
 
     // Corrosive substances
     drawText(language === 'de' ? 'Korrosive Stoffe:' : 'Corrosive substances:', 25, yPosition, 7)
-    drawText(recipe.estrich_type, 120, yPosition, 7)
+    drawText(recipe.binder_type, 120, yPosition, 7)
     yPosition -= 10
 
     // Compressive strength
     drawText(language === 'de' ? 'Druckfestigkeit:' : 'Compressive strength:', 25, yPosition, 7)
-    drawText(recipe.compressive_strength, 120, yPosition, 7)
+    drawText(recipe.compressive_strength_class, 120, yPosition, 7)
     yPosition -= 10
 
     // Flexural strength
     drawText(language === 'de' ? 'Biegezugfestigkeit:' : 'Flexural strength:', 25, yPosition, 7)
-    drawText(recipe.flexural_strength, 120, yPosition, 7)
+    drawText(recipe.flexural_strength_class, 120, yPosition, 7)
     yPosition -= 10
 
     // Wear resistance (if declared)
@@ -174,13 +174,13 @@ export class CELabelGeneratorService {
   }
 
   private buildDesignation(recipe: Recipe): string {
-    let designation = recipe.estrich_type
+    let designation = recipe.binder_type
 
     // Add compressive strength
-    designation += `-C${recipe.compressive_strength.replace('C', '')}`
+    designation += `-C${recipe.compressive_strength_class.replace('C', '')}`
 
-    // Add flexural strength  
-    designation += `-F${recipe.flexural_strength.replace('F', '')}`
+    // Add flexural strength
+    designation += `-F${recipe.flexural_strength_class.replace('F', '')}`
 
     // Add wear resistance if declared
     if (recipe.wear_resistance_class) {
@@ -194,12 +194,12 @@ export class CELabelGeneratorService {
     }
 
     // Add surface hardness for MA
-    if (recipe.estrich_type === 'MA' && recipe.surface_hardness_class) {
+    if (recipe.binder_type === 'MA' && recipe.surface_hardness_class) {
       designation += `-SH${recipe.surface_hardness_class.replace('SH', '')}`
     }
 
     // Add bond strength for SR
-    if (recipe.estrich_type === 'SR' && recipe.bond_strength_class) {
+    if (recipe.binder_type === 'SR' && recipe.bond_strength_class) {
       designation += `-B${recipe.bond_strength_class.replace('B', '')}`
     }
 

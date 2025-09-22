@@ -67,9 +67,8 @@ export class NotificationService extends BaseService<any> {
   /**
    * Send notification through multiple channels
    */
-  async sendNotification(notificationData: NotificationData): Promise<string> {
+  async sendNotification(notificationData: NotificationData, tenantId: string): Promise<string> {
     const supabase = createServiceClient()
-    const tenantId = await this.getCurrentTenantId()
 
     try {
       // Create notification record
@@ -526,6 +525,7 @@ export class NotificationService extends BaseService<any> {
     priority: string
     taskUrl: string
     resourceId?: string
+    tenantId: string
   }): Promise<string> {
     return this.sendNotification({
       title: `Deadline Reminder: ${params.taskName}`,
@@ -542,7 +542,7 @@ export class NotificationService extends BaseService<any> {
         priority: params.priority,
         task_url: params.taskUrl
       }
-    })
+    }, params.tenantId)
   }
 
   /**
@@ -555,6 +555,7 @@ export class NotificationService extends BaseService<any> {
     submittedBy: string
     documentUrl: string
     documentId: string
+    tenantId: string
   }): Promise<string> {
     return this.sendNotification({
       title: `Document Approval Required: ${params.documentTitle}`,
@@ -571,7 +572,7 @@ export class NotificationService extends BaseService<any> {
         submitted_by: params.submittedBy,
         document_url: params.documentUrl
       }
-    })
+    }, params.tenantId)
   }
 
   /**
@@ -584,6 +585,7 @@ export class NotificationService extends BaseService<any> {
     dueDate?: string
     workflowUrl: string
     workflowId: string
+    tenantId: string
   }): Promise<string> {
     return this.sendNotification({
       title: `New Workflow Assignment: ${params.workflowTitle}`,
@@ -600,6 +602,6 @@ export class NotificationService extends BaseService<any> {
         due_date: params.dueDate || 'No deadline',
         workflow_url: params.workflowUrl
       }
-    })
+    }, params.tenantId)
   }
 }

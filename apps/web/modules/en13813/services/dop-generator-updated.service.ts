@@ -209,10 +209,7 @@ export class DoPGeneratorService {
         issue_date: new Date().toISOString().split('T')[0],
         expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year validity
         is_active: false,
-        signatory: signatory,
-        fpc_compliant: fpcValidation.compliant,
-        fpc_audit_date: fpcValidation.lastAuditDate,
-        fpc_next_audit_date: fpcValidation.nextAuditDate
+        signatory: signatory
       }
 
       // Validate DoP before saving
@@ -319,11 +316,11 @@ export class DoPGeneratorService {
   private prepareDeclaredPerformance(recipe: Recipe): DeclaredPerformance {
     const performance: DeclaredPerformance = {
       // Korrosive Stoffe - PFLICHT
-      release_of_corrosive_substances: recipe.estrich_type,
+      release_of_corrosive_substances: recipe.binder_type,
       
       // Mechanische Eigenschaften - PFLICHT
-      compressive_strength_class: recipe.compressive_strength,
-      flexural_strength_class: recipe.flexural_strength,
+      compressive_strength_class: recipe.compressive_strength_class,
+      flexural_strength_class: recipe.flexural_strength_class,
       
       // Freisetzung gefährlicher Substanzen
       release_of_dangerous_substances: 'Siehe SDS'
@@ -363,7 +360,7 @@ export class DoPGeneratorService {
     performance.chemical_resistance = 'NPD'
 
     // Elektrische Eigenschaften nur für AS
-    if (recipe.estrich_type === 'AS') {
+    if (recipe.binder_type === 'AS') {
       performance.electrical_resistance = 'NPD' // oder Wert wenn vorhanden
     }
 

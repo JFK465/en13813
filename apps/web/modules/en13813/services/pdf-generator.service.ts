@@ -223,22 +223,22 @@ export class PDFGeneratorService {
     const characteristics = [
       {
         name: language === 'de' ? 'Estrichtyp' : 'Screed type',
-        value: recipe.estrich_type
+        value: recipe.binder_type
       },
       {
         name: language === 'de' ? 'Druckfestigkeit' : 'Compressive strength',
-        value: recipe.compressive_strength
+        value: recipe.compressive_strength_class
       },
       {
         name: language === 'de' ? 'Biegezugfestigkeit' : 'Flexural strength',
-        value: recipe.flexural_strength
+        value: recipe.flexural_strength_class
       }
     ]
 
-    if (recipe.wear_resistance) {
+    if (recipe.wear_resistance_class) {
       characteristics.push({
         name: language === 'de' ? 'Verschleißwiderstand' : 'Wear resistance',
-        value: recipe.wear_resistance
+        value: recipe.wear_resistance_class
       })
     }
 
@@ -415,7 +415,7 @@ export class PDFGeneratorService {
     })
 
     // Classification code
-    const classificationCode = `${recipe.estrich_type}-${recipe.compressive_strength}-${recipe.flexural_strength}`
+    const classificationCode = `${recipe.binder_type}-${recipe.compressive_strength_class}-${recipe.flexural_strength_class}`
     page.drawText(classificationCode, {
       x: 70,
       y: 160,

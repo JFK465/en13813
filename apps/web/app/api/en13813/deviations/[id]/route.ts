@@ -107,7 +107,7 @@ export async function PATCH(
   } catch (error) {
     console.error('Error updating deviation:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to update deviation' },
+      { error: error instanceof Error ? error.message : 'Failed to update deviation' },
       { status: 500 }
     )
   }

@@ -153,7 +153,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
   private async sendDeadlineReminder(reminder: ReminderJob, task: any): Promise<void> {
     const timeUntilDue = this.formatTimeUntilDue(reminder.reminderMinutes)
     const urgencyLevel = this.getUrgencyLevel(reminder.reminderMinutes)
-    
+
     await this.notificationService.sendNotification({
       type: 'deadline_reminder',
       title: `Deadline Reminder: ${task.title}`,
@@ -161,7 +161,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       recipientId: task.assigned_to,
       priority: urgencyLevel,
       channels: ['email', 'in_app']
-    })
+    }, reminder.tenant_id)
   }
 
   /**
@@ -289,7 +289,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
           recipientId: task.assignedTo || 'admin',
           priority: 'high',
           channels: ['email', 'in_app']
-        })
+        }, task.tenant_id)
 
         processedCount++
       } catch (error) {
@@ -326,6 +326,7 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       reminderMinutes: dbRecord.reminder_minutes,
       scheduledFor: dbRecord.scheduled_for,
       status: dbRecord.status,
+      tenant_id: dbRecord.tenant_id,
       created_at: dbRecord.created_at
     }
   }
@@ -337,7 +338,8 @@ export class DeadlineReminderService extends BaseService<ReminderJob> {
       reminder_minutes: data.reminderMinutes,
       scheduled_for: data.scheduledFor,
       status: data.status,
-      created_at: data.createdAt
+      tenant_id: data.tenant_id,
+      created_at: data.created_at
     }
   }
 }

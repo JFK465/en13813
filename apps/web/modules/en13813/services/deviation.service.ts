@@ -38,7 +38,7 @@ export class DeviationService {
       data.max_value = evaluation.maxValue
 
       // Auto-set severity based on conformity
-      if (!evaluation.passed && !data.severity) {
+      if (!evaluation.passed && !data.severity && data.affected_characteristic) {
         data.severity = this.determineSeverity(data.affected_characteristic, evaluation)
       }
 

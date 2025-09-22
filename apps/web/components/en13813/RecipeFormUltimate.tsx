@@ -92,12 +92,12 @@ const ultimateRecipeSchema = z.object({
   type: z.enum(['CT', 'CA', 'MA', 'SR', 'AS']),
 
   // === CE-KENNZEICHNUNG & AVCP ===
-  avcp_system: z.enum(['4', '3', '2+', '1+', '1']).default('4'), // System 4 für CT mit A1fl "ohne Prüfung"
+  avcp_system: z.enum(['4', '3', '2+', '1+', '1']), // System 4 für CT mit A1fl "ohne Prüfung"
   notified_body_number: z.string().optional(), // 1 / 1+ / 2+ erforderlich (bei 3 nur Prüfbericht, nicht im CE-Zeichen)
   
   // === VERSIONIERUNG ===
-  version: z.string().default('1.0'),
-  status: z.enum(['draft', 'in_review', 'approved', 'active', 'locked', 'archived']).default('draft'),
+  version: z.string(),
+  status: z.enum(['draft', 'in_review', 'approved', 'active', 'locked', 'archived']),
   approved_by: z.string().optional(),
   approved_at: z.string().optional(),
   
@@ -106,7 +106,7 @@ const ultimateRecipeSchema = z.object({
   flexural_strength_class: z.string(),
   
   // === PRÜFALTER ===
-  test_age_days: z.number().default(28),
+  test_age_days: z.number(),
   early_strength: z.boolean().default(false),
   
   // === VERSCHLEIßWIDERSTAND (NUR EINE METHODE!) ===
@@ -232,8 +232,8 @@ const ultimateRecipeSchema = z.object({
     ph_value: z.number().min(0).max(14).optional(), // Pflicht nur für CA (pH ≥ 7)
     
     processing_time_minutes: z.number().optional(),
-    temperature_min_celsius: z.number().default(5),
-    temperature_max_celsius: z.number().default(30)
+    temperature_min_celsius: z.number(),
+    temperature_max_celsius: z.number()
   }),
   
   // === VERARBEITUNGSPARAMETER ===
@@ -285,32 +285,32 @@ const ultimateRecipeSchema = z.object({
   // === QUALITÄTSKONTROLLE / WPK / FPC ===
   quality_control: z.object({
     // Prüffrequenzen
-    test_frequency_fresh: z.enum(['per_batch', 'daily', 'weekly', 'monthly']).default('per_batch'),
-    test_frequency_hardened: z.enum(['weekly', 'monthly', 'quarterly', 'annually']).default('monthly'),
+    test_frequency_fresh: z.enum(['per_batch', 'daily', 'weekly', 'monthly']),
+    test_frequency_hardened: z.enum(['weekly', 'monthly', 'quarterly', 'annually']),
     
     // Probenahme
     sample_size: z.string().optional(), // z.B. "3 Würfel je Prüfung"
     sample_location: z.string().optional(),
-    retention_samples_months: z.number().default(12),
+    retention_samples_months: z.number(),
     
     // Kalibrierung
-    calibration_scales: z.enum(['monthly', 'quarterly', 'biannual', 'annual']).default('quarterly'),
-    calibration_mixers: z.enum(['quarterly', 'biannual', 'annual']).default('annual'),
-    calibration_testing: z.string().default('as_per_manufacturer'),
+    calibration_scales: z.enum(['monthly', 'quarterly', 'biannual', 'annual']),
+    calibration_mixers: z.enum(['quarterly', 'biannual', 'annual']),
+    calibration_testing: z.string(),
     
     // Toleranzen
-    tolerance_binder_percent: z.number().default(2),
-    tolerance_water_percent: z.number().default(3),
-    tolerance_temperature_celsius: z.number().default(2),
-    tolerance_consistency_percent: z.number().default(10),
+    tolerance_binder_percent: z.number(),
+    tolerance_water_percent: z.number(),
+    tolerance_temperature_celsius: z.number(),
+    tolerance_consistency_percent: z.number(),
     
     // Abweichungsmaßnahmen
-    deviation_minor: z.string().default('Nachjustierung und Dokumentation'),
-    deviation_major: z.string().default('Produktion stoppen, Charge prüfen'),
-    deviation_critical: z.string().default('Charge sperren, Ursachenanalyse, ggf. Rückruf'),
+    deviation_minor: z.string(),
+    deviation_major: z.string(),
+    deviation_critical: z.string(),
     
     // Akzeptanzkriterien
-    acceptance_criteria: z.string().default('Beurteilung gemäß EN 13813 Abschnitt 9 (statistische/Einzelwert-Prüfung)')
+    acceptance_criteria: z.string()
   }),
   
   // === RÜCKVERFOLGBARKEIT ===
@@ -399,11 +399,12 @@ export function RecipeFormUltimate() {
   const services = createEN13813Services(supabase)
 
   const form = useForm<UltimateRecipeFormValues>({
-    resolver: zodResolver(ultimateRecipeSchema),
+    resolver: zodResolver(ultimateRecipeSchema) as any,
     defaultValues: {
       recipe_code: '',
       name: '',
       type: 'CT',
+      avcp_system: '4',
       version: '1.0',
       status: 'draft',
       compressive_strength_class: 'C25',
@@ -1372,16 +1373,16 @@ export function RecipeFormUltimate() {
                           <SelectContent>
                             {watchedValues.type === 'SR' ? (
                               <>
-                                {BOND_STRENGTH_CLASSES.filter(cls => cls === 'B1.5' || cls === 'B2.0').map(cls => (
-                                  <SelectItem key={cls} value={cls}>
-                                    {cls} N/mm² {cls === 'B1.5' && '(Minimum für SR)'}
+                                {BOND_STRENGTH_CLASSES.filter(cls => cls.value === 'B1.5' || cls.value === 'B2.0').map(cls => (
+                                  <SelectItem key={cls.value} value={cls.value}>
+                                    {cls.label} N/mm² {cls.value === 'B1.5' && '(Minimum für SR)'}
                                   </SelectItem>
                                 ))}
                               </>
                             ) : (
                               <>
                                 {BOND_STRENGTH_CLASSES.map(cls => (
-                                  <SelectItem key={cls} value={cls}>{cls} N/mm²</SelectItem>
+                                  <SelectItem key={cls.value} value={cls.value}>{cls.label} N/mm²</SelectItem>
                                 ))}
                               </>
                             )}
@@ -1474,10 +1475,9 @@ export function RecipeFormUltimate() {
                           <SelectContent>
                             <SelectItem value="NPD">NPD - No Performance Determined</SelectItem>
                             {BOND_STRENGTH_CLASSES.map(cls => {
-                              const value = parseFloat(cls.replace('B', ''))
                               return (
-                                <SelectItem key={cls} value={cls}>
-                                  {cls} (≥ {value} N/mm²)
+                                <SelectItem key={cls.value} value={cls.value}>
+                                  {cls.value} (≥ {cls.strength} N/mm²)
                                 </SelectItem>
                               )
                             })}
@@ -2929,7 +2929,7 @@ export function RecipeFormUltimate() {
                       </FormControl>
                       <SelectContent>
                         {FIRE_CLASSES.map(cls => (
-                          <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                          <SelectItem key={cls.value} value={cls.value}>{cls.label}</SelectItem>
                         ))}
                         <SelectItem value="Cfl-s1">Cfl-s1</SelectItem>
                         <SelectItem value="Dfl-s1">Dfl-s1</SelectItem>

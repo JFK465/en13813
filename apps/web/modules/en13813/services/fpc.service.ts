@@ -68,7 +68,7 @@ export class FPCService {
         binder: {
           frequency: 'per_delivery',
           tests: ['certificate_check', 'visual_inspection'],
-          tolerance: this.getBinderTolerance(recipe.estrich_type)
+          tolerance: this.getBinderTolerance(recipe.binder_type)
         },
         aggregates: {
           frequency: 'weekly',
@@ -81,7 +81,7 @@ export class FPCService {
       production_control: {
         fresh_mortar: {
           frequency: 'per_batch',
-          tests: this.getFreshMortarTests(recipe.estrich_type),
+          tests: this.getFreshMortarTests(recipe.binder_type),
           limits: recipeMaterial?.fresh_mortar_properties || {}
         },
         hardened_mortar: {
@@ -142,7 +142,7 @@ export class FPCService {
     const tests: string[] = []
     
     // Basic mechanical properties
-    if (['CT', 'CA', 'MA'].includes(recipe.estrich_type)) {
+    if (['CT', 'CA', 'MA'].includes(recipe.binder_type)) {
       tests.push('compressive_strength', 'flexural_strength')
     }
     
@@ -152,7 +152,7 @@ export class FPCService {
     }
     
     // Type-specific tests
-    switch (recipe.estrich_type) {
+    switch (recipe.binder_type) {
       case 'MA':
         if (recipe.surface_hardness_class) {
           tests.push('surface_hardness')

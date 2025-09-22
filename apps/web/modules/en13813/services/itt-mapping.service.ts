@@ -67,19 +67,19 @@ export class ITTMappingService {
     const optionalTests: ITTTestPlan['optional_tests'] = []
 
     // Pflicht-Tests für alle Estrichtypen
-    if (['CT', 'CA', 'MA'].includes(recipe.estrich_type)) {
+    if (['CT', 'CA', 'MA'].includes(recipe.binder_type)) {
       requiredTests.push({
         property: 'compressive_strength',
         norm: this.testMappings.compressive_strength.norm,
         test_age_days: this.testMappings.compressive_strength.test_age_days,
-        target_class: recipe.compressive_strength
+        target_class: recipe.compressive_strength_class
       })
-      
+
       requiredTests.push({
         property: 'flexural_strength',
         norm: this.testMappings.flexural_strength.norm,
         test_age_days: this.testMappings.flexural_strength.test_age_days,
-        target_class: recipe.flexural_strength
+        target_class: recipe.flexural_strength_class
       })
     }
 
@@ -101,7 +101,7 @@ export class ITTMappingService {
     }
 
     // Spezielle Tests je Estrichtyp
-    switch (recipe.estrich_type) {
+    switch (recipe.binder_type) {
       case 'MA': // Magnesiaestrich
         if (recipe.surface_hardness_class) {
           requiredTests.push({

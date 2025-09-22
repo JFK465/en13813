@@ -834,9 +834,9 @@ export class TestReportsEN13813Service {
         .select(`${property}_class`)
         .eq('id', recipeId)
         .single()
-      
-      const declaredValue = this.getNumericValueFromClass(recipe[`${property}_class`])
-      const conformity = characteristicValue >= declaredValue
+
+      const declaredValue = recipe ? this.getNumericValueFromClass((recipe as any)[`${property}_class`]) : 0
+      const conformity = recipe ? characteristicValue >= declaredValue : false
       
       return {
         evaluation_method: 'variables',
@@ -928,7 +928,7 @@ export class TestReportsEN13813Service {
       if (!recipe) throw new Error('Rezeptur nicht gefunden')
       
       // Bestimme erforderliche Tests nach Tabelle 1
-      const requiredTests = this.getRequiredTestsFromTable1(recipe.estrich_type, recipe.intended_use)
+      const requiredTests = this.getRequiredTestsFromTable1(recipe.binder_type, recipe.intended_use)
       
       // Hole vorhandene ITT Berichte
       const { data: ittReports } = await this.supabase
@@ -1055,7 +1055,7 @@ export class TestReportsEN13813Service {
     try {
       const { data: recipe } = await this.supabase
         .from('en13813_recipes')
-        .select('estrich_type')
+        .select('binder_type')
         .eq('id', recipeId)
         .single()
       
@@ -1093,7 +1093,7 @@ export class TestReportsEN13813Service {
       }
       
       // Zusätzliche Tests je nach Estrichtyp
-      if (recipe.estrich_type === 'CA') {
+      if (recipe.binder_type === 'CA') {
         samplingPlan.other_properties.push({
           property: 'pH-Wert',
           frequency_per_volume: '1 pro 500 m³',

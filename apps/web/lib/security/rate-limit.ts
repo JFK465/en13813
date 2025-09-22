@@ -48,42 +48,42 @@ const rateLimitConfigs = {
 export const rateLimiters = {
   auth: redis ? new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(rateLimitConfigs.auth.requests, rateLimitConfigs.auth.window),
+    limiter: Ratelimit.slidingWindow(rateLimitConfigs.auth.requests, rateLimitConfigs.auth.window as any),
     analytics: true,
     prefix: 'ratelimit:auth',
   }) : null,
 
   api: redis ? new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(rateLimitConfigs.api.requests, rateLimitConfigs.api.window),
+    limiter: Ratelimit.slidingWindow(rateLimitConfigs.api.requests, rateLimitConfigs.api.window as any),
     analytics: true,
     prefix: 'ratelimit:api',
   }) : null,
 
   upload: redis ? new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(rateLimitConfigs.upload.requests, rateLimitConfigs.upload.window),
+    limiter: Ratelimit.slidingWindow(rateLimitConfigs.upload.requests, rateLimitConfigs.upload.window as any),
     analytics: true,
     prefix: 'ratelimit:upload',
   }) : null,
 
   reports: redis ? new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(rateLimitConfigs.reports.requests, rateLimitConfigs.reports.window),
+    limiter: Ratelimit.slidingWindow(rateLimitConfigs.reports.requests, rateLimitConfigs.reports.window as any),
     analytics: true,
     prefix: 'ratelimit:reports',
   }) : null,
 
   pages: redis ? new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(rateLimitConfigs.pages.requests, rateLimitConfigs.pages.window),
+    limiter: Ratelimit.slidingWindow(rateLimitConfigs.pages.requests, rateLimitConfigs.pages.window as any),
     analytics: true,
     prefix: 'ratelimit:pages',
   }) : null,
 
   password: redis ? new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(rateLimitConfigs.password.requests, rateLimitConfigs.password.window),
+    limiter: Ratelimit.slidingWindow(rateLimitConfigs.password.requests, rateLimitConfigs.password.window as any),
     analytics: true,
     prefix: 'ratelimit:password',
   }) : null,
@@ -191,11 +191,12 @@ export async function applyRateLimit(
   const headers = new Headers()
   headers.set('X-RateLimit-Limit', result.limit.toString())
   headers.set('X-RateLimit-Remaining', result.remaining.toString())
-  headers.set('X-RateLimit-Reset', result.reset.getTime().toString())
+  headers.set('X-RateLimit-Reset', (typeof result.reset === 'number' ? result.reset : result.reset.getTime()).toString())
   
   if (!result.success) {
     // Rate limit exceeded
-    const retryAfter = Math.ceil((result.reset.getTime() - Date.now()) / 1000)
+    const resetTime = typeof result.reset === 'number' ? result.reset : result.reset.getTime()
+    const retryAfter = Math.ceil((resetTime - Date.now()) / 1000)
     headers.set('Retry-After', retryAfter.toString())
     
     return new NextResponse(

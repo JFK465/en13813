@@ -35,7 +35,7 @@ export const SuccessCriteriaSchema = z.object({
 })
 
 // Main Deviation Schema
-export const DeviationSchema = z.object({
+const DeviationBaseSchema = z.object({
   id: z.string().uuid().optional(),
   tenant_id: z.string().uuid().optional(),
 
@@ -140,7 +140,10 @@ export const DeviationSchema = z.object({
   // Timestamps
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional()
-}).refine(
+})
+
+// Export with refinements for validation
+export const DeviationSchema = DeviationBaseSchema.refine(
   (data) => {
     // Disposition required for closure
     if (data.status === 'closed' && !data.disposition) {
@@ -167,7 +170,7 @@ export const DeviationSchema = z.object({
 )
 
 // Corrective Action Schema
-export const CorrectiveActionSchema = z.object({
+const CorrectiveActionBaseSchema = z.object({
   id: z.string().uuid().optional(),
   deviation_id: z.string().uuid(),
 
@@ -215,7 +218,9 @@ export const CorrectiveActionSchema = z.object({
 
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional()
-}).refine(
+})
+
+export const CorrectiveActionSchema = CorrectiveActionBaseSchema.refine(
   (data) => {
     const start = new Date(data.planned_start_date)
     const end = new Date(data.planned_end_date)
@@ -288,7 +293,7 @@ export const EffectivenessCheckSchema = z.object({
 })
 
 // Form Schemas for UI
-export const DeviationFormSchema = DeviationSchema.omit({
+export const DeviationFormSchema = DeviationBaseSchema.omit({
   id: true,
   tenant_id: true,
   deviation_number: true,
@@ -302,7 +307,7 @@ export const DeviationFormSchema = DeviationSchema.omit({
   max_value: true
 })
 
-export const CorrectiveActionFormSchema = CorrectiveActionSchema.omit({
+export const CorrectiveActionFormSchema = CorrectiveActionBaseSchema.omit({
   id: true,
   created_at: true,
   updated_at: true

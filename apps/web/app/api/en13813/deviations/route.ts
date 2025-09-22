@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating deviation:', error)
     return NextResponse.json(
-      { error: 'Failed to create deviation', details: error.message },
+      { error: 'Failed to create deviation', details: error instanceof Error ? error.message : 'Unbekannter Fehler' },
       { status: 500 }
     )
   }

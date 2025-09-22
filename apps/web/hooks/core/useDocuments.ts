@@ -47,16 +47,19 @@ export function useDocuments(options: UseDocumentsOptions = {}) {
   
   // Upload mutation
   const uploadMutation = useMutation({
-    mutationFn: async ({ 
-      file, 
-      metadata, 
-      onProgress 
-    }: { 
+    mutationFn: async ({
+      file,
+      metadata,
+      onProgress
+    }: {
       file: File
       metadata: DocumentMetadata
       onProgress?: (progress: UploadProgress) => void
     }) => {
-      return documentService.uploadWithVersion(file, metadata, onProgress)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('No session')
+      const tenantId = session.user.user_metadata.tenant_id
+      return documentService.uploadWithVersion(file, metadata, tenantId, onProgress)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
@@ -76,7 +79,10 @@ export function useDocuments(options: UseDocumentsOptions = {}) {
       changelog?: string
       onProgress?: (progress: UploadProgress) => void
     }) => {
-      return documentService.createVersion(documentId, file, changelog, onProgress)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('No session')
+      const tenantId = session.user.user_metadata.tenant_id
+      return documentService.createVersion(documentId, file, tenantId, changelog, onProgress)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })

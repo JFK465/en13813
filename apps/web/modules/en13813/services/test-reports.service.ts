@@ -4,7 +4,7 @@ export interface TestReport {
   id?: string
   tenant_id?: string
   recipe_id: string
-  report_type: 'ITT' | 'System1+' | 'FPC' | 'External'
+  report_type: 'ITT' | 'System1+' | 'System1' | 'System3' | 'System4' | 'FPC' | 'External'
   avcp_system?: '1' | '4'
   
   // Labor Information
@@ -91,7 +91,7 @@ export interface ITTCompleteness {
 }
 
 export interface TestValidationRule {
-  estrich_type: string
+  binder_type: string
   property: string
   is_mandatory: boolean
   conditions?: any
@@ -276,7 +276,7 @@ export class TestReportsService {
       const { data, error } = await this.supabase
         .from('en13813_test_validation_rules')
         .select('*')
-        .eq('estrich_type', estrichType)
+        .eq('binder_type', estrichType)
 
       if (error) throw error
       
@@ -321,15 +321,15 @@ export class TestReportsService {
       if (!recipe) throw new Error('Rezeptur nicht gefunden')
 
       // Hole erforderliche Tests
-      const requiredTests = await this.getRequiredTests(recipe.estrich_type, recipe.intended_use)
+      const requiredTests = await this.getRequiredTests(recipe.binder_type, recipe.intended_use)
       
       // Hole vorhandene Tests
       const existingReports = await this.getTestReportsForRecipe(recipeId)
       
       // Erstelle Matrix
       const testMatrix = requiredTests.map(test => {
-        const hasTest = existingReports.some(report => 
-          report.test_results[test.property] && 
+        const hasTest = existingReports.some(report =>
+          (report.test_results as any)[test.property] &&
           report.validation_status === 'valid'
         )
         
@@ -346,7 +346,7 @@ export class TestReportsService {
       return {
         recipe_id: recipeId,
         recipe_code: recipe.recipe_code,
-        estrich_type: recipe.estrich_type,
+        binder_type: recipe.binder_type,
         tests: testMatrix,
         all_tests_complete: testMatrix.every(t => !t.is_mandatory || t.status === 'completed'),
         can_generate_dop: testMatrix.filter(t => t.is_mandatory).every(t => t.status === 'completed')

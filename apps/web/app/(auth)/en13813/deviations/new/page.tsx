@@ -221,7 +221,7 @@ export default function NewDeviationPage() {
       console.error('Error creating deviation:', error)
       toast({
         title: 'Fehler',
-        description: error.message || 'Abweichung konnte nicht erstellt werden',
+        description: error instanceof Error ? error.message : 'Abweichung konnte nicht erstellt werden',
         variant: 'destructive'
       })
     } finally {

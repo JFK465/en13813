@@ -77,7 +77,7 @@ export async function POST(
   } catch (error) {
     console.error('Error scheduling effectiveness check:', error)
     return NextResponse.json(
-      { error: 'Failed to schedule effectiveness check', details: error.message },
+      { error: 'Failed to schedule effectiveness check', details: error instanceof Error ? error.message : 'Unbekannter Fehler' },
       { status: 500 }
     )
   }
@@ -132,7 +132,7 @@ export async function PATCH(
   } catch (error) {
     console.error('Error performing effectiveness check:', error)
     return NextResponse.json(
-      { error: 'Failed to perform effectiveness check', details: error.message },
+      { error: 'Failed to perform effectiveness check', details: error instanceof Error ? error.message : 'Unbekannter Fehler' },
       { status: 500 }
     )
   }

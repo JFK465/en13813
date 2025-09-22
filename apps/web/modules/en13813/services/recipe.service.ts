@@ -54,9 +54,8 @@ export class RecipeService {
       // Generate recipe code if not provided
       if (!recipe.recipe_code && recipe.binder_type && recipe.compressive_strength_class && recipe.flexural_strength_class) {
         recipe.recipe_code = `${recipe.binder_type}-${recipe.compressive_strength_class}-${recipe.flexural_strength_class}`
-        if (recipe.wear_resistance_bohme_class || recipe.wear_resistance_bca_class || recipe.wear_resistance_rollrad_class) {
-          const wearClass = recipe.wear_resistance_bohme_class || recipe.wear_resistance_bca_class || recipe.wear_resistance_rollrad_class
-          recipe.recipe_code += `-${wearClass}`
+        if (recipe.wear_resistance_class) {
+          recipe.recipe_code += `-${recipe.wear_resistance_class}`
         }
       }
 
@@ -90,8 +89,7 @@ export class RecipeService {
         const existing = await this.getById(id)
         if (existing) {
           updates.recipe_code = `${updates.binder_type || existing.binder_type}-${updates.compressive_strength_class || existing.compressive_strength_class}-${updates.flexural_strength_class || existing.flexural_strength_class}`
-          const wearClass = updates.wear_resistance_bohme_class || updates.wear_resistance_bca_class || updates.wear_resistance_rollrad_class ||
-                           existing.wear_resistance_bohme_class || existing.wear_resistance_bca_class || existing.wear_resistance_rollrad_class
+          const wearClass = updates.wear_resistance_class || existing.wear_resistance_class
           if (wearClass) {
             updates.recipe_code += `-${wearClass}`
           }
@@ -150,27 +148,27 @@ export class RecipeService {
       // Required fields
       if (!recipe.recipe_code) errors.push('Recipe code is required')
       if (!recipe.name) errors.push('Name is required')
-      if (!recipe.estrich_type) errors.push('Estrich type is required')
-      if (!recipe.compressive_strength) errors.push('Compressive strength is required')
-      if (!recipe.flexural_strength) errors.push('Flexural strength is required')
+      if (!recipe.binder_type) errors.push('Binder type is required')
+      if (!recipe.compressive_strength_class) errors.push('Compressive strength class is required')
+      if (!recipe.flexural_strength_class) errors.push('Flexural strength class is required')
 
       // Validate strength classes
       const validCompressiveStrengths = ['C5', 'C7', 'C12', 'C16', 'C20', 'C25', 'C30', 'C35', 'C40', 'C50', 'C60', 'C70', 'C80']
       const validFlexuralStrengths = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F10', 'F15', 'F20', 'F30', 'F40', 'F50']
 
-      if (recipe.compressive_strength && !validCompressiveStrengths.includes(recipe.compressive_strength)) {
-        errors.push(`Invalid compressive strength: ${recipe.compressive_strength}`)
+      if (recipe.compressive_strength_class && !validCompressiveStrengths.includes(recipe.compressive_strength_class)) {
+        errors.push(`Invalid compressive strength: ${recipe.compressive_strength_class}`)
       }
 
-      if (recipe.flexural_strength && !validFlexuralStrengths.includes(recipe.flexural_strength)) {
-        errors.push(`Invalid flexural strength: ${recipe.flexural_strength}`)
+      if (recipe.flexural_strength_class && !validFlexuralStrengths.includes(recipe.flexural_strength_class)) {
+        errors.push(`Invalid flexural strength: ${recipe.flexural_strength_class}`)
       }
 
       // Optional properties validation
-      if (recipe.wear_resistance) {
+      if (recipe.wear_resistance_class) {
         const validWearResistance = ['A22', 'A15', 'A12', 'A9', 'A6', 'A3', 'A1.5']
-        if (!validWearResistance.includes(recipe.wear_resistance)) {
-          errors.push(`Invalid wear resistance: ${recipe.wear_resistance}`)
+        if (!validWearResistance.includes(recipe.wear_resistance_class)) {
+          errors.push(`Invalid wear resistance: ${recipe.wear_resistance_class}`)
         }
       }
 

@@ -131,10 +131,10 @@ export class DoPGeneratorService {
 
       // Prepare declared performance based on recipe
       const declaredPerformance = {
-        estrich_type: recipe.estrich_type,
-        compressive_strength: recipe.compressive_strength,
-        flexural_strength: recipe.flexural_strength,
-        wear_resistance: recipe.wear_resistance,
+        estrich_type: recipe.binder_type,
+        compressive_strength: recipe.compressive_strength_class,
+        flexural_strength: recipe.flexural_strength_class,
+        wear_resistance: recipe.wear_resistance_class,
         hardness: recipe.hardness,
         rolling_wheel: recipe.rolling_wheel,
         impact_resistance: recipe.impact_resistance,
@@ -196,7 +196,7 @@ export class DoPGeneratorService {
           recipe,
           manufacturer: manufacturerData,
           batch,
-          language
+          language: language as 'de' | 'en' | undefined
         })
 
         // Store PDF reference (in real implementation, upload to storage)

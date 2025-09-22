@@ -171,7 +171,7 @@ export class CalendarService extends BaseService<CalendarTask> {
             category: taskData.category,
             task_url: `${process.env.NEXT_PUBLIC_APP_URL}/calendar/tasks/${task.id}`
           }
-        })
+        }, tenantId)
       }
 
       // Create recurring instances if needed
@@ -222,7 +222,7 @@ export class CalendarService extends BaseService<CalendarTask> {
       if (updateData.status === 'completed') {
         const { data: task } = await supabase
           .from('calendar_tasks')
-          .select('title, assigned_by')
+          .select('title, assigned_by, tenant_id')
           .eq('id', taskId)
           .single()
 
@@ -236,7 +236,7 @@ export class CalendarService extends BaseService<CalendarTask> {
             recipientId: task.assigned_by,
             resourceType: 'task',
             resourceId: taskId
-          })
+          }, task.tenant_id || 'default-tenant')
         }
       }
 
@@ -826,7 +826,8 @@ export class CalendarService extends BaseService<CalendarTask> {
             dueDate: task.due_date,
             priority: task.priority,
             taskUrl: `${process.env.NEXT_PUBLIC_APP_URL}/calendar/tasks/${task.id}`,
-            resourceId: task.id
+            resourceId: task.id,
+            tenantId: task.tenant_id || 'default-tenant'
           })
         }
       }

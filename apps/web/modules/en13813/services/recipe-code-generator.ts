@@ -10,12 +10,12 @@ export class RecipeCodeGenerator {
     const parts: string[] = []
     
     // 1. Estrich Type (always required)
-    parts.push(recipe.estrich_type)
+    parts.push(recipe.binder_type)
     
     // 2. Compressive & Flexural Strength for CT/CA/MA
-    if (['CT', 'CA', 'MA'].includes(recipe.estrich_type)) {
-      parts.push(recipe.compressive_strength)
-      parts.push(recipe.flexural_strength)
+    if (['CT', 'CA', 'MA'].includes(recipe.binder_type)) {
+      parts.push(recipe.compressive_strength_class)
+      parts.push(recipe.flexural_strength_class)
     }
     
     // 3. Wear Resistance (if wearing surface)
@@ -26,7 +26,7 @@ export class RecipeCodeGenerator {
     }
     
     // 4. Type-specific properties
-    switch (recipe.estrich_type) {
+    switch (recipe.binder_type) {
       case 'MA':
         // Magnesiaestrich - Surface hardness
         if (recipe.surface_hardness_class) {

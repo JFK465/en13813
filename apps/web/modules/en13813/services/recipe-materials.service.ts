@@ -57,23 +57,23 @@ export const recipeMaterialsSchema = z.object({
       min_celsius: z.number(),
       max_celsius: z.number()
     })
-  }).default({
+  }).default(() => ({
     consistency: {
-      method: 'flow_table',
-      target_mm: null,
-      tolerance_mm: null
+      method: 'flow_table' as const,
+      target_mm: undefined,
+      tolerance_mm: undefined
     },
     setting_time: {
-      initial_minutes: null,
-      final_minutes: null
+      initial_minutes: undefined,
+      final_minutes: undefined
     },
-    ph_value: null,
-    processing_time_minutes: null,
+    ph_value: undefined,
+    processing_time_minutes: undefined,
     temperature_range: {
       min_celsius: 5,
       max_celsius: 30
     }
-  })
+  }))
 })
 
 export type RecipeMaterials = z.infer<typeof recipeMaterialsSchema>

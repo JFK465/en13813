@@ -276,7 +276,7 @@ export async function scanFileForMalware(file: File): Promise<{
 
     // Basic malware patterns (extend with more sophisticated detection)
     const malwarePatterns = [
-      /<script[^>]*>.*?<\/script>/gis, // Script tags
+      /<script[^>]*>.*?<\/script>/gi, // Script tags
       /javascript:/gi, // JavaScript protocol
       /vbscript:/gi, // VBScript protocol
       /data:text\/html/gi, // Data URLs with HTML

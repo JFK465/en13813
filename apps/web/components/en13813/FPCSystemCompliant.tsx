@@ -53,7 +53,7 @@ import {
 const fpcControlPlanSchema = z.object({
   name: z.string().min(1, 'Name ist erforderlich'),
   description: z.string().optional(),
-  status: z.enum(['draft', 'active', 'suspended', 'archived']).default('active'),
+  status: z.enum(['draft', 'active', 'suspended', 'archived']),
   control_type: z.enum(['incoming_material', 'process', 'final_product'], {
     required_error: 'Kontrolltyp ist erforderlich'
   }),

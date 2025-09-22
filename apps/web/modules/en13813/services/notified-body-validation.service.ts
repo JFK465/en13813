@@ -120,6 +120,7 @@ export class NotifiedBodyValidationService {
         if (customBody) {
           return {
             valid: true,
+            errors: [],
             warnings: ['Notified body found in custom database, not in EU NANDO'],
             details: customBody
           }
