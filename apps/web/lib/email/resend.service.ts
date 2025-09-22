@@ -42,23 +42,43 @@ export class EmailService {
     }
 
     try {
-      const result = await this.resend!.emails.send({
+      // Resend requires either 'react' or 'html'/'text'
+      // We only use html/text, not react components
+      const emailData: any = {
         from: this.from,
         to: options.to,
         subject: options.subject,
-        html: options.html,
-        text: options.text,
-        attachments: options.attachments?.map(att => ({
+      }
+
+      // Add html or text content
+      if (options.html) {
+        emailData.html = options.html
+      }
+      if (options.text) {
+        emailData.text = options.text
+      }
+
+      // Add optional fields
+      if (options.attachments && options.attachments.length > 0) {
+        emailData.attachments = options.attachments.map(att => ({
           filename: att.filename,
           content: att.content instanceof Buffer
             ? att.content.toString('base64')
             : att.content,
           type: att.contentType,
-        })),
-        reply_to: options.replyTo,
-        cc: options.cc,
-        bcc: options.bcc,
-      })
+        }))
+      }
+      if (options.replyTo) {
+        emailData.reply_to = options.replyTo
+      }
+      if (options.cc) {
+        emailData.cc = options.cc
+      }
+      if (options.bcc) {
+        emailData.bcc = options.bcc
+      }
+
+      const result = await this.resend!.emails.send(emailData)
 
       logger.info('Email sent successfully', {
         emailId: result.data?.id,

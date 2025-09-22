@@ -30,7 +30,7 @@ Sentry.init({
       }
 
       // Remove sensitive query params
-      if (event.request.query_string) {
+      if (event.request.query_string && typeof event.request.query_string === 'string') {
         event.request.query_string = event.request.query_string.replace(
           /api_key=[^&]+/g,
           'api_key=[REDACTED]'
