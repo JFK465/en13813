@@ -7,26 +7,48 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  ClipboardList, 
-  Calendar, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  ClipboardList,
+  Calendar,
+  CheckCircle,
+  AlertTriangle,
   Clock,
   FileText,
   Plus
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 
 export default function TestPlansPage() {
   const [testPlans, setTestPlans] = useState<RecipeTestPlan[]>([])
   const [upcomingTests, setUpcomingTests] = useState<TestSchedule[]>([])
   const [statistics, setStatistics] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [availableRecipes, setAvailableRecipes] = useState<any[]>([])
+  const [selectedRecipe, setSelectedRecipe] = useState<string>('')
+  const [creating, setCreating] = useState(false)
   const supabase = createClientComponentClient()
   const testPlanService = new TestPlanService(supabase)
 
   useEffect(() => {
     loadData()
+    loadAvailableRecipes()
   }, [])
 
   const loadData = async () => {
@@ -36,13 +58,80 @@ export default function TestPlansPage() {
         testPlanService.getUpcomingTests(30),
         testPlanService.getTestPlanStatistics()
       ])
-      
+
       setUpcomingTests(upcoming)
       setStatistics(stats)
     } catch (error) {
       console.error('Error loading test plan data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadAvailableRecipes = async () => {
+    try {
+      // Lade alle Rezepturen
+      const { data: allRecipes, error: recipesError } = await supabase
+        .from('en13813_recipes')
+        .select('id, recipe_code, name, binder_type')
+        .order('recipe_code', { ascending: true })
+
+      if (recipesError) throw recipesError
+
+      // Lade existierende Prüfpläne
+      const { data: existingPlans, error: plansError } = await supabase
+        .from('en13813_test_plans')
+        .select('recipe_id')
+
+      if (plansError) throw plansError
+
+      // Filtere Rezepturen ohne Prüfplan
+      const existingRecipeIds = existingPlans?.map(p => p.recipe_id) || []
+      const recipesWithoutPlan = allRecipes?.filter(
+        recipe => !existingRecipeIds.includes(recipe.id)
+      ) || []
+
+      setAvailableRecipes(recipesWithoutPlan)
+    } catch (error) {
+      console.error('Error loading available recipes:', error)
+      toast.error('Fehler beim Laden der Rezepturen')
+    }
+  }
+
+  const handleCreateTestPlan = async () => {
+    if (!selectedRecipe) {
+      toast.error('Bitte wählen Sie eine Rezeptur aus')
+      return
+    }
+
+    try {
+      setCreating(true)
+      const recipe = availableRecipes.find(r => r.id === selectedRecipe)
+      if (!recipe) {
+        toast.error('Rezeptur nicht gefunden')
+        return
+      }
+
+      // Erstelle Prüfplan
+      const testPlan = await testPlanService.createTestPlan(recipe.id, recipe.binder_type)
+
+      // Generiere initiale Prüftermine für die nächsten 12 Monate
+      await testPlanService.generateTestSchedule(recipe.id)
+
+      toast.success(`Prüfplan für ${recipe.recipe_code} erfolgreich erstellt`)
+
+      // Aktualisiere Daten
+      await loadData()
+      await loadAvailableRecipes()
+
+      // Schließe Dialog
+      setDialogOpen(false)
+      setSelectedRecipe('')
+    } catch (error) {
+      console.error('Error creating test plan:', error)
+      toast.error('Fehler beim Erstellen des Prüfplans')
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -100,10 +189,76 @@ export default function TestPlansPage() {
             ITT-Prüfungen und FPC-Kontrollen gemäß EN 13813
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Prüfplan erstellen
-        </Button>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Prüfplan erstellen
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Neuen Prüfplan erstellen</DialogTitle>
+              <DialogDescription>
+                Wählen Sie eine Rezeptur aus, für die ein Prüfplan erstellt werden soll.
+                Der Prüfplan umfasst alle erforderlichen ITT-Prüfungen und FPC-Kontrollen gemäß EN 13813.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="recipe">Rezeptur</Label>
+                <Select value={selectedRecipe} onValueChange={setSelectedRecipe}>
+                  <SelectTrigger id="recipe">
+                    <SelectValue placeholder="Rezeptur auswählen..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRecipes.length > 0 ? (
+                      availableRecipes.map((recipe) => (
+                        <SelectItem key={recipe.id} value={recipe.id}>
+                          {recipe.recipe_code} - {recipe.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-sm text-muted-foreground text-center">
+                        Alle Rezepturen haben bereits einen Prüfplan
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedRecipe && (
+                <div className="rounded-lg bg-blue-50 p-3">
+                  <p className="text-sm text-blue-900">
+                    <strong>Hinweis:</strong> Nach Erstellung des Prüfplans werden automatisch:
+                  </p>
+                  <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                    <li>• ITT-Prüfungen (Erstprüfung) angelegt</li>
+                    <li>• FPC-Kontrolltermine für 12 Monate generiert</li>
+                    <li>• Prüfintervalle gemäß EN 13813 festgelegt</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDialogOpen(false)
+                  setSelectedRecipe('')
+                }}
+                disabled={creating}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                onClick={handleCreateTestPlan}
+                disabled={!selectedRecipe || creating}
+              >
+                {creating ? 'Erstelle...' : 'Prüfplan erstellen'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Statistics */}

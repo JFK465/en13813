@@ -343,6 +343,11 @@ export function evaluateConformity(
   kFactor?: number
   lowerLimit?: number
 } {
+  // Validate inputs
+  if (!values || values.length === 0) {
+    throw new Error('Values array cannot be empty')
+  }
+
   const mean = values.reduce((a, b) => a + b, 0) / values.length
   const stdDev = Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / values.length)
   const minValue = Math.min(...values)

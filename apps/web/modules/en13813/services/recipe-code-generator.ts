@@ -12,16 +12,20 @@ export class RecipeCodeGenerator {
     // 1. Estrich Type (always required)
     parts.push(recipe.binder_type)
     
-    // 2. Compressive & Flexural Strength for CT/CA/MA
-    if (['CT', 'CA', 'MA'].includes(recipe.binder_type)) {
-      parts.push(recipe.compressive_strength_class)
-      parts.push(recipe.flexural_strength_class)
+    // 2. Compressive & Flexural Strength for CT/CA/MA/SR
+    if (['CT', 'CA', 'MA', 'SR'].includes(recipe.binder_type)) {
+      if (recipe.compressive_strength_class && recipe.compressive_strength_class !== 'NPD') {
+        parts.push(recipe.compressive_strength_class)
+      }
+      if (recipe.flexural_strength_class && recipe.flexural_strength_class !== 'NPD') {
+        parts.push(recipe.flexural_strength_class)
+      }
     }
     
-    // 3. Wear Resistance (if wearing surface)
-    if (recipe.intended_use?.wearing_surface && 
-        !recipe.intended_use?.with_flooring && 
-        recipe.wear_resistance_class) {
+    // 3. Wear Resistance (if wearing surface or if explicitly provided)
+    if (recipe.wear_resistance_class && recipe.wear_resistance_class !== 'NPD' &&
+        ((recipe.intended_use?.wearing_surface && !recipe.intended_use?.with_flooring) ||
+         !recipe.intended_use)) {
       parts.push(recipe.wear_resistance_class)
     }
     
@@ -29,21 +33,23 @@ export class RecipeCodeGenerator {
     switch (recipe.binder_type) {
       case 'MA':
         // Magnesiaestrich - Surface hardness
-        if (recipe.surface_hardness_class) {
+        if (recipe.surface_hardness_class && recipe.surface_hardness_class !== 'NPD') {
           parts.push(recipe.surface_hardness_class)
         }
         break
         
       case 'SR':
         // Kunstharzestrich - Bond strength, wear resistance, impact resistance
-        if (recipe.bond_strength_class) {
+        if (recipe.bond_strength_class && recipe.bond_strength_class !== 'NPD') {
           parts.push(recipe.bond_strength_class)
         }
         // Wear resistance might already be added above
-        if (!parts.includes(recipe.wear_resistance_class || '') && recipe.wear_resistance_class) {
+        if (!parts.includes(recipe.wear_resistance_class || '') &&
+            recipe.wear_resistance_class &&
+            recipe.wear_resistance_class !== 'NPD') {
           parts.push(recipe.wear_resistance_class)
         }
-        if (recipe.impact_resistance_class) {
+        if (recipe.impact_resistance_class && recipe.impact_resistance_class !== 'NPD') {
           parts.push(recipe.impact_resistance_class)
         }
         break
@@ -61,11 +67,16 @@ export class RecipeCodeGenerator {
         break
     }
     
-    // 5. Heated screed designation
+    // 5. Fire class (if not A1fl which is default)
+    if (recipe.fire_class && recipe.fire_class !== 'A1fl' && recipe.fire_class !== 'NPD') {
+      parts.push(recipe.fire_class)
+    }
+
+    // 6. Heated screed designation
     if (recipe.heated_screed || recipe.intended_use?.heated_screed) {
       parts.push('H')
     }
-    
+
     return parts.join('-')
   }
   
@@ -346,4 +357,10 @@ export class RecipeCodeGenerator {
     }
     return descriptions[indentationClass] || indentationClass
   }
+}
+
+// Export standalone function for backward compatibility
+export function generateRecipeCode(recipe: Recipe): string {
+  const generator = new RecipeCodeGenerator()
+  return generator.generate(recipe)
 }

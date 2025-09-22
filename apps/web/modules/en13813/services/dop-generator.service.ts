@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import { DoP, Recipe, DoPGenerationParams, DoPFilter, ManufacturerData } from '../types'
 import { PDFGeneratorService } from './pdf-generator.service'
 import * as QRCode from 'qrcode'
+import logger from '@/lib/logger'
 
 export class DoPGeneratorService {
   private pdfGenerator: PDFGeneratorService
@@ -34,7 +35,11 @@ export class DoPGeneratorService {
       if (error) throw error
       return data || []
     } catch (error) {
-      console.error('Error listing DoPs:', error)
+      logger.error('Error listing DoPs', {
+        filter,
+        error: error as Error,
+        errorCode: 'DOP_LIST_FAILED'
+      })
       throw error
     }
   }

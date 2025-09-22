@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Compliance Management SaaS platform focused on EN13813 compliance for quality management in floor screed materials. Built as a pnpm monorepo with Next.js frontend and Supabase backend.
+EN13813 Compliance Management SaaS platform for quality management in floor screed materials (Estrichwerke). Multi-tenant architecture with strict data isolation, built as a pnpm monorepo with Next.js 14 and Supabase.
 
 ## Architecture
 
@@ -50,6 +50,23 @@ pnpm format                # Prettier formatting
 ./start-en13813.command    # Interactive start with port conflict handling
 ```
 
+### Testing
+```bash
+# Run from apps/web directory
+cd apps/web
+pnpm test                   # Run all tests
+pnpm test:watch            # Watch mode
+pnpm test:coverage         # With coverage report
+pnpm test:ci               # CI mode
+pnpm test:e2e              # Playwright E2E tests
+pnpm test:e2e:ui           # E2E with UI
+pnpm test:e2e:debug        # E2E debug mode
+
+# Run specific test files
+pnpm test recipe            # Tests matching "recipe"
+pnpm test --testNamePattern="EN13813"  # Test suites matching pattern
+```
+
 ### Database
 ```bash
 pnpm db:start              # Start local Supabase
@@ -60,12 +77,13 @@ pnpm db:push               # Push migrations to remote
 pnpm gen:types             # Generate TypeScript types from database
 ```
 
-### Demo Data (run from repository root)
+### Demo Data & Scripts (run from repository root)
 ```bash
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/create-demo-data.js
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/create-demo-data-standalone.js
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/create-demo-data-production.js
 NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/setup-production-demo.js
+NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/test-audit.js
 ```
 
 ## EN13813 Module
@@ -74,29 +92,38 @@ NODE_PATH=/Users/jonaskruger/Dev/en13813/apps/web/node_modules node scripts/setu
 - **Recipe Management**: Material recipes with compliance validation (RecipeFormUltimate.tsx)
 - **Batch Processing**: Production batch tracking and statistics
 - **Testing**: ITT (Initial Type Testing) and FPC (Factory Production Control)
+- **Test Plans**: Automated test planning and scheduling
 - **Documentation**: DoP (Declaration of Performance) generation
 - **Delivery**: Delivery notes with PDF export
 - **Marking**: CE marking and labeling
 - **Quality**: Deviation management and CAPA (Corrective/Preventive Actions)
 - **Calibration**: Equipment calibration tracking
+- **Audit**: Internal audit management and reporting
 
 ### Key Services
 - `recipe.service.ts`: Recipe CRUD and validation
+- `recipe-code-generator.ts`: EN13813 designation code generation
 - `deviation.service.ts`: CAPA management per EN 13813 § 6.3
 - `dop-generator.service.ts`: DoP PDF generation
 - `marking-delivery-note.service.ts`: CE marking documents
-- `conformity-assessment.service.ts`: Compliance evaluation
+- `conformity-assessment.service.ts`: Compliance evaluation (single value & statistical)
 - `fpc.service.ts`: Factory production control
 - `test-reports.service.ts`: Test result management
+- `test-plan.service.ts`: Test planning and scheduling
+- `audit.service.ts`: Internal audit management
+- `audit-report-generator.service.ts`: Audit report PDF generation
 
 ### Database Tables
 - `en13813_recipes`: Recipe definitions with materials
 - `en13813_batches`: Production batches
 - `en13813_tests`: Test results (ITT/FPC)
+- `en13813_test_plans`: Test planning and scheduling
 - `en13813_deviations`: Quality deviations
 - `en13813_marking`: CE marking information
 - `en13813_calibrations`: Equipment calibration
 - `en13813_dops`: Declaration of Performance
+- `en13813_audits`: Internal audits
+- `en13813_audit_findings`: Audit findings and observations
 
 ## API Routes Pattern
 
@@ -141,8 +168,16 @@ export async function POST(request: Request) {
 - Forms: React Hook Form with Zod resolver
 - Keep components in feature folders (`components/en13813/`)
 
-### Testing
-No automated tests configured yet (`pnpm test` returns "No tests configured")
+### Testing Architecture
+- **Unit Tests**: Jest + Testing Library for services and utilities
+- **Integration Tests**: API routes and database operations
+- **E2E Tests**: Playwright for critical user workflows
+- **Test Coverage**: Configured at 60% threshold
+- **Key Test Suites**:
+  - Multi-tenant security validation
+  - EN13813 norm compliance checks
+  - Conformity evaluation (single value & statistical methods)
+  - Recipe code generation validation
 
 ## Environment Variables
 
@@ -159,3 +194,12 @@ RESEND_API_KEY=
 - **Frontend**: Vercel
 - **Database**: Supabase Cloud (instance: fhftgdffhkhmbwqbwiyt)
 - **Edge Functions**: Supabase Edge Runtime
+
+## Important Property Names
+
+The codebase uses consistent property naming after recent refactoring:
+- `binder_type` (not `estrich_type`)
+- `compressive_strength_class` (not `compressive_strength`)
+- `flexural_strength_class` (not `flexural_strength`)
+- `wear_resistance_class` (not `wear_resistance`)
+- These property names are used consistently across database, schemas, and components

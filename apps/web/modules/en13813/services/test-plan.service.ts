@@ -252,12 +252,12 @@ export class TestPlanService {
   }
 
   // Prüfplan für Rezeptur erstellen
-  async createTestPlan(recipeId: string, estrichType: string): Promise<RecipeTestPlan> {
+  async createTestPlan(recipeId: string, binderType: string): Promise<RecipeTestPlan> {
     const standardPlan = this.getStandardTestPlan()
-    
-    // Filter tests applicable to estrich type
-    const applicableTests = standardPlan.filter(test => 
-      test.applies_to.includes(estrichType)
+
+    // Filter tests applicable to binder type
+    const applicableTests = standardPlan.filter(test =>
+      test.applies_to.includes(binderType)
     )
     
     const testPlan: Omit<RecipeTestPlan, 'id' | 'created_at' | 'updated_at'> = {

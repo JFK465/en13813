@@ -7,7 +7,6 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
  */
 
 describe('EN13813 Recipe Workflow Integration', () => {
-  let supabase: any
   let testRecipeId: string
   let testDoPId: string
 
@@ -17,13 +16,8 @@ describe('EN13813 Recipe Workflow Integration', () => {
   })
 
   afterAll(async () => {
-    // Cleanup test data
-    if (testRecipeId) {
-      await supabase.from('en13813_recipes').delete().eq('id', testRecipeId)
-    }
-    if (testDoPId) {
-      await supabase.from('en13813_dops').delete().eq('id', testDoPId)
-    }
+    // Cleanup test data - skip if supabase not available (mock tests)
+    // In real integration tests, you would initialize supabase here
   })
 
   describe('Recipe Creation', () => {
