@@ -1,9 +1,9 @@
 'use client'
 
-import { 
-  FileText, 
-  FlaskConical, 
-  Package, 
+import {
+  FileText,
+  FlaskConical,
+  Package,
   ClipboardCheck,
   Shield,
   Home,
@@ -14,7 +14,9 @@ import {
   TestTube,
   FileCheck,
   Gauge,
-  Calendar
+  Calendar,
+  Truck,
+  AlertTriangle
 } from 'lucide-react'
 import {
   Sidebar,
@@ -89,6 +91,28 @@ const en13813Navigation = [
         url: '/en13813/test-plans',
         icon: Calendar,
         description: 'ITT und FPC Planung'
+      },
+    ]
+  },
+  {
+    title: 'Produktion & Versand',
+    items: [
+      {
+        title: 'Marking & Lieferschein',
+        url: '/en13813/marking',
+        icon: Truck,
+        description: 'Kennzeichnung nach Klausel 8'
+      },
+    ]
+  },
+  {
+    title: 'Qualitätsmanagement',
+    items: [
+      {
+        title: 'Abweichungen/CAPA',
+        url: '/en13813/deviations',
+        icon: AlertTriangle,
+        description: 'Korrekturmaßnahmen & Wirksamkeit'
       },
     ]
   },

@@ -3569,7 +3569,7 @@ export function RecipeFormUltimate() {
                     />
                   </div>
                 </div>
-              )} */}
+              )} */
             </div>
 
             {/* Zusammenfassung automatisch ermittelt */}

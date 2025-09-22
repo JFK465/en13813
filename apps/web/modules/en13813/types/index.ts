@@ -132,6 +132,18 @@ export interface Recipe extends BaseEntity {
   flatness_tolerance?: number // mm/2m
   surface_texture?: 'smooth' | 'textured' | 'structured' | 'NPD'
   
+  // Health & Safety (Klausel 8 - PFLICHT für Marking/Lieferschein)
+  health_safety_instructions?: string // H&S Hinweise, z.B. "Zementhaltig - Reizend für Haut und Augen"
+  hazard_class?: string // Gefahrenklasse nach CLP-Verordnung
+  safety_data_sheet_url?: string // Link zum Sicherheitsdatenblatt
+
+  // Mixing & Application Instructions (Klausel 8)
+  mixing_instructions?: string // Detaillierte Mischanleitung
+  water_addition_ratio?: string // z.B. "3,5-4,0 L pro 25 kg Sack"
+  mixing_time_minutes?: number // Mischzeit in Minuten
+  application_instructions?: string // Verarbeitungshinweise
+  pot_life_minutes?: number // Verarbeitungszeit nach Anmischen
+
   // Additional data
   additives?: any[]
   mixing_ratio?: Record<string, any>
