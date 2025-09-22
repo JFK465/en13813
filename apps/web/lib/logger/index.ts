@@ -1,114 +1,5 @@
-import winston from 'winston'
-import DailyRotateFile from 'winston-daily-rotate-file'
-import path from 'path'
+// Simple logger that works both on client and server without file system dependencies
 
-// Define log levels
-const levels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  http: 3,
-  debug: 4,
-}
-
-// Define colors for each level
-const colors = {
-  error: 'red',
-  warn: 'yellow',
-  info: 'green',
-  http: 'magenta',
-  debug: 'white',
-}
-
-winston.addColors(colors)
-
-// Format for console output (development)
-const consoleFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.colorize({ all: true }),
-  winston.format.printf((info) => {
-    const { timestamp, level, message, ...meta } = info
-    const metaString = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''
-    return `${timestamp} [${level}]: ${message} ${metaString}`
-  })
-)
-
-// Format for file output (production)
-const fileFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.errors({ stack: true }),
-  winston.format.json()
-)
-
-// Create transports array based on environment
-const transports: winston.transport[] = []
-
-// Console transport for development
-if (process.env.NODE_ENV !== 'production') {
-  transports.push(
-    new winston.transports.Console({
-      format: consoleFormat,
-    })
-  )
-}
-
-// File transports for production
-if (process.env.NODE_ENV === 'production') {
-  // Error logs
-  transports.push(
-    new DailyRotateFile({
-      filename: path.join(process.cwd(), 'logs', 'error-%DATE%.log'),
-      datePattern: 'YYYY-MM-DD',
-      level: 'error',
-      format: fileFormat,
-      maxSize: '20m',
-      maxFiles: '14d',
-      zippedArchive: true,
-    })
-  )
-
-  // Combined logs
-  transports.push(
-    new DailyRotateFile({
-      filename: path.join(process.cwd(), 'logs', 'combined-%DATE%.log'),
-      datePattern: 'YYYY-MM-DD',
-      format: fileFormat,
-      maxSize: '20m',
-      maxFiles: '14d',
-      zippedArchive: true,
-    })
-  )
-
-  // Also log to console in production (for Vercel logs)
-  transports.push(
-    new winston.transports.Console({
-      format: fileFormat,
-    })
-  )
-}
-
-// Create the logger instance
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
-  levels,
-  format: fileFormat,
-  defaultMeta: {
-    service: 'en13813-web',
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version,
-  },
-  transports,
-  exitOnError: false,
-})
-
-// Create a stream for Morgan HTTP logging
-export const stream = {
-  write: (message: string) => {
-    logger.http(message.trim())
-  },
-}
-
-// Enhanced logging functions with context
 export interface LogContext {
   userId?: string
   tenantId?: string
@@ -121,12 +12,81 @@ export interface LogContext {
   errorCode?: string
   stackTrace?: string
   duration?: number
+  errorMessage?: string
   [key: string]: any
 }
 
+type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+
 class Logger {
-  private addContext(message: string, context?: LogContext) {
-    return { message, ...context }
+  private isServer = typeof window === 'undefined'
+  private isDevelopment = process.env.NODE_ENV !== 'production'
+
+  private formatLog(level: LogLevel, message: string, context?: LogContext): string {
+    const timestamp = new Date().toISOString()
+    const logEntry = {
+      timestamp,
+      level,
+      message,
+      service: 'en13813-web',
+      environment: process.env.NODE_ENV || 'development',
+      ...context
+    }
+
+    // In production, return JSON string
+    if (!this.isDevelopment) {
+      return JSON.stringify(logEntry)
+    }
+
+    // In development, return formatted string
+    const contextStr = context ? ` | ${JSON.stringify(context)}` : ''
+    return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`
+  }
+
+  private log(level: LogLevel, message: string, context?: LogContext) {
+    const formattedMessage = this.formatLog(level, message, context)
+
+    // Use appropriate console method based on level
+    switch (level) {
+      case 'error':
+        console.error(formattedMessage)
+        break
+      case 'warn':
+        console.warn(formattedMessage)
+        break
+      case 'info':
+        console.info(formattedMessage)
+        break
+      case 'debug':
+        if (this.isDevelopment) {
+          console.debug(formattedMessage)
+        }
+        break
+      default:
+        console.log(formattedMessage)
+    }
+
+    // In production on server, also send to external service if configured
+    if (this.isServer && !this.isDevelopment) {
+      this.sendToExternalService(level, message, context)
+    }
+  }
+
+  private sendToExternalService(level: LogLevel, message: string, context?: LogContext) {
+    // This could send to Sentry, LogRocket, or any other service
+    // For now, it's a placeholder that uses Sentry if available
+    if (typeof global !== 'undefined' && (global as any).Sentry) {
+      const Sentry = (global as any).Sentry
+
+      if (level === 'error') {
+        Sentry.captureException(new Error(message), {
+          contexts: { custom: context },
+          level: 'error'
+        })
+      } else {
+        Sentry.captureMessage(message, level as any)
+      }
+    }
   }
 
   error(message: string, context?: LogContext & { error?: Error }) {
@@ -135,23 +95,19 @@ class Logger {
       context.errorMessage = context.error.message
       delete context.error
     }
-    logger.error(this.addContext(message, context))
+    this.log('error', message, context)
   }
 
   warn(message: string, context?: LogContext) {
-    logger.warn(this.addContext(message, context))
+    this.log('warn', message, context)
   }
 
   info(message: string, context?: LogContext) {
-    logger.info(this.addContext(message, context))
-  }
-
-  http(message: string, context?: LogContext) {
-    logger.http(this.addContext(message, context))
+    this.log('info', message, context)
   }
 
   debug(message: string, context?: LogContext) {
-    logger.debug(this.addContext(message, context))
+    this.log('debug', message, context)
   }
 
   // Specific logging methods for EN13813 operations
@@ -172,7 +128,7 @@ class Logger {
   logDoPGeneration(dopId: string, success: boolean, context?: LogContext) {
     const level = success ? 'info' : 'error'
     const message = success ? 'DoP generated successfully' : 'DoP generation failed'
-    logger[level](this.addContext(message, { ...context, dopId, success, operation: 'dop_generation' }))
+    this.log(level, message, { ...context, dopId, success, operation: 'dop_generation' })
   }
 
   logAuditEvent(auditId: string, event: string, context?: LogContext) {
@@ -191,12 +147,12 @@ class Logger {
 
   logPerformance(operation: string, duration: number, context?: LogContext) {
     const level = duration > 5000 ? 'warn' : 'info'
-    logger[level](this.addContext(`Performance: ${operation}`, {
+    this.log(level, `Performance: ${operation}`, {
       ...context,
       duration,
       operation: 'performance',
       performanceOperation: operation
-    }))
+    })
   }
 
   // Utility to measure and log execution time
@@ -223,9 +179,16 @@ class Logger {
   }
 }
 
+// HTTP logging stream for Morgan (if needed)
+export const stream = {
+  write: (message: string) => {
+    logger.info(message.trim(), { type: 'http' })
+  },
+}
+
 // Export singleton instance
-const loggerInstance = new Logger()
-export default loggerInstance
+const logger = new Logger()
+export default logger
 
 // Also export for backward compatibility
-export { loggerInstance as logger }
+export { logger as loggerInstance }
