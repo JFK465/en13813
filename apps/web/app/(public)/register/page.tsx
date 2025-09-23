@@ -87,11 +87,12 @@ function RegisterPageContent() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Create your account</h2>
+          <h1 className="text-4xl font-bold text-blue-600 mb-2">EstrichManager</h1>
+          <h2 className="text-2xl font-semibold tracking-tight">Konto erstellen</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{' '}
+            Bereits ein Konto?{' '}
             <Link href="/login" className="font-medium text-primary hover:underline">
-              Sign in
+              Anmelden
             </Link>
           </p>
         </div>

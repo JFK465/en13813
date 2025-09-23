@@ -63,11 +63,12 @@ function LoginPageContent() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Sign in to your account</h2>
+          <h1 className="text-4xl font-bold text-blue-600 mb-2">EstrichManager</h1>
+          <h2 className="text-2xl font-semibold tracking-tight">Willkommen zurück</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
+            Noch kein Konto?{' '}
             <Link href="/register" className="font-medium text-primary hover:underline">
-              create a new account
+              Jetzt registrieren
             </Link>
           </p>
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">

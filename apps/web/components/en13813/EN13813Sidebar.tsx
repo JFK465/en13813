@@ -173,9 +173,9 @@ export function EN13813Sidebar() {
             <Building2 className="h-6 w-6" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-semibold">EN 13813</span>
+            <span className="text-lg font-semibold">EstrichManager</span>
             <span className="text-xs text-muted-foreground">
-              Estrichmörtel Management
+              EN 13813 Qualitätsmanagement
             </span>
           </div>
         </div>

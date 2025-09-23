@@ -6,8 +6,17 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Compliance Management Platform',
-  description: 'Modulare Compliance-Lösung für KMUs',
+  title: 'EstrichManager - Qualitätsmanagement für Estrichwerke',
+  description: 'Die führende Compliance-Management-Software für EN13813 konforme Estrichproduktion. Digitales Qualitätsmanagement für Estrichwerke.',
+  keywords: 'Estrich, EN13813, Qualitätsmanagement, Compliance, Estrichwerke, CE-Kennzeichnung, FPC, ITT',
+  metadataBase: new URL('https://estrichmanager.de'),
+  openGraph: {
+    title: 'EstrichManager',
+    description: 'Digitales Qualitätsmanagement für Estrichwerke',
+    url: 'https://estrichmanager.de',
+    siteName: 'EstrichManager',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({
