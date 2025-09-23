@@ -10,14 +10,14 @@ export default function SentryDebugPage() {
   useEffect(() => {
     // Check Sentry configuration
     const client = Sentry.getClient();
-    const options = client?.getOptions() || {};
+    const options = client?.getOptions() as any || {};
 
     setSentryStatus({
       dsn: options.dsn || 'NOT CONFIGURED',
       environment: options.environment || 'NOT SET',
       isEnabled: !!client,
-      tracesSampleRate: options.tracesSampleRate,
-      release: options.release,
+      tracesSampleRate: options.tracesSampleRate || 'NOT SET',
+      release: options.release || 'NOT SET',
       clientDsn: process.env.NEXT_PUBLIC_SENTRY_DSN || 'NOT IN ENV',
     });
   }, []);
