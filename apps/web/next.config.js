@@ -5,7 +5,14 @@ const nextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
+      allowedOrigins: ['localhost:3001'],
     },
+  },
+  httpAgentOptions: {
+    keepAlive: true,
+  },
+  serverRuntimeConfig: {
+    maxHttpHeaderSize: 16384,
   },
   images: {
     remotePatterns: [
