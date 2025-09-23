@@ -1,0 +1,24 @@
+# Ignore test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test/**
+**/tests/**
+**/__tests__/**
+**/e2e/**
+
+# Ignore development files
+**/sentry-debug/**
+**/sentry-example-page/**
+**/sentry-server-test/**
+
+# Ignore configuration files
+*.config.js
+*.config.ts
+*.config.mjs
+
+# Ignore build artifacts
+.next/**
+.turbo/**
+node_modules/**

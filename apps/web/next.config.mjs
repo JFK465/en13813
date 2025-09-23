@@ -92,8 +92,8 @@ const nextConfig = {
 // Sentry configuration options
 const sentryWebpackPluginOptions = {
   // Organization and project
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+  org: process.env.SENTRY_ORG || "jonas-kruger",
+  project: process.env.SENTRY_PROJECT || "en13813-web",
 
   // Auth token for uploading source maps
   authToken: process.env.SENTRY_AUTH_TOKEN,
@@ -101,9 +101,12 @@ const sentryWebpackPluginOptions = {
   // Suppresses source map uploading logs during build
   silent: true,
 
-  // Upload source maps only in production
-  disableServerWebpackPlugin: process.env.NODE_ENV !== "production",
-  disableClientWebpackPlugin: process.env.NODE_ENV !== "production",
+  // Skip source map upload if no auth token (for faster builds)
+  dryRun: !process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload source maps only in production with auth token
+  disableServerWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN || process.env.NODE_ENV !== "production",
+  disableClientWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN || process.env.NODE_ENV !== "production",
 
   // Hides source maps from generated client bundles
   hideSourceMaps: true,
@@ -113,6 +116,9 @@ const sentryWebpackPluginOptions = {
 
   // Enables automatic instrumentation of Vercel Cron Monitors
   automaticVercelMonitors: true,
+
+  // Reduce build time by skipping source map upload in preview deployments
+  widenClientFileUpload: true,
 };
 
 // Export with Sentry wrapper
