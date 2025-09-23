@@ -1,3 +1,6 @@
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateFileUpload, generateSecureFilename, calculateFileChecksum } from '@/lib/security/file-upload'

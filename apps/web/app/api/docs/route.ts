@@ -1,3 +1,6 @@
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 import { NextRequest } from 'next/server'
 import { openApiSchema } from '@/lib/api/openapi-schema'
 

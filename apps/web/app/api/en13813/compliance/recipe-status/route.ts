@@ -1,3 +1,6 @@
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { createEN13813Services } from '@/modules/en13813/services'
