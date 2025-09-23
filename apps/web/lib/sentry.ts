@@ -67,7 +67,13 @@ export const sentryCapture = {
    * Track performance of critical operations
    */
   startTransaction: (name: string, op: string = "function") => {
-    return Sentry.startTransaction({ name, op });
+    return Sentry.startSpan({ name, op }, () => {
+      // Return a mock transaction object for compatibility
+      return {
+        setStatus: () => {},
+        finish: () => {},
+      };
+    });
   },
 
   /**
@@ -78,23 +84,20 @@ export const sentryCapture = {
     operation: () => Promise<T>,
     context?: Record<string, any>,
   ): Promise<T> => {
-    const transaction = Sentry.startTransaction({
-      name: operationName,
-      op: "en13813.operation",
-    });
-
-    Sentry.getCurrentScope().setSpan(transaction);
-
-    try {
-      const result = await operation();
-      transaction.setStatus("ok");
-      return result;
-    } catch (error) {
-      transaction.setStatus("internal_error");
-      sentryCapture.exception(error, { operation: operationName, ...context });
-      throw error;
-    } finally {
-      transaction.finish();
-    }
+    return Sentry.startSpan(
+      {
+        name: operationName,
+        op: "en13813.operation",
+      },
+      async () => {
+        try {
+          const result = await operation();
+          return result;
+        } catch (error) {
+          sentryCapture.exception(error, { operation: operationName, ...context });
+          throw error;
+        }
+      }
+    );
   },
 };
