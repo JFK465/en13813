@@ -83,9 +83,7 @@ export const sentryCapture = {
       op: "en13813.operation",
     });
 
-    Sentry.getCurrentHub().configureScope((scope) =>
-      scope.setSpan(transaction),
-    );
+    Sentry.getCurrentScope().setSpan(transaction);
 
     try {
       const result = await operation();

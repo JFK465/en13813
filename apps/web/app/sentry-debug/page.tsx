@@ -9,7 +9,7 @@ export default function SentryDebugPage() {
 
   useEffect(() => {
     // Check Sentry configuration
-    const client = Sentry.getCurrentHub().getClient();
+    const client = Sentry.getClient();
     const options = client?.getOptions() || {};
 
     setSentryStatus({
