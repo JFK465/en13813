@@ -1421,7 +1421,7 @@ export default function GlossarPage() {
 
   // Filter terms based on search and category
   const filteredTerms = useMemo(() => {
-    const filtered: typeof glossarTerms = {}
+    const filtered: Record<string, typeof glossarTerms.A> = {}
 
     Object.entries(glossarTerms).forEach(([letter, terms]) => {
       const letterFiltered = terms.filter(term => {
