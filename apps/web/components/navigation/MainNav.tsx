@@ -210,7 +210,7 @@ export function MainNav() {
                     {item.name}
                   </Link>
                 )
-              ))
+              ))}
               <div className="border-t pt-4 space-y-2">
                 <Link
                   href="/login"
