@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Sparkles, Users, MessageSquare, Gift } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 
 function RegisterPageContent() {
   const router = useRouter()
@@ -84,13 +86,50 @@ function RegisterPageContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50">
+      <div className="w-full max-w-2xl space-y-8 p-4">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-blue-600 mb-2">EstrichManager</h1>
-          <h2 className="text-2xl font-semibold tracking-tight">Konto erstellen</h2>
+          <div className="flex justify-center items-center gap-2 mb-4">
+            <h1 className="text-4xl font-bold text-blue-600">EstrichManager</h1>
+            <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">
+              <Sparkles className="w-3 h-3 mr-1" />
+              BETA
+            </Badge>
+          </div>
+          <h2 className="text-2xl font-semibold tracking-tight mb-2">
+            Jetzt kostenlos testen und mitgestalten!
+          </h2>
+          <p className="text-sm text-gray-600 mb-6">
+            Seien Sie einer der ersten Nutzer und prägen Sie die Zukunft von EstrichManager
+          </p>
+
+          {/* Beta Benefits Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="pt-6">
+                <Gift className="w-8 h-8 text-blue-600 mb-2 mx-auto" />
+                <h3 className="font-semibold text-sm mb-1">100% Kostenlos</h3>
+                <p className="text-xs text-gray-600">Während der gesamten Beta-Phase</p>
+              </CardContent>
+            </Card>
+            <Card className="border-purple-200 bg-purple-50/50">
+              <CardContent className="pt-6">
+                <MessageSquare className="w-8 h-8 text-purple-600 mb-2 mx-auto" />
+                <h3 className="font-semibold text-sm mb-1">Direkter Einfluss</h3>
+                <p className="text-xs text-gray-600">Ihr Feedback formt die Software</p>
+              </CardContent>
+            </Card>
+            <Card className="border-green-200 bg-green-50/50">
+              <CardContent className="pt-6">
+                <Users className="w-8 h-8 text-green-600 mb-2 mx-auto" />
+                <h3 className="font-semibold text-sm mb-1">Early Adopter Vorteile</h3>
+                <p className="text-xs text-gray-600">50% Rabatt nach Beta</p>
+              </CardContent>
+            </Card>
+          </div>
+
           <p className="mt-2 text-sm text-gray-600">
-            Bereits ein Konto?{' '}
+            Bereits ein Beta-Tester?{' '}
             <Link href="/login" className="font-medium text-primary hover:underline">
               Anmelden
             </Link>
@@ -124,7 +163,7 @@ function RegisterPageContent() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="mt-1"
-                  placeholder="John Doe"
+                  placeholder="Max Mustermann"
                 />
               </div>
               <div>
@@ -137,7 +176,7 @@ function RegisterPageContent() {
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   className="mt-1"
-                  placeholder="Acme Inc."
+                  placeholder="Mustermann Estrichwerke GmbH"
                 />
               </div>
             </div>
@@ -186,8 +225,9 @@ function RegisterPageContent() {
           </div>
 
           <div className="space-y-3">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
+            <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" disabled={loading}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              {loading ? 'Beta-Zugang wird erstellt...' : 'Kostenlos Beta-Zugang sichern'}
             </Button>
             
             <div className="relative">
@@ -205,15 +245,29 @@ function RegisterPageContent() {
               className="w-full"
               onClick={handleDemoSignup}
             >
-              Continue with Demo Account
+              Mit Demo-Account testen
             </Button>
           </div>
         </form>
         
-        <div className="mt-4 text-center text-sm text-gray-600">
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h3 className="font-semibold text-sm text-amber-900 mb-2">Beta-Phase Details</h3>
+          <ul className="text-xs text-amber-800 space-y-1 text-left">
+            <li>• Beta läuft bis Ende März 2025</li>
+            <li>• Alle Kernfunktionen verfügbar</li>
+            <li>• Regelmäßige Updates und neue Features</li>
+            <li>• Direkter Support-Kanal für Feedback</li>
+            <li>• Ihre Daten bleiben nach Beta erhalten</li>
+          </ul>
+        </div>
+
+        <div className="mt-4 text-center text-xs text-gray-500">
           <p>
-            Note: Due to Supabase configuration, regular signup may not work.<br/>
-            Please use the Demo Account to explore the application.
+            Mit der Registrierung stimmen Sie unseren{' '}
+            <Link href="/terms" className="underline hover:text-gray-700">Nutzungsbedingungen</Link>
+            {' '}und{' '}
+            <Link href="/privacy" className="underline hover:text-gray-700">Datenschutzrichtlinien</Link>
+            {' '}zu.
           </p>
         </div>
       </div>
