@@ -519,7 +519,7 @@ export default function EstrichArtenPage() {
             {estricharten.map((estrich) => (
               <a
                 key={estrich.code}
-                href={`#${estrich.code.toLowerCase()}`}
+                href={`#${estrich.code.toLowerCase()}-${estrich.name.toLowerCase().replace(/\s+/g, '-')}`}
                 className="inline-flex items-center px-4 py-2 bg-white border rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
               >
                 <Badge className="mr-2">{estrich.code}</Badge>
@@ -583,7 +583,7 @@ export default function EstrichArtenPage() {
               </TabsList>
 
               {estricharten.map((estrich) => (
-                <TabsContent key={estrich.code} value={estrich.code} className="space-y-6" id={estrich.code.toLowerCase()}>
+                <TabsContent key={estrich.code} value={estrich.code} className="space-y-6" id={`${estrich.code.toLowerCase()}-${estrich.name.toLowerCase().replace(/\s+/g, '-')}`}>
                   {/* Header Card */}
                   <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50">
                     <CardHeader>

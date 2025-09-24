@@ -1,26 +1,48 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Search, ChevronRight, ArrowRight, AlertCircle, Info, ExternalLink, Filter, X } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { BookOpen, Search, ChevronRight, ArrowRight, Info, X, Hash, ArrowUp } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function GlossarPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("alle")
-  const [selectedLetter, setSelectedLetter] = useState("")
+  const [showScrollTop, setShowScrollTop] = useState(false)
+
+  // Smooth scrolling and show/hide scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Handle smooth scrolling for anchor links
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'A' && target.getAttribute('href')?.startsWith('#')) {
+        e.preventDefault()
+        const id = target.getAttribute('href')?.slice(1)
+        if (id) {
+          const element = document.getElementById(id)
+          element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }
+    }
+    document.addEventListener('click', handleAnchorClick)
+    return () => document.removeEventListener('click', handleAnchorClick)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const categories = [
     { value: "alle", label: "Alle Begriffe", count: 156 },
@@ -30,22 +52,52 @@ export default function GlossarPage() {
     { value: "pruefung", label: "Prüfung & Qualität", count: 31 },
   ]
 
-  const glossarTerms = {
+  const glossarTerms: Record<string, Array<{
+    term: string
+    id?: string
+    definition: string
+    detailedDescription?: string
+    technicalData?: Record<string, string>
+    category: string
+    related?: string[]
+    norm?: string
+    example?: string
+    practicalTips?: string
+  }>> = {
     A: [
       {
         term: "Abbindezeit",
-        definition: "Zeitraum vom Anmachen des Estrichmörtels bis zur beginnenden Erhärtung. Bei Zementestrich typisch 2-4 Stunden, bei Calciumsulfatestrich 3-5 Stunden.",
+        id: "abbindezeit",
+        definition: "Die Abbindezeit bezeichnet den kritischen Zeitraum vom Anmischen des Estrichmörtels mit Wasser bis zum Beginn der chemischen Erhärtung. In dieser Phase wandelt sich der plastisch verformbare Mörtel in einen festen Werkstoff um.",
+        detailedDescription: "Die Abbindezeit ist ein entscheidender Parameter für die Verarbeitung von Estrichmörtel. Sie wird maßgeblich durch die Art des Bindemittels, die Umgebungstemperatur, die Luftfeuchtigkeit und eventuelle Zusatzmittel beeinflusst. Bei Zementestrich beträgt sie typischerweise 2-4 Stunden, bei Calciumsulfatestrich 3-5 Stunden. Während dieser Zeit muss der Estrich vollständig eingebaut, nivelliert und verdichtet werden. Nach Überschreitung der Abbindezeit ist keine ordnungsgemäße Verarbeitung mehr möglich, da die beginnende Hydratation zu einer irreversiblen Verfestigung führt.",
+        technicalData: {
+          zementestrich: "2-4 Stunden bei 20°C",
+          calciumsulfatestrich: "3-5 Stunden bei 20°C",
+          temperatureinfluss: "Pro 10°C Temperaturerhöhung halbiert sich die Abbindezeit",
+          messmethode: "Vicat-Nadelgerät nach DIN EN 196-3"
+        },
         category: "verarbeitung",
-        related: ["Erhärtungszeit", "Verarbeitungszeit", "Erstarrungsbeginn"],
+        related: ["Erhärtungszeit", "Verarbeitungszeit", "Erstarrungsbeginn", "Hydratation", "Vicat-Prüfung"],
         norm: "DIN EN 196-3",
-        example: "Ein CT-C25-F4 hat bei 20°C eine Abbindezeit von ca. 3 Stunden."
+        example: "Ein CT-C25-F4 hat bei 20°C eine Abbindezeit von ca. 3 Stunden. Bei 30°C verkürzt sich diese auf etwa 1,5 Stunden.",
+        practicalTips: "Verlängerung durch Verzögerer möglich, bei hohen Temperaturen kürzere Mischzeiten planen"
       },
       {
         term: "Abriebwiderstand",
-        definition: "Widerstandsfähigkeit der Estrichoberfläche gegen mechanischen Verschleiß. Klassifiziert in A-Klassen nach EN 13813 (A1 bis A22).",
+        id: "abriebwiderstand",
+        definition: "Der Abriebwiderstand beschreibt die Widerstandsfähigkeit der Estrichoberfläche gegen mechanischen Verschleiß durch Begehung, Befahrung oder andere mechanische Beanspruchungen.",
+        detailedDescription: "Der Abriebwiderstand ist eine wesentliche Eigenschaft für die Dauerhaftigkeit und Nutzungsdauer von Estrichoberflächen. Er wird nach EN 13892-3 mittels der Böhme-Prüfung (BCA-Test) ermittelt und in A-Klassen von A1 (höchster Widerstand, < 1,5 cm³/50cm²) bis A22 (22 cm³/50cm²) klassifiziert. Die Prüfung erfolgt durch Schleifen der Oberfläche mit genormtem Schleifmittel unter definierter Last. Der Volumenverlust wird nach 16 Prüfzyklen gemessen. Hochbeanspruchte Industrieflächen benötigen mindestens Klasse A6, während für Wohnbereiche A12-A15 ausreichend ist.",
+        technicalData: {
+          pruefverfahren: "Böhme-Schleifscheibe nach EN 13892-3",
+          klassifizierung: "A1 bis A22 (cm³/50cm²)",
+          industriestandard: "A6 oder besser",
+          wohnbereich: "A12-A15"
+        },
         category: "pruefung",
-        related: ["Verschleißwiderstand", "Oberflächenfestigkeit", "BCA-Prüfung"],
-        norm: "EN 13892-3"
+        related: ["Verschleißwiderstand", "Oberflächenfestigkeit", "BCA-Prüfung", "Oberflächenhärte", "Staubbildung"],
+        norm: "EN 13892-3",
+        example: "Ein Hartstoffestrich der Klasse A3 verliert maximal 3 cm³/50cm² bei der Böhme-Prüfung.",
+        practicalTips: "Oberflächenveredelung mit Hartstoffen oder Versiegelungen kann den Abriebwiderstand deutlich verbessern"
       },
       {
         term: "Abstreifer",
@@ -62,10 +114,20 @@ export default function GlossarPage() {
       },
       {
         term: "Anhydrit",
-        definition: "Wasserfreies Calciumsulfat (CaSO₄), Hauptbindemittel in CA-Estrich. Reagiert mit Wasser zu Gips und erhärtet dabei.",
+        id: "anhydrit",
+        definition: "Anhydrit ist wasserfreies Calciumsulfat (CaSO₄) und dient als Hauptbindemittel in Calciumsulfatestrich (CA-Estrich). Durch Wasserzugabe hydratisiert es zu Gips und bildet dabei ein festes Kristallgefüge.",
+        detailedDescription: "Anhydrit kommt sowohl als Naturanhydrit aus Bergwerken als auch als synthetisches Produkt (REA-Anhydrit aus der Rauchgasentschwefelung) zum Einsatz. Die Hydratation zu Dihydrat (Gips) erfolgt nach der Reaktionsgleichung CaSO₄ + 2H₂O → CaSO₄·2H₂O. Dieser Prozess läuft bei reinem Anhydrit sehr langsam ab und wird daher durch Anreger wie Kaliumsulfat oder Portlandzement beschleunigt. Der entstehende Gips bildet nadelförmige Kristalle, die sich zu einem tragfähigen Gefüge verzahnen. Anhydritestrich zeichnet sich durch geringe Schwindneigung, gute Wärmeleitfähigkeit und selbstnivellierende Eigenschaften aus, ist jedoch feuchteempfindlich.",
+        technicalData: {
+          chemischeFormel: "CaSO₄ (wasserfrei)",
+          dichte: "2,9-3,0 g/cm³",
+          hydratationsprodukt: "CaSO₄·2H₂O (Gips)",
+          anreger: "K₂SO₄, Portlandzement, Ca(OH)₂",
+          feuchtebestaendigkeit: "Nicht für Außenbereiche geeignet"
+        },
         category: "materialien",
-        related: ["CA-Estrich", "Calciumsulfat", "Gips"],
-        example: "Natürlicher Anhydrit wird gemahlen und als Bindemittel verwendet."
+        related: ["CA-Estrich", "Calciumsulfat", "Gips", "REA-Gips", "Hydratation", "Fließestrich"],
+        example: "Natürlicher Anhydrit wird auf < 0,2 mm gemahlen und mit 3-7% Anreger versetzt.",
+        practicalTips: "Anhydritestrich muss vor Feuchtigkeitseinwirkung geschützt werden - Restfeuchte < 0,5 CM-% für Beläge erforderlich"
       },
       {
         term: "Anmachwasser",
@@ -122,11 +184,21 @@ export default function GlossarPage() {
     B: [
       {
         term: "BauPVO",
-        definition: "Bauproduktverordnung - EU-Verordnung 305/2011 zur Harmonisierung der Vermarktungsbedingungen für Bauprodukte. Ersetzt die Bauproduktenrichtlinie seit 2013.",
+        id: "baupvo",
+        definition: "Die Bauproduktverordnung (EU 305/2011) ist die zentrale EU-Verordnung zur Harmonisierung der Vermarktungsbedingungen für Bauprodukte im europäischen Binnenmarkt.",
+        detailedDescription: "Die BauPVO löste 2013 die Bauproduktenrichtlinie ab und schafft einheitliche Rahmenbedingungen für die Vermarktung von Bauprodukten in der EU. Sie definiert Grundanforderungen an Bauwerke, harmonisierte technische Spezifikationen und das System zur Bewertung der Leistungsbeständigkeit (AVCP). Für Estriche bedeutet dies die Pflicht zur CE-Kennzeichnung nach EN 13813, die Erstellung einer Leistungserklärung (DoP) und die Einhaltung des AVCP-Systems 4. Die Verordnung verfolgt das Ziel, technische Handelshemmnisse abzubauen und gleiche Wettbewerbsbedingungen zu schaffen.",
+        technicalData: {
+          geltungsbereich: "Alle EU-Mitgliedsstaaten + EWR",
+          inkrafttreten: "01.07.2013",
+          avpcSystem: "System 4 für Estriche",
+          dokumentation: "DoP + CE-Kennzeichnung",
+          sprachen: "23 EU-Amtssprachen"
+        },
         category: "normen",
-        related: ["CE-Kennzeichnung", "DoP", "Harmonisierte Norm"],
+        related: ["CE-Kennzeichnung", "DoP", "Harmonisierte Norm", "AVCP", "EN 13813"],
         norm: "EU 305/2011",
-        example: "Alle Estriche müssen seit 2013 nach BauPVO CE-gekennzeichnet werden."
+        example: "Ein Estrichhersteller muss für jeden Estrichtyp eine DoP erstellen und das CE-Zeichen anbringen.",
+        practicalTips: "Die DoP muss 10 Jahre aufbewahrt und auf Anfrage vorgelegt werden können"
       },
       {
         term: "BCA-Prüfung",
@@ -137,11 +209,22 @@ export default function GlossarPage() {
       },
       {
         term: "Belegreife",
-        definition: "Zustand des Estrichs mit ausreichend niedriger Restfeuchte für Bodenbelag. Grenzwerte: Zementestrich ≤ 2,0 CM-%, Calciumsulfatestrich ≤ 0,5 CM-%.",
+        id: "belegreife",
+        definition: "Die Belegreife bezeichnet den Zustand eines Estrichs, bei dem die Restfeuchte so weit abgetrocknet ist, dass Bodenbeläge ohne Schäden verlegt werden können.",
+        detailedDescription: "Die Belegreife ist ein kritischer Meilenstein im Bauprozess. Sie hängt von Estrichart, Dicke, Umgebungsbedingungen und geplanter Nutzung ab. Eine verfruhte Belegung kann zu Schäden wie Blasenbildung, Ablösungen oder Schimmelbildung führen. Die Messung erfolgt mittels CM-Methode an repräsentativen Stellen. Bei Heizestrichen gelten schärfere Grenzwerte. Die Trocknungszeit kann durch Zwangstrocknung, Belegreifheizen oder spezielle Schnellestriche verkürzt werden. Vor der Belegung sollte zusätzlich die Oberflächenfestigkeit geprüft werden.",
+        technicalData: {
+          zementestrich_unbeheizt: "≤ 2,0 CM-%",
+          zementestrich_beheizt: "≤ 1,8 CM-%",
+          calciumsulfat_unbeheizt: "≤ 0,5 CM-%",
+          calciumsulfat_beheizt: "≤ 0,3 CM-%",
+          magnesit: "≤ 0,5 CM-%",
+          gussasphalt: "Keine Messung erforderlich"
+        },
         category: "pruefung",
-        related: ["CM-Messung", "Restfeuchte", "Trocknungszeit"],
+        related: ["CM-Messung", "Restfeuchte", "Trocknungszeit", "Belegreifheizen", "Zwangstrocknung"],
         norm: "DIN 18560-1",
-        example: "Heizestrich: CT ≤ 1,8 CM-%, CA ≤ 0,3 CM-% für Parkett."
+        example: "Bei Parkettverlegung auf Heizestrich: CT max. 1,8 CM-%, CA max. 0,3 CM-%.",
+        practicalTips: "Dokumentieren Sie alle CM-Messungen mit Datum, Ort und Messwert für die Gewährleistung"
       },
       {
         term: "Belegreifheizen",
@@ -202,11 +285,22 @@ export default function GlossarPage() {
     C: [
       {
         term: "CA",
-        definition: "Calcium sulphate screed - Calciumsulfatestrich nach EN 13813. Bindemittel ist Anhydrit oder Alpha-Halbhydrat, selbstnivellierend möglich.",
+        id: "ca-estrich",
+        definition: "CA (Calcium sulphate) bezeichnet Calciumsulfatestrich nach EN 13813, einen Estrich mit Anhydrit oder Alpha-Halbhydrat als Bindemittel.",
+        detailedDescription: "Calciumsulfatestrich zeichnet sich durch schnelle Trocknung, geringe Schwindneigung, gute Wärmeleitfähigkeit und die Möglichkeit zur selbstnivellierenden Verarbeitung aus. Er ist besonders geeignet für Fußbodenheizungen aufgrund der guten Wärmeleitung und geringen Aufbauhöhe. Nachteile sind die Feuchteempfindlichkeit und die Notwendigkeit einer Grundierung vor zementgebundenen Belägen. CA-Estriche erreichen höhere Festigkeiten als Zementestriche bei gleicher Bindemittelmenge und sind bereits nach 2 Tagen begehbar. Die Verarbeitung erfolgt meist als Fließestrich mit maschineller Förderung.",
+        technicalData: {
+          bindemittel: "CaSO₄ oder CaSO₄·0,5H₂O",
+          festigkeitsklassen: "C20 bis C80, F4 bis F15",
+          schwindmaß: "< 0,2 mm/m",
+          wärmeleitfähigkeit: "1,2-1,4 W/(m·K)",
+          begehbarkeit: "Nach 24-48 Stunden",
+          ph_wert: "7-9 (neutral bis schwach alkalisch)"
+        },
         category: "normen",
-        related: ["Anhydritestrich", "Fließestrich", "Calciumsulfat"],
+        related: ["Anhydritestrich", "Fließestrich", "Calciumsulfat", "CT", "Selbstnivellierend"],
         norm: "EN 13813",
-        example: "CA-C30-F6 = Calciumsulfatestrich mit 30 N/mm² Druck- und 6 N/mm² Biegezugfestigkeit."
+        example: "CA-C30-F7 = Calciumsulfatestrich mit 30 N/mm² Druckfestigkeit und 7 N/mm² Biegezugfestigkeit.",
+        practicalTips: "Vor Verlegung keramischer Beläge immer grundieren, um Ettringitbildung zu vermeiden"
       },
       {
         term: "Calciumsulfat",
@@ -217,11 +311,21 @@ export default function GlossarPage() {
       },
       {
         term: "CE-Kennzeichnung",
-        definition: "Conformité Européenne - Pflichtzeichen für Bauprodukte in der EU. Bestätigt Konformität mit harmonisierten Normen und Leistungserklärung.",
+        id: "ce-kennzeichnung",
+        definition: "Die CE-Kennzeichnung (Conformité Européenne) ist das Pflichtzeichen für Bauprodukte im europäischen Binnenmarkt und bestätigt die Konformität mit harmonisierten Normen.",
+        detailedDescription: "Das CE-Zeichen ist kein Qualitätssiegel, sondern eine Konformitätserklärung des Herstellers. Für Estriche nach EN 13813 ist es seit 2004 verpflichtend. Die Kennzeichnung umfasst das CE-Symbol, die Kennnummer der notifizierten Stelle (falls beteiligt), Name und Anschrift des Herstellers, die letzten zwei Ziffern des Jahres der Anbringung, die Nummer der Leistungserklärung, den Verweis auf EN 13813 und die deklarierten Leistungen. Die CE-Kennzeichnung muss auf dem Produkt, der Verpackung oder den Begleitpapieren angebracht werden. Falsche CE-Kennzeichnung kann zu Geldstrafen und Produktrückruf führen.",
+        technicalData: {
+          pflicht_seit: "01.08.2004 für Estriche",
+          grundlage: "EU-Verordnung 305/2011",
+          gültigkeit: "Unbefristet",
+          kontrolle: "Marktüberwachungsbehörden",
+          system: "AVCP System 4 für Estriche"
+        },
         category: "normen",
-        related: ["DoP", "BauPVO", "Konformität"],
+        related: ["DoP", "BauPVO", "Konformität", "EN 13813", "AVCP", "Leistungserklärung"],
         norm: "EU 305/2011",
-        example: "CE-Zeichen mit vierstelliger Nummer der notifizierten Stelle."
+        example: "CE 22 - Musterfirma GmbH - 22 - Nr. 001 - EN 13813 - CT-C25-F4",
+        practicalTips: "Bewahren Sie alle CE-Dokumentationen 10 Jahre auf - bei Bauschäden werden diese angefordert"
       },
       {
         term: "CEM",
@@ -233,19 +337,42 @@ export default function GlossarPage() {
       },
       {
         term: "CM-Messung",
-        definition: "Calcium-Carbid-Methode zur Feuchtigkeitsmessung. Estrichprobe reagiert mit Calciumcarbid, entstehender Gasdruck zeigt Feuchtegehalt.",
+        id: "cm-messung",
+        definition: "Die CM-Messung (Calcium-Carbid-Methode) ist das Standardverfahren zur Bestimmung der Restfeuchte in Estrichen mittels chemischer Reaktion.",
+        detailedDescription: "Bei der CM-Messung wird eine repräsentative Estrichprobe mit Calciumcarbid in einer Druckflasche zur Reaktion gebracht. Das entstehende Acetylengas erzeugt einen Druck, der proportional zum Wassergehalt ist. Die Probe muss aus der gesamten Estrichdicke entnommen und sofort zerkleinert werden. Bei Heizestrichen erfolgt die Entnahme im Bereich zwischen den Heizrohren. Die Messung dauert etwa 20 Minuten und liefert sofortige Ergebnisse. Wichtig ist die korrekte Kalibrierung des Geräts und die Verwendung frischen Calciumcarbids. Die CM-Methode ist gerichtsfest anerkannt und in Streitfällen maßgebend.",
+        technicalData: {
+          messbereich: "0,1 bis 4,0 CM-%",
+          probengewicht_zement: "50-100g",
+          probengewicht_calcium: "50g",
+          messdauer: "ca. 20 Minuten",
+          genauigkeit: "± 0,2 CM-%",
+          carbidmenge: "1 Ampulle (ca. 6,5g)"
+        },
         category: "pruefung",
-        related: ["Restfeuchte", "Belegreife", "CM-Gerät"],
+        related: ["Restfeuchte", "Belegreife", "CM-Gerät", "Darrmethode", "Belegreifheizen"],
         norm: "DIN 18560-4",
-        example: "Probe aus gesamter Estrichdicke, Messung in CM-% (Gewichtsprozent)."
+        example: "Bei 50g Zementestrichprobe und 1,8 CM-% Anzeige ist der Estrich belegreif für Parkett.",
+        practicalTips: "Protokollieren Sie Entnahmeort, Datum, Uhrzeit und Prüfer - diese Dokumentation ist rechtlich relevant"
       },
       {
         term: "CT",
-        definition: "Cement screed - Zementestrich nach EN 13813. Häufigster Estrichtyp, universell einsetzbar, feuchteunempfindlich.",
+        id: "zementestrich",
+        definition: "CT (Cement screed) bezeichnet Zementestrich nach EN 13813, den meistverwendeten Estrichtyp mit Zement als hydraulischem Bindemittel.",
+        detailedDescription: "Zementestrich ist der Allrounder unter den Estrichen. Er ist feuchteunempfindlich, frostbeständig und kann daher im Innen- und Außenbereich eingesetzt werden. Die Hydratation des Zements führt zu einer dauerhaften, wasserunlöslichen Erhärtung. CT-Estriche schwinden beim Trocknen (0,4-0,6 mm/m) und benötigen daher Fugen. Sie sind nach 28 Tagen voll belastbar, die Belegreife wird je nach Dicke nach 4-8 Wochen erreicht. Vorteile sind die universelle Einsetzbarkeit, günstige Kosten und hohe Endfestigkeit. Nachteile sind die lange Trocknungszeit und das Schwinden.",
+        technicalData: {
+          bindemittel: "CEM I, II oder III nach EN 197-1",
+          festigkeitsklassen: "C5 bis C80, F1 bis F15",
+          schwindmaß: "0,4-0,6 mm/m",
+          wärmeleitfähigkeit: "1,0-1,4 W/(m·K)",
+          trocknungszeit: "1 cm/Woche bis 4 cm",
+          ph_wert: "12-13 (stark alkalisch)",
+          rohdichte: "1800-2200 kg/m³"
+        },
         category: "normen",
-        related: ["Zementestrich", "CEM", "Portlandzement"],
+        related: ["Zementestrich", "CEM", "Portlandzement", "CA", "Hydraulisch", "Hydratation"],
         norm: "EN 13813",
-        example: "CT-C25-F4 = Standardqualität für Wohnungsbau."
+        example: "CT-C25-F4-A12 = Zementestrich mit 25 N/mm² Druck-, 4 N/mm² Biegezugfestigkeit, Abrieb A12.",
+        practicalTips: "Bei dicken Estrichen >8cm Schwindverformungen durch Bewehrung oder Fasern reduzieren"
       },
       {
         term: "C-Klasse",
@@ -297,11 +424,22 @@ export default function GlossarPage() {
       },
       {
         term: "DoP",
-        definition: "Declaration of Performance - Leistungserklärung nach BauPVO. Pflichtdokument mit deklarierten Eigenschaften, Grundlage für CE-Zeichen.",
+        id: "dop",
+        definition: "Die Declaration of Performance (Leistungserklärung) ist das zentrale Dokument der BauPVO, in dem Hersteller die Leistungen ihrer Bauprodukte erklären.",
+        detailedDescription: "Die DoP ist rechtlich verbindlich und muss vor dem Inverkehrbringen erstellt werden. Sie enthält eine eindeutige Kennnummer, den Produkttyp, das AVCP-System, Hersteller-Angaben, den Verwendungszweck und die deklarierten Leistungen aller wesentlichen Merkmale. Für Estriche nach EN 13813 sind dies: Brandverhalten, Freisetzung korrosiver Substanzen, Wasserdurchlässigkeit, Wasserdampfdurchlässigkeit, Druckfestigkeit, Biegezugfestigkeit, Verschleißwiderstand, Trittschallverbesserung und Wärmeleitfähigkeit. Die DoP muss in der Sprache des Ziellandes verfasst und 10 Jahre aufbewahrt werden.",
+        technicalData: {
+          pflichtangaben: "9 wesentliche Merkmale",
+          aufbewahrung: "10 Jahre",
+          sprache: "Landessprache erforderlich",
+          format: "Papier oder elektronisch",
+          nummerierung: "Eindeutige DoP-Nummer",
+          aktualisierung: "Bei Leistungsänderungen"
+        },
         category: "normen",
-        related: ["CE-Kennzeichnung", "Leistungserklärung", "BauPVO"],
+        related: ["CE-Kennzeichnung", "Leistungserklärung", "BauPVO", "EN 13813", "AVCP"],
         norm: "EU 305/2011",
-        example: "DoP-Nummer eindeutig, 10 Jahre aufbewahren."
+        example: "DoP-Nr. 2024-CT-001: Zementestrich CT-C30-F5-A9 mit allen 9 deklarierten Eigenschaften.",
+        practicalTips: "Erstellen Sie DoP-Vorlagen für Standardprodukte und passen Sie nur die variablen Werte an"
       },
       {
         term: "Druckfestigkeit",
@@ -1624,12 +1762,19 @@ export default function GlossarPage() {
                     <span>Buchstabe {letter}</span>
                     <Badge variant="secondary">{terms.length} {terms.length === 1 ? "Begriff" : "Begriffe"}</Badge>
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {terms.map((item) => (
-                      <Card key={item.term} className="hover:shadow-lg transition-shadow">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <CardTitle className="text-lg">{item.term}</CardTitle>
+                  <div className="space-y-6">
+                    {terms.map((item) => {
+                      const termId = (item as any).id || item.term.toLowerCase().replace(/[^a-z0-9äöüß]/g, '-').replace(/-+/g, '-')
+                      return (
+                        <Card key={item.term} id={termId} className="hover:shadow-lg transition-shadow">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                <CardTitle className="text-xl font-bold">{item.term}</CardTitle>
+                                <a href={`#${termId}`} className="text-gray-400 hover:text-blue-600 transition-colors" title="Link zu diesem Begriff">
+                                  <Hash className="w-4 h-4" />
+                                </a>
+                              </div>
                             <div className="flex gap-2">
                               {item.category && (
                                 <Badge variant="outline" className="text-xs">
@@ -1648,13 +1793,49 @@ export default function GlossarPage() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-gray-700">{item.definition}</p>
+                          {/* Hauptdefinition */}
+                          <div>
+                            <p className="text-base font-medium text-gray-800 leading-relaxed">
+                              {item.definition}
+                            </p>
+                          </div>
+
+                          {/* Detaillierte Beschreibung falls vorhanden */}
+                          {(item as any).detailedDescription && (
+                            <div className="mt-4 pt-3 border-t">
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                {(item as any).detailedDescription}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Technische Daten falls vorhanden */}
+                          {(item as any).technicalData && (
+                            <div className="mt-4 bg-gray-50 rounded-lg p-4">
+                              <p className="text-xs font-semibold text-gray-600 mb-2 uppercase">Technische Daten</p>
+                              <div className="grid grid-cols-1 gap-2">
+                                {Object.entries((item as any).technicalData).map(([key, value]) => (
+                                  <div key={key} className="flex justify-between text-sm">
+                                    <span className="text-gray-600">{key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim()}:</span>
+                                    <span className="text-gray-900 font-medium text-right">{value as string}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Praktische Tipps falls vorhanden */}
+                          {(item as any).practicalTips && (
+                            <div className="mt-4 bg-blue-50 rounded-lg p-3 border-l-4 border-blue-400">
+                              <p className="text-xs text-blue-800 font-semibold mb-1">Praxistipp:</p>
+                              <p className="text-sm text-blue-700">{(item as any).practicalTips}</p>
+                            </div>
+                          )}
 
                           {item.example && (
-                            <div className="mt-3 p-2 bg-gray-50 rounded">
-                              <p className="text-sm text-gray-600">
-                                <span className="font-semibold">Beispiel:</span> {item.example}
-                              </p>
+                            <div className="mt-4 bg-amber-50 rounded-lg p-3 border-l-4 border-amber-400">
+                              <p className="text-xs text-amber-800 font-semibold mb-1">Beispiel:</p>
+                              <p className="text-sm text-amber-700">{item.example}</p>
                             </div>
                           )}
 
@@ -1677,7 +1858,8 @@ export default function GlossarPage() {
                           )}
                         </CardContent>
                       </Card>
-                    ))}
+                      )
+                    })}
                   </div>
                 </section>
               ))}
@@ -1744,6 +1926,17 @@ export default function GlossarPage() {
           </div>
         </div>
       </section>
+
+      {/* Scroll-to-top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 hover:scale-110 z-50"
+          aria-label="Nach oben scrollen"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </main>
   )
 }
