@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function GlossarPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -1740,7 +1740,7 @@ export default function GlossarPage() {
                           ? "bg-white hover:bg-blue-50 hover:border-blue-300 cursor-pointer"
                           : "bg-gray-100 text-gray-400 cursor-not-allowed"
                       }`}
-                      onClick={hasTerms ? () => setSelectedLetter(letter) : (e) => e.preventDefault()}
+                      onClick={!hasTerms ? (e) => e.preventDefault() : undefined}
                     >
                       {letter}
                     </a>
