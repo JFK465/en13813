@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/providers/Providers'
+import { SiteHeader } from '@/components/navigation/SiteHeader'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -28,7 +29,12 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          {children}
+          <div className="min-h-screen flex flex-col">
+            <SiteHeader />
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
         </Providers>
       </body>
     </html>

@@ -1,4 +1,4 @@
-import { MainNav, MainFooter } from "@/components/navigation/MainNav"
+import { MainFooter } from "@/components/navigation/MainNav"
 
 export default function PublicLayout({
   children,
@@ -6,12 +6,9 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <MainNav />
-      <main className="flex-1">
-        {children}
-      </main>
+    <>
+      {children}
       <MainFooter />
-    </div>
+    </>
   )
 }
