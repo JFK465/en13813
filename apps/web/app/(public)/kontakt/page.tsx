@@ -1,377 +1,283 @@
-"use client"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Metadata } from 'next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
   Mail,
   Phone,
   MapPin,
   Clock,
-  Send,
-  CheckCircle2,
   MessageSquare,
   Headphones,
   Calendar
 } from "lucide-react"
-import { motion } from "framer-motion"
 import Link from "next/link"
+import { ContactForm } from "@/components/contact/ContactForm"
+
+// Kontaktdaten ändern sich selten, wöchentliche Revalidierung reicht
+export const revalidate = 604800 // 7 Tage
+
+export const metadata: Metadata = {
+  title: 'Kontakt - EstrichManager | Wir sind für Sie da',
+  description: 'Kontaktieren Sie EstrichManager für eine Demo, Support oder Beratung. Direkter Draht zu Estrich-Experten. Telefon, E-Mail oder Kontaktformular.',
+  keywords: 'EstrichManager Kontakt, Support, Demo vereinbaren, Beratung Estrich Software',
+  openGraph: {
+    title: 'Kontakt - EstrichManager',
+    description: 'Nehmen Sie Kontakt mit uns auf. Wir beraten Sie gerne zu EstrichManager.',
+    type: 'website',
+    locale: 'de_DE',
+    url: 'https://estrichmanager.de/kontakt',
+  },
+  alternates: {
+    canonical: 'https://estrichmanager.de/kontakt'
+  }
+}
+
+const contactMethods = [
+  {
+    icon: Phone,
+    title: "Telefon",
+    description: "Mo-Fr 8:00-17:00 Uhr",
+    value: "+49 (0) 123 456789",
+    link: "tel:+49123456789",
+  },
+  {
+    icon: Mail,
+    title: "E-Mail",
+    description: "24/7 Support",
+    value: "info@estrichmanager.de",
+    link: "mailto:info@estrichmanager.de",
+  },
+  {
+    icon: MessageSquare,
+    title: "Live Chat",
+    description: "Mo-Fr 9:00-16:00 Uhr",
+    value: "Chat starten",
+    link: "#chat",
+  },
+]
+
+const supportOptions = [
+  {
+    icon: Headphones,
+    title: "Support Center",
+    description: "Hilfe-Artikel, Tutorials und FAQs",
+    link: "/support",
+  },
+  {
+    icon: Calendar,
+    title: "Demo vereinbaren",
+    description: "Persönliche Online-Präsentation",
+    link: "/demo",
+  },
+  {
+    icon: MessageSquare,
+    title: "Community Forum",
+    description: "Austausch mit anderen Nutzern",
+    link: "/community",
+  },
+]
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    company: "",
-    email: "",
-    phone: "",
-    subject: "general",
-    message: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsSubmitting(false)
-    setIsSubmitted(true)
-
-    // Reset form after 5 seconds
-    setTimeout(() => {
-      setIsSubmitted(false)
-      setFormData({
-        name: "",
-        company: "",
-        email: "",
-        phone: "",
-        subject: "general",
-        message: "",
-      })
-    }, 5000)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-  }
-
-  const contactInfo = [
-    {
-      icon: Mail,
-      title: "E-Mail",
-      value: "info@estrichmanager.de",
-      link: "mailto:info@estrichmanager.de",
-    },
-    {
-      icon: Phone,
-      title: "Telefon",
-      value: "+49 (0) 123 456789",
-      link: "tel:+49123456789",
-    },
-    {
-      icon: MapPin,
-      title: "Adresse",
-      value: "Musterstraße 123, 12345 Berlin",
-      link: null,
-    },
-    {
-      icon: Clock,
-      title: "Geschäftszeiten",
-      value: "Mo-Fr 8:00 - 17:00 Uhr",
-      link: null,
-    },
-  ]
-
-  const supportOptions = [
-    {
-      icon: MessageSquare,
-      title: "Live Chat",
-      description: "Chatten Sie direkt mit unserem Support-Team",
-      availability: "Mo-Fr 9:00 - 17:00",
-      action: "Chat starten",
-    },
-    {
-      icon: Headphones,
-      title: "Telefon-Support",
-      description: "Sprechen Sie mit unseren Estrich-Experten",
-      availability: "Mo-Fr 8:00 - 17:00",
-      action: "Anrufen",
-    },
-    {
-      icon: Calendar,
-      title: "Demo vereinbaren",
-      description: "Persönliche Produktvorstellung",
-      availability: "Nach Vereinbarung",
-      action: "Termin buchen",
-    },
-  ]
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
-      <section className="relative px-6 py-24 sm:py-32 lg:px-8">
+      <section className="px-6 py-20 lg:px-8">
         <div className="mx-auto max-w-7xl text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl"
-          >
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
             Wir sind für Sie da
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mt-6 text-xl leading-8 text-gray-600 max-w-3xl mx-auto"
-          >
-            Haben Sie Fragen zu EstrichManager? Benötigen Sie eine persönliche Beratung?
-            Unser Team aus Estrich-Experten hilft Ihnen gerne weiter.
-          </motion.p>
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
+            Haben Sie Fragen zu EstrichManager? Möchten Sie eine Demo vereinbaren?
+            Oder benötigen Sie Support? Wir freuen uns auf Ihre Nachricht.
+          </p>
         </div>
       </section>
 
-      {/* Contact Form and Info */}
-      <section className="px-6 pb-24 lg:px-8">
+      {/* Contact Methods */}
+      <section className="px-6 pb-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-12 lg:grid-cols-2">
-            {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle>Kontaktformular</CardTitle>
-                  <CardDescription>
-                    Füllen Sie das Formular aus und wir melden uns innerhalb von 24 Stunden bei Ihnen.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isSubmitted ? (
-                    <Alert className="border-green-500 bg-green-50">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-800">
-                        Vielen Dank für Ihre Nachricht! Wir melden uns schnellstmöglich bei Ihnen.
-                      </AlertDescription>
-                    </Alert>
-                  ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <Label htmlFor="name">Name *</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            required
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Max Mustermann"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="company">Unternehmen</Label>
-                          <Input
-                            id="company"
-                            name="company"
-                            value={formData.company}
-                            onChange={handleChange}
-                            placeholder="Mustermann GmbH"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <Label htmlFor="email">E-Mail *</Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            required
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="max@beispiel.de"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="phone">Telefon</Label>
-                          <Input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="+49 123 456789"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label>Betreff *</Label>
-                        <RadioGroup
-                          value={formData.subject}
-                          onValueChange={(value) => setFormData({ ...formData, subject: value })}
-                          className="mt-2"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="general" id="general" />
-                            <Label htmlFor="general" className="font-normal">
-                              Allgemeine Anfrage
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="demo" id="demo" />
-                            <Label htmlFor="demo" className="font-normal">
-                              Demo-Termin vereinbaren
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="support" id="support" />
-                            <Label htmlFor="support" className="font-normal">
-                              Technischer Support
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="pricing" id="pricing" />
-                            <Label htmlFor="pricing" className="font-normal">
-                              Preise & Lizenzen
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="message">Nachricht *</Label>
-                        <Textarea
-                          id="message"
-                          name="message"
-                          required
-                          rows={5}
-                          value={formData.message}
-                          onChange={handleChange}
-                          placeholder="Beschreiben Sie Ihr Anliegen..."
-                        />
-                      </div>
-
-                      <Button type="submit" disabled={isSubmitting} className="w-full">
-                        {isSubmitting ? (
-                          "Wird gesendet..."
-                        ) : (
-                          <>
-                            Nachricht senden
-                            <Send className="ml-2 h-4 w-4" />
-                          </>
-                        )}
+          <div className="grid gap-6 md:grid-cols-3 mb-12">
+            {contactMethods.map((method) => {
+              const Icon = method.icon
+              return (
+                <Card key={method.title} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <Icon className="h-8 w-8 text-blue-600 mb-2" />
+                    <CardTitle>{method.title}</CardTitle>
+                    <CardDescription>{method.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {method.link.startsWith("#") ? (
+                      <Button variant="outline" className="w-full">
+                        {method.value}
                       </Button>
-                    </form>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Contact Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-8"
-            >
-              {/* Quick Contact Info */}
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Kontaktinformationen</h2>
-                <div className="space-y-4">
-                  {contactInfo.map((item) => (
-                    <div key={item.title} className="flex items-start gap-4">
-                      <item.icon className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-gray-900">{item.title}</p>
-                        {item.link ? (
-                          <a
-                            href={item.link}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {item.value}
-                          </a>
-                        ) : (
-                          <p className="text-gray-600">{item.value}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Support Options */}
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Support-Optionen</h2>
-                <div className="space-y-4">
-                  {supportOptions.map((option) => (
-                    <Card key={option.title}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <option.icon className="h-5 w-5 text-blue-600" />
-                          {option.title}
-                        </CardTitle>
-                        <CardDescription>{option.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            {option.availability}
-                          </span>
-                          <Button variant="outline" size="sm">
-                            {option.action}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+                    ) : (
+                      <a
+                        href={method.link}
+                        className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                      >
+                        {method.value}
+                      </a>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Map Section (Placeholder) */}
-      <section className="px-6 py-24 lg:px-8 bg-white">
+      {/* Contact Form and Info */}
+      <section className="px-6 pb-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="rounded-2xl bg-gray-100 h-96 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Interaktive Karte</p>
-              <p className="text-sm text-gray-500 mt-2">
-                Musterstraße 123, 12345 Berlin
-              </p>
+          <div className="grid gap-12 lg:grid-cols-2">
+            {/* Contact Form - Client Component */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Nachricht senden</CardTitle>
+                <CardDescription>
+                  Füllen Sie das Formular aus und wir melden uns innerhalb von 24 Stunden bei Ihnen.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContactForm />
+              </CardContent>
+            </Card>
+
+            {/* Company Info */}
+            <div className="space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">Unternehmenssitz</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-3">
+                    <MapPin className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">EstrichManager GmbH</p>
+                      <p className="text-gray-600">
+                        Musterstraße 123<br />
+                        12345 Berlin<br />
+                        Deutschland
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Clock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">Geschäftszeiten</p>
+                      <p className="text-gray-600">
+                        Montag - Freitag: 8:00 - 17:00 Uhr<br />
+                        Samstag & Sonntag: Geschlossen
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">Support & Hilfe</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {supportOptions.map((option) => {
+                      const Icon = option.icon
+                      return (
+                        <Link
+                          key={option.title}
+                          href={option.link}
+                          className="flex gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {option.title}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {option.description}
+                            </p>
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
       </section>
 
+      {/* FAQ Teaser */}
+      <section className="px-6 py-20 lg:px-8 bg-white">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            Häufig gestellte Fragen
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            Finden Sie schnell Antworten auf die wichtigsten Fragen
+          </p>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 text-left">
+            <div className="p-6 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Kann ich EstrichManager kostenlos testen?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Ja, Sie können EstrichManager 14 Tage lang kostenlos und unverbindlich testen.
+              </p>
+            </div>
+            <div className="p-6 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Wie schnell ist EstrichManager einsatzbereit?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Nach der Registrierung können Sie sofort loslegen. Die Einrichtung dauert nur wenige Minuten.
+              </p>
+            </div>
+            <div className="p-6 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Bieten Sie Schulungen an?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Ja, wir bieten Online-Schulungen und persönliche Einweisungen für alle Pakete an.
+              </p>
+            </div>
+            <div className="p-6 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Sind meine Daten sicher?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Absolut. Wir speichern alle Daten DSGVO-konform in deutschen Rechenzentren.
+              </p>
+            </div>
+          </div>
+          <Button asChild size="lg" variant="outline" className="mt-8">
+            <Link href="/faq">
+              Alle FAQs ansehen
+            </Link>
+          </Button>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="px-6 py-24 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="px-6 py-20 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="mx-auto max-w-4xl text-center text-white">
-          <h2 className="text-3xl font-bold">
-            Noch unschlüssig?
+          <h2 className="text-3xl font-bold tracking-tight">
+            Bereit für den nächsten Schritt?
           </h2>
           <p className="mt-4 text-lg text-blue-100">
-            Testen Sie EstrichManager einfach 14 Tage kostenlos und unverbindlich.
+            Testen Sie EstrichManager 14 Tage kostenlos und unverbindlich
           </p>
-          <div className="mt-8">
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary">
               <Link href="/register">
-                Jetzt kostenlos testen
+                Kostenlos testen
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20">
+              <Link href="/demo">
+                Demo vereinbaren
               </Link>
             </Button>
           </div>

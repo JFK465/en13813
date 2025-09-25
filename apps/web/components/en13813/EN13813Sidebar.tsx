@@ -16,7 +16,8 @@ import {
   Gauge,
   Calendar,
   Truck,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from 'lucide-react'
 import {
   Sidebar,
@@ -34,6 +35,7 @@ import {
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 
 const en13813Navigation = [
   {
@@ -169,8 +171,14 @@ export function EN13813Sidebar() {
     <Sidebar>
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
-            <Building2 className="h-6 w-6" />
+          <div className="relative h-10 w-10 flex items-center justify-center">
+            <Image
+              src="/logo.svg"
+              alt="EstrichManager"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-semibold">EstrichManager</span>
@@ -240,7 +248,18 @@ export function EN13813Sidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton 
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/en13813/feedback'}
+                >
+                  <Link href="/en13813/feedback">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Feedback</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
                   asChild
                   isActive={pathname === '/en13813/settings'}
                 >

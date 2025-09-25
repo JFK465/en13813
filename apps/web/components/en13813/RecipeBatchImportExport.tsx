@@ -26,7 +26,7 @@ import {
   Info
 } from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
-import * as XLSX from 'xlsx'
+import * as XLSX from '@e965/xlsx'
 
 interface Recipe {
   recipe_code: string
