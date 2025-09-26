@@ -95,8 +95,8 @@ Started supabase local development setup.
           DB URL: postgresql://postgres:postgres@localhost:54322/postgres
       Studio URL: http://localhost:54323
     Inbucket URL: http://localhost:54324
-        anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        anon key: <YOUR-ANON-KEY-WILL-BE-DISPLAYED-HERE>
+service_role key: <YOUR-SERVICE-ROLE-KEY-WILL-BE-DISPLAYED-HERE>
 ```
 
 **Kopieren Sie diese Werte in Ihre .env.local Datei!**

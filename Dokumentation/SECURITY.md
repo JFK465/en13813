@@ -133,8 +133,8 @@ docker run -t owasp/zap2docker-stable zap-baseline.py \
 ```bash
 # .env.local (NIEMALS committen!)
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...  # Public key (safe)
-SUPABASE_SERVICE_ROLE_KEY=eyJ...      # GEHEIM! Nur Server-seitig
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<YOUR-ANON-KEY>      # Public key (safe)
+SUPABASE_SERVICE_ROLE_KEY=<YOUR-SERVICE-ROLE-KEY>  # GEHEIM! Nur Server-seitig
 DATABASE_URL=postgresql://...         # GEHEIM!
 JWT_SECRET=...                        # GEHEIM!
 ```

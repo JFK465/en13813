@@ -124,7 +124,7 @@ https://1234567890abcdef@o123456.ingest.sentry.io/1234567
 2. **Create New Token:**
    - Name: `Vercel Deploy`
    - Scopes: `project:releases`
-3. **⚠️ KOPIERE:** `sntrys_eyJpYXQiOjE3MDU5...`
+3. **⚠️ KOPIERE:** `sntrys_<YOUR-SENTRY-AUTH-TOKEN>`
 
 ### 3.4 In Vercel eintragen
 ```bash
@@ -132,7 +132,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://1234567890abcdef@o123456.ingest.sentry.io/1234567
 SENTRY_DSN=https://1234567890abcdef@o123456.ingest.sentry.io/1234567
 SENTRY_ORG=jonas-kruger            # Dein Sentry Org Name
 SENTRY_PROJECT=en13813-web
-SENTRY_AUTH_TOKEN=sntrys_eyJpYXQ...  # Optional für Source Maps
+SENTRY_AUTH_TOKEN=sntrys_<YOUR-TOKEN>  # Optional für Source Maps
 ```
 
 ---
