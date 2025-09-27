@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createEN13813Services, Recipe } from '@/modules/en13813/services'
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -68,10 +67,7 @@ export default function RecipesPage() {
       if (statusFilter !== 'all') filter.status = statusFilter
       if (searchTerm) filter.search = searchTerm
 
-      const result = await queryWithTimeout(
-        services.recipes.list(filter),
-        10000
-      )
+      const result = await services.recipes.list(filter)
       setRecipes(result || [])
     } catch (error: any) {
       console.error('Error loading recipes:', error)

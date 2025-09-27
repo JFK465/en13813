@@ -76,14 +76,14 @@ export default function DoPsPage() {
         query = query.eq('status', statusFilter)
       }
 
-      const { data, error } = await queryWithTimeout(query, 10000)
+      const result = await queryWithTimeout(query, 10000)
 
-      if (error) {
-        console.error('Error loading DoPs:', error)
-        throw error
+      if (result.error) {
+        console.error('Error loading DoPs:', result.error)
+        throw result.error
       }
 
-      setDops(data || [])
+      setDops(result.data || [])
     } catch (error: any) {
       console.error('Error loading DoPs:', error)
 

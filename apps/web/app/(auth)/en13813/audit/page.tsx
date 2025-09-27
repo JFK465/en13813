@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import {
   Table,
   TableBody,
@@ -40,17 +39,12 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { AuditService } from '@/modules/en13813/services/audit.service';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { AuditReportGeneratorService } from '@/modules/en13813/services/audit-report-generator.service';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { useCurrentTenant } from '@/hooks/use-current-tenant';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import type { Audit, AuditFinding } from '@/modules/en13813/types/audit.types';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 
 const auditService = new AuditService();
 const reportGenerator = new AuditReportGeneratorService();
