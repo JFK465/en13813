@@ -3,10 +3,15 @@
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { TestPlanService, RecipeTestPlan, TestSchedule } from '@/modules/en13813/services/test-plan.service'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Button } from '@/components/ui/button'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Badge } from '@/components/ui/badge'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import {
   ClipboardList,
   Calendar,
@@ -32,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { toast } from 'sonner'
 
 export default function TestPlansPage() {

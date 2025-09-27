@@ -3,12 +3,19 @@
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { LabValuesService } from '@/modules/en13813/services/lab-values.service'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Button } from '@/components/ui/button'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Badge } from '@/components/ui/badge'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Progress } from '@/components/ui/progress'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { 
   Plus, 
   TrendingUp, 

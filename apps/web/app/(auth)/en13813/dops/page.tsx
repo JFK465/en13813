@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createEN13813Services, DoP } from '@/modules/en13813/services'
+import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -75,15 +76,23 @@ export default function DoPsPage() {
         query = query.eq('status', statusFilter)
       }
 
-      const { data, error } = await query
+      const { data, error } = await queryWithTimeout(query, 10000)
 
-      if (error) throw error
+      if (error) {
+        console.error('Error loading DoPs:', error)
+        throw error
+      }
+
       setDops(data || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading DoPs:', error)
+
+      // Still show empty list on error so the page is usable
+      setDops([])
+
       toast({
-        title: 'Fehler',
-        description: 'DoPs konnten nicht geladen werden',
+        title: 'Fehler beim Laden',
+        description: error?.message || 'DoPs konnten nicht geladen werden. Bitte versuchen Sie es später erneut.',
         variant: 'destructive'
       })
     } finally {
