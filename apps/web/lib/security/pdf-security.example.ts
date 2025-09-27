@@ -45,7 +45,7 @@ export async function generatePDFWithLocalImage(
     doc.text('Image could not be added: ' + (error as Error).message, 20, 40);
   }
 
-  return doc.output('arraybuffer') as Uint8Array;
+  return new Uint8Array(doc.output('arraybuffer'));
 }
 
 /**
@@ -97,7 +97,7 @@ export async function generatePDFWithRemoteImage(
     doc.text('Failed to fetch image: ' + (error as Error).message, 20, 40);
   }
 
-  return doc.output('arraybuffer') as Uint8Array;
+  return new Uint8Array(doc.output('arraybuffer'));
 }
 
 /**
@@ -153,7 +153,7 @@ export async function generatePDFWithUploadedImage(
     doc.text('Failed to process upload: ' + (error as Error).message, 20, 40);
   }
 
-  return doc.output('arraybuffer') as Uint8Array;
+  return new Uint8Array(doc.output('arraybuffer'));
 }
 
 /**
@@ -245,7 +245,7 @@ export async function generatePDFWithMultipleImages(
     }
   }
 
-  return doc.output('arraybuffer') as Uint8Array;
+  return new Uint8Array(doc.output('arraybuffer'));
 }
 
 /**
@@ -288,5 +288,5 @@ export async function generateEN13813DeliveryNoteWithLogo(
 
   // ... rest of delivery note generation
 
-  return doc.output('arraybuffer') as Uint8Array;
+  return new Uint8Array(doc.output('arraybuffer'));
 }

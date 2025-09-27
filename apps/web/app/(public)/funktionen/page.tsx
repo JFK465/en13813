@@ -1,26 +1,10 @@
 import { Metadata } from 'next'
-import {
-  FileText,
-  FlaskConical,
-  Package,
-  ClipboardCheck,
-  Shield,
-  BarChart3,
-  Truck,
-  AlertTriangle,
-  QrCode,
-  Download,
-  Users,
-  Lock,
-  Cloud,
-  Zap,
-  CheckCircle,
-  ArrowRight
-} from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { FeatureTabs } from "@/components/features/FeatureTabs"
+import { AdditionalFeatureCard } from "@/components/features/AdditionalFeatureCard"
 
 // ISR - Funktionen ändern sich selten, monatliche Revalidierung reicht
 export const revalidate = 2592000 // 30 Tage
@@ -45,152 +29,152 @@ const featureCategories = [
   {
     id: "recipes",
     title: "Rezepturverwaltung",
-    icon: FlaskConical,
+    icon: "FlaskConical",
     description: "Zentrale Verwaltung aller Estrich-Rezepturen mit Versionskontrolle",
     features: [
       {
         title: "Rezepturdatenbank",
         description: "Zentrale Speicherung aller Rezepturen mit Such- und Filterfunktionen",
-        icon: FileText,
+        icon: "FileText",
       },
       {
         title: "Versionsverwaltung",
         description: "Automatische Versionierung bei Änderungen mit vollständiger Historie",
-        icon: Shield,
+        icon: "Shield",
       },
       {
         title: "Normbezeichnung",
         description: "Automatische Generierung der EN 13813 konformen Bezeichnungen",
-        icon: CheckCircle,
+        icon: "CheckCircle",
       },
       {
         title: "Materialverwaltung",
         description: "Verwaltung aller Rohstoffe mit Lieferantendaten und Zertifikaten",
-        icon: Package,
+        icon: "Package",
       },
       {
         title: "Rezeptur-Kalkulation",
         description: "Automatische Berechnung von Mischungsverhältnissen und Eigenschaften",
-        icon: BarChart3,
+        icon: "BarChart3",
       },
       {
         title: "Import/Export",
         description: "Excel-Import und Export für einfache Datenmigration",
-        icon: Download,
+        icon: "Download",
       },
     ]
   },
   {
     id: "production",
     title: "Produktion & Chargen",
-    icon: Package,
+    icon: "Package",
     description: "Lückenlose Dokumentation der Produktion mit Chargenrückverfolgung",
     features: [
       {
         title: "Chargenverwaltung",
         description: "Eindeutige Chargennummern mit vollständiger Produktionsdokumentation",
-        icon: Package,
+        icon: "Package",
       },
       {
         title: "QR-Code Generator",
         description: "Automatische QR-Code Erstellung für Lieferscheine und Etiketten",
-        icon: QrCode,
+        icon: "QrCode",
       },
       {
         title: "Produktionsstatistik",
         description: "Echtzeitübersicht über Produktionsmengen und Auslastung",
-        icon: BarChart3,
+        icon: "BarChart3",
       },
       {
         title: "Lieferscheine",
         description: "Digitale Lieferscheine mit CE-Kennzeichnung und DoP-Referenz",
-        icon: Truck,
+        icon: "Truck",
       },
       {
         title: "Rückverfolgbarkeit",
         description: "Sekundenschnelle Rückverfolgung bei Reklamationen",
-        icon: Shield,
+        icon: "Shield",
       },
       {
         title: "Chargenfreigabe",
         description: "Digitaler Freigabeworkflow mit Vier-Augen-Prinzip",
-        icon: CheckCircle,
+        icon: "CheckCircle",
       },
     ]
   },
   {
     id: "testing",
     title: "Prüfungen & Tests",
-    icon: FlaskConical,
+    icon: "FlaskConical",
     description: "ITT und FPC Prüfungen nach EN 13813 mit automatischer Auswertung",
     features: [
       {
         title: "ITT Management",
         description: "Verwaltung aller Erstprüfungen mit Zertifikaten",
-        icon: ClipboardCheck,
+        icon: "ClipboardCheck",
       },
       {
         title: "FPC Protokolle",
         description: "Digitale FPC-Protokolle mit automatischer Konformitätsbewertung",
-        icon: FileText,
+        icon: "FileText",
       },
       {
         title: "Prüfplanung",
         description: "Automatische Erinnerungen für anstehende Prüfungen",
-        icon: ClipboardCheck,
+        icon: "ClipboardCheck",
       },
       {
         title: "Statistische Auswertung",
         description: "Automatische statistische Bewertung nach EN 13813",
-        icon: BarChart3,
+        icon: "BarChart3",
       },
       {
         title: "Trendanalyse",
         description: "Frühwarnsystem bei Abweichungen vom Sollwert",
-        icon: AlertTriangle,
+        icon: "AlertTriangle",
       },
       {
         title: "Prüfmittelverwaltung",
         description: "Kalibrierungsmanagement für Prüfgeräte",
-        icon: Shield,
+        icon: "Shield",
       },
     ]
   },
   {
     id: "compliance",
     title: "Compliance & DoP",
-    icon: Shield,
+    icon: "Shield",
     description: "Rechtssichere Dokumentation und automatische DoP-Erstellung",
     features: [
       {
         title: "DoP Generator",
         description: "Automatische Erstellung von Leistungserklärungen in 5 Minuten",
-        icon: FileText,
+        icon: "FileText",
       },
       {
         title: "CE-Kennzeichnung",
         description: "Konforme CE-Etiketten mit allen Pflichtangaben",
-        icon: Shield,
+        icon: "Shield",
       },
       {
         title: "Audit-Management",
         description: "Vorbereitung und Dokumentation interner und externer Audits",
-        icon: ClipboardCheck,
+        icon: "ClipboardCheck",
       },
       {
         title: "Abweichungsmanagement",
         description: "CAPA-System für Korrektur- und Vorbeugemaßnahmen",
-        icon: AlertTriangle,
+        icon: "AlertTriangle",
       },
       {
         title: "Dokumentenlenkung",
         description: "Versionierte Dokumente mit Freigabeworkflow",
-        icon: FileText,
+        icon: "FileText",
       },
       {
         title: "Compliance-Dashboard",
         description: "Übersicht aller compliance-relevanten Kennzahlen",
-        icon: BarChart3,
+        icon: "BarChart3",
       },
     ]
   },
@@ -198,32 +182,32 @@ const featureCategories = [
 
 const additionalFeatures = [
   {
-    icon: Users,
+    icon: "Users",
     title: "Multi-User & Rechteverwaltung",
     description: "Rollenbasierte Zugriffsrechte für Teams jeder Größe"
   },
   {
-    icon: Cloud,
+    icon: "Cloud",
     title: "Cloud-basiert & Sicher",
     description: "DSGVO-konforme Datenspeicherung in deutschen Rechenzentren"
   },
   {
-    icon: Zap,
+    icon: "Zap",
     title: "Echtzeitdaten",
     description: "Alle Änderungen sofort für alle Nutzer sichtbar"
   },
   {
-    icon: Download,
+    icon: "Download",
     title: "Export & Schnittstellen",
     description: "PDF, Excel, CSV Export und API-Anbindung möglich"
   },
   {
-    icon: Lock,
+    icon: "Lock",
     title: "Revisionssicherheit",
     description: "Unveränderliche Audit-Logs für alle kritischen Aktionen"
   },
   {
-    icon: Shield,
+    icon: "Shield",
     title: "Automatische Backups",
     description: "Tägliche Backups mit 30 Tage Wiederherstellung"
   },
@@ -296,22 +280,8 @@ export default function FeaturesPage() {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {additionalFeatures.map((feature) => {
-              const Icon = feature.icon
               return (
-                <div
-                  key={feature.title}
-                  className="flex gap-4 p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <Icon className="h-8 w-8 text-blue-600 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
+                <AdditionalFeatureCard key={feature.title} feature={feature} />
               )
             })}
           </div>
