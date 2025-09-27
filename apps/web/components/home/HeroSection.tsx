@@ -54,13 +54,13 @@ export function HeroSection() {
         >
           <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
             <Link href="/register">
-              14 Tage kostenlos testen
+              Jetzt Beta-Zugang sichern
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href="/login">
-              Demo-Zugang testen
+              Anmelden
             </Link>
           </Button>
         </motion.div>
@@ -71,7 +71,7 @@ export function HeroSection() {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="mt-4 text-sm text-gray-500"
         >
-          Keine Kreditkarte erforderlich • Voller Funktionsumfang • Persönlicher Support
+          Beta-Phase: Kostenloser Zugang für Early Adopters • Voller Funktionsumfang • Persönlicher Support
         </motion.p>
       </div>
     </section>

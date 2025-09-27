@@ -62,6 +62,8 @@ export default function DoPsPage() {
 
   async function loadDops() {
     try {
+      console.log('🔄 Loading DoPs...')
+
       let query = supabase
         .from('en13813_dops')
         .select(`
@@ -75,25 +77,26 @@ export default function DoPsPage() {
         query = query.eq('status', statusFilter)
       }
 
-      const result = await query
+      const { data, error } = await query
 
-      if (result.error) {
-        console.error('Error loading DoPs:', result.error)
-        throw result.error
+      if (error) {
+        console.error('Error loading DoPs:', error)
+        // Show empty list but don't throw - let the page render
+        setDops([])
+
+        // Show error toast
+        toast({
+          title: 'Fehler beim Laden',
+          description: 'DoPs konnten nicht geladen werden. Bitte versuchen Sie es später erneut.',
+          variant: 'destructive'
+        })
+      } else {
+        console.log(`✅ Loaded ${data?.length || 0} DoPs`)
+        setDops(data || [])
       }
-
-      setDops(result.data || [])
     } catch (error: any) {
-      console.error('Error loading DoPs:', error)
-
-      // Still show empty list on error so the page is usable
+      console.error('Unexpected error loading DoPs:', error)
       setDops([])
-
-      toast({
-        title: 'Fehler beim Laden',
-        description: error?.message || 'DoPs konnten nicht geladen werden. Bitte versuchen Sie es später erneut.',
-        variant: 'destructive'
-      })
     } finally {
       setLoading(false)
     }

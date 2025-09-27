@@ -47,34 +47,47 @@ export default function EN13813Dashboard() {
     console.log('📊 Loading EN13813 dashboard data...')
     try {
       // Get statistics from materialized view
-      const { data: stats } = await supabase
+      const { data: stats, error: statsError } = await supabase
         .from('en13813_statistics')
         .select('*')
         .single()
 
-      if (stats) {
+      if (statsError) {
+        console.error('Error loading statistics:', statsError)
+        // Continue anyway to show the page
+      } else if (stats) {
         setStatistics(stats)
       }
 
       // Get recent activities (last 10 items)
-      const { data: activities } = await supabase
+      const { data: activities, error: activitiesError } = await supabase
         .from('audit_logs')
         .select('*')
         .in('resource_type', ['en13813_recipes', 'en13813_dops', 'en13813_batches'])
         .order('created_at', { ascending: false })
         .limit(10)
 
-      setRecentActivities(activities || [])
+      if (activitiesError) {
+        console.error('Error loading activities:', activitiesError)
+      } else {
+        setRecentActivities(activities || [])
+      }
 
       // Get upcoming compliance tasks
-      const { data: tasks } = await supabase
+      const { data: tasks, error: tasksError } = await supabase
         .from('en13813_compliance_tasks')
         .select('*')
         .eq('status', 'pending')
         .order('due_date')
         .limit(5)
 
-      setUpcomingTasks(tasks || [])
+      if (tasksError) {
+        console.error('Error loading tasks:', tasksError)
+      } else {
+        setUpcomingTasks(tasks || [])
+      }
+
+      console.log('✅ Dashboard data loading complete')
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {

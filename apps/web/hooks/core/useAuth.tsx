@@ -33,43 +33,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session with timeout
     const getInitialSession = async () => {
       try {
-        // Check for demo user first
-        const demoUser = localStorage.getItem('demo_user')
-        if (demoUser) {
-          console.log('🎭 Demo user found in localStorage')
-          const demoData = JSON.parse(demoUser)
-          // Create a mock user object
-          const mockUser = {
-            id: demoData.id,
-            email: demoData.email,
-            user_metadata: { tenant_id: demoData.tenant_id }
-          } as unknown as User
-
-          setUser(mockUser)
-
-          // Set mock profile and tenant
-          setProfile({
-            id: demoData.id,
-            user_id: demoData.id,
-            full_name: 'Demo User',
-            tenant_id: demoData.tenant_id,
-            role: 'owner',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-          setTenant({
-            id: demoData.tenant_id,
-            name: 'Demo Company',
-            slug: 'demo-company',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-          setIsLoading(false)
-          return
-        }
-
         // Set a timeout for the session check
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Session check timeout')), 5000)
@@ -94,23 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     getInitialSession()
-    
-    // Listen for localStorage changes (for demo user)
-    const handleStorageChange = () => {
-      console.log('📦 localStorage changed, checking for demo user')
-      getInitialSession()
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    
-    // Also listen for custom events when demo user is set
-    const handleDemoUserSet = () => {
-      console.log('🎭 Demo user set event triggered')
-      getInitialSession()
-    }
-    
-    window.addEventListener('demo-user-set', handleDemoUserSet)
-    
+
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -131,8 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     return () => {
       subscription.unsubscribe()
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('demo-user-set', handleDemoUserSet)
     }
   }, [supabase])
   

@@ -13,13 +13,29 @@ export default function EN13813Layout({
 }) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
-  
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login')
     }
   }, [user, isLoading, router])
 
+  // Don't show loading state during SSR - let the page render
+  if (typeof window === 'undefined') {
+    // During SSR, render layout immediately
+    return (
+      <SidebarProvider>
+        <EN13813Sidebar />
+        <SidebarInset>
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    )
+  }
+
+  // Client-side rendering
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

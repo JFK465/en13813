@@ -26,7 +26,7 @@ function LoginPageContent() {
     if (message) {
       setSuccess(message)
     } else if (registered === 'true') {
-      setSuccess('Account created successfully! Please sign in.')
+      setSuccess('Konto erfolgreich erstellt! Bitte melden Sie sich an.')
     }
   }, [searchParams])
 
@@ -36,14 +36,6 @@ function LoginPageContent() {
     setLoading(true)
     setError(null)
 
-    // Check for demo login
-    if (email === 'demo@example.com' && password === 'demo') {
-      console.log('✅ Demo login detected')
-      authService.setDemoUser()
-      router.push('/en13813')
-      setLoading(false)
-      return
-    }
 
     try {
       console.log('🔗 Attempting authentication')
@@ -54,7 +46,7 @@ function LoginPageContent() {
       router.refresh()
     } catch (err: any) {
       console.log('❌ Login error:', err)
-      setError(err.message || 'Sign in failed. Please try the demo account: demo@example.com / demo')
+      setError(err.message || 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.')
       setLoading(false)
     }
   }
@@ -71,13 +63,6 @@ function LoginPageContent() {
               Jetzt registrieren
             </Link>
           </p>
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Demo-Zugang:</strong><br/>
-              Email: demo@example.com<br/>
-              Passwort: demo
-            </p>
-          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
@@ -97,7 +82,7 @@ function LoginPageContent() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">E-Mail-Adresse</Label>
               <Input
                 id="email"
                 name="email"
@@ -111,7 +96,7 @@ function LoginPageContent() {
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Passwort</Label>
               <Input
                 id="password"
                 name="password"
@@ -134,13 +119,13 @@ function LoginPageContent() {
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                Remember me
+                Angemeldet bleiben
               </label>
             </div>
 
             <div className="text-sm">
               <Link href="/forgot-password" className="font-medium text-primary hover:underline">
-                Forgot your password?
+                Passwort vergessen?
               </Link>
             </div>
           </div>
@@ -151,30 +136,9 @@ function LoginPageContent() {
               className="w-full" 
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Anmelden...' : 'Anmelden'}
             </Button>
             
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or</span>
-              </div>
-            </div>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setEmail('demo@example.com')
-                setPassword('demo')
-                setSuccess('Demo credentials filled. Click Sign in to continue.')
-              }}
-            >
-              Use Demo Account
-            </Button>
           </div>
         </form>
       </div>

@@ -171,35 +171,6 @@ export class AuthService {
     }
   }
 
-  // Demo user handling
-  setDemoUser() {
-    const demoUserData = {
-      id: 'demo-user-id',
-      email: 'demo@example.com',
-      tenant_id: 'demo-tenant-id',
-      full_name: 'Demo User',
-      company_name: 'Demo Company',
-    }
-
-    localStorage.setItem('demo_user', JSON.stringify(demoUserData))
-    window.dispatchEvent(new CustomEvent('demo-user-set'))
-    
-    return demoUserData
-  }
-
-  removeDemoUser() {
-    localStorage.removeItem('demo_user')
-    window.dispatchEvent(new CustomEvent('demo-user-removed'))
-  }
-
-  isDemoUser() {
-    return !!localStorage.getItem('demo_user')
-  }
-
-  getDemoUser() {
-    const demoUser = localStorage.getItem('demo_user')
-    return demoUser ? JSON.parse(demoUser) : null
-  }
 }
 
 export const authService = new AuthService()
