@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database.types'
@@ -26,8 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [tenant, setTenant] = useState<Tenant | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  
-  const supabase = createClient()
+
+  const supabase = useMemo(() => createClient(), [])
   
   useEffect(() => {
     // Get initial session
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         setUser(session.user)
-        await loadUserData(session.user.id)
+        await loadUserData(session.user.id, supabase)
       }
       
       setIsLoading(false)
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user)
-          await loadUserData(session.user.id)
+          await loadUserData(session.user.id, supabase)
         } else {
           setUser(null)
           setProfile(null)
@@ -120,12 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('demo-user-set', handleDemoUserSet)
     }
-  }, [])
+  }, [supabase])
   
-  const loadUserData = async (userId: string) => {
+  const loadUserData = async (userId: string, client: ReturnType<typeof createClient>) => {
     try {
       // Load user profile with tenant
-      const { data: profileData, error } = await supabase
+      const { data: profileData, error } = await client
         .from('profiles')
         .select(`
           *,
@@ -177,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const refreshProfile = async () => {
     if (user) {
-      await loadUserData(user.id)
+      await loadUserData(user.id, supabase)
     }
   }
   
