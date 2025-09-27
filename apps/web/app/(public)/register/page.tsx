@@ -90,12 +90,6 @@ function RegisterPageContent() {
     }
   }
 
-  const handleDemoSignup = () => {
-    // Set demo user
-    authService.setDemoUser()
-    router.push('/en13813/dashboard')
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50">
       <div className="w-full max-w-4xl space-y-8 p-4">
@@ -335,23 +329,6 @@ function RegisterPageContent() {
                 </Button>
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Oder</span>
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleDemoSignup}
-              >
-                Mit Demo-Account testen
-              </Button>
             </div>
           </form>
         </div>
