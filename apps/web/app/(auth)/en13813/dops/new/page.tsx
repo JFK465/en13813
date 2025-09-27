@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-export default function NewDoPPage() {
+function NewDoPPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
@@ -422,5 +422,13 @@ export default function NewDoPPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function NewDoPPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Lädt...</div>}>
+      <NewDoPPageContent />
+    </Suspense>
   )
 }

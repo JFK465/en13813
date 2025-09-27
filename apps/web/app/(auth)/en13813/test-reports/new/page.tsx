@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { TestReportsService } from '@/modules/en13813/services/test-reports.service'
@@ -120,7 +120,7 @@ const testReportSchema = z.object({
 
 type TestReportFormData = z.infer<typeof testReportSchema>
 
-export default function NewTestReportPage() {
+function NewTestReportPageContent() {
   const [loading, setLoading] = useState(false)
   const [recipes, setRecipes] = useState<any[]>([])
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
@@ -1153,5 +1153,13 @@ export default function NewTestReportPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function NewTestReportPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Lädt...</div>}>
+      <NewTestReportPageContent />
+    </Suspense>
   )
 }

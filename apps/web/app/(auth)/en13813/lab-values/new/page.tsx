@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { LabValuesService } from '@/modules/en13813/services/lab-values.service'
@@ -131,7 +131,7 @@ function getWearLimitRollrad(className?: string): number {
   return limits[className || ''] || 20
 }
 
-export default function NewLabValuePage() {
+function NewLabValuePageContent() {
   const [loading, setLoading] = useState(false)
   const [recipes, setRecipes] = useState<any[]>([])
   const [batches, setBatches] = useState<any[]>([])
@@ -847,5 +847,13 @@ export default function NewLabValuePage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function NewLabValuePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Lädt...</div>}>
+      <NewLabValuePageContent />
+    </Suspense>
   )
 }
