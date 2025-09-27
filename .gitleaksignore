@@ -32,3 +32,17 @@ out/**
 # Add specific file:line combinations that are false positives
 # Example:
 # path/to/file.ts:generic-api-key:10
+
+# OpenAPI documentation and API route definitions
+apps/web/lib/api/openapi-schema.ts:generic-api-key
+apps/web/app/api/v1/api-keys/route.ts:generic-api-key
+apps/web/app/api/v1/api-keys/[id]/route.ts:generic-api-key
+
+# Calendar page with example code
+apps/web/app/(dashboard)/calendar/page.tsx:generic-api-key
+
+# Migration script with apikey parameter name
+apps/web/run-migration.js:generic-api-key
+
+# Sentry config with regex patterns for redacting API keys
+apps/web/sentry.server.config.ts:generic-api-key
