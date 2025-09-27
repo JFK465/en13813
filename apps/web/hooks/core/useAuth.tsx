@@ -30,55 +30,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createClient(), [])
   
   useEffect(() => {
-    // Get initial session
+    // Get initial session with timeout
     const getInitialSession = async () => {
-      // Check for demo user first
-      const demoUser = localStorage.getItem('demo_user')
-      if (demoUser) {
-        console.log('🎭 Demo user found in localStorage')
-        const demoData = JSON.parse(demoUser)
-        // Create a mock user object
-        const mockUser = {
-          id: demoData.id,
-          email: demoData.email,
-          user_metadata: { tenant_id: demoData.tenant_id }
-        } as unknown as User
-        
-        setUser(mockUser)
-        
-        // Set mock profile and tenant
-        setProfile({
-          id: demoData.id,
-          user_id: demoData.id,
-          full_name: 'Demo User',
-          tenant_id: demoData.tenant_id,
-          role: 'owner',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        
-        setTenant({
-          id: demoData.tenant_id,
-          name: 'Demo Company',
-          slug: 'demo-company',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        
+      try {
+        // Check for demo user first
+        const demoUser = localStorage.getItem('demo_user')
+        if (demoUser) {
+          console.log('🎭 Demo user found in localStorage')
+          const demoData = JSON.parse(demoUser)
+          // Create a mock user object
+          const mockUser = {
+            id: demoData.id,
+            email: demoData.email,
+            user_metadata: { tenant_id: demoData.tenant_id }
+          } as unknown as User
+
+          setUser(mockUser)
+
+          // Set mock profile and tenant
+          setProfile({
+            id: demoData.id,
+            user_id: demoData.id,
+            full_name: 'Demo User',
+            tenant_id: demoData.tenant_id,
+            role: 'owner',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+          setTenant({
+            id: demoData.tenant_id,
+            name: 'Demo Company',
+            slug: 'demo-company',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+          setIsLoading(false)
+          return
+        }
+
+        // Set a timeout for the session check
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        )
+
+        const sessionPromise = supabase.auth.getSession()
+
+        const { data: { session } } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any
+
+        if (session?.user) {
+          setUser(session.user)
+          await loadUserData(session.user.id, supabase)
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error)
+      } finally {
         setIsLoading(false)
-        return
       }
-      
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user) {
-        setUser(session.user)
-        await loadUserData(session.user.id, supabase)
-      }
-      
-      setIsLoading(false)
     }
-    
+
     getInitialSession()
     
     // Listen for localStorage changes (for demo user)

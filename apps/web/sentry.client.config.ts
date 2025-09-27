@@ -1,19 +1,26 @@
 import * as Sentry from "@sentry/nextjs";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+// Only initialize Sentry if DSN is available
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  try {
+    Sentry.init({
+      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Adjust sample rate for production
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+      // Adjust sample rate for production
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+      // Session Replay
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
 
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: false,
-      blockAllMedia: false,
-    }),
-  ],
-});
+      integrations: [
+        Sentry.replayIntegration({
+          maskAllText: false,
+          blockAllMedia: false,
+        }),
+      ],
+    });
+  } catch (error) {
+    console.error('Failed to initialize Sentry:', error);
+  }
+}
