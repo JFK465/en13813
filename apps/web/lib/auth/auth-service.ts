@@ -20,7 +20,14 @@ export interface SignInOptions {
 }
 
 export class AuthService {
-  private supabase = createClient()
+  private supabase: ReturnType<typeof createClient> | null = null
+
+  private getSupabase() {
+    if (!this.supabase) {
+      this.supabase = createClient()
+    }
+    return this.supabase
+  }
 
   async signUp({ email, password, companyName, fullName }: SignUpOptions) {
     try {
@@ -34,7 +41,7 @@ export class AuthService {
       }
 
       // Check if user already exists
-      const { data: existingUser } = await this.supabase
+      const { data: existingUser } = await this.getSupabase()
         .from('profiles')
         .select('email')
         .eq('email', email)
@@ -45,7 +52,7 @@ export class AuthService {
       }
 
       // Attempt signup
-      const { data, error } = await this.supabase.auth.signUp({
+      const { data, error } = await this.getSupabase().auth.signUp({
         email,
         password,
         options: {
@@ -53,7 +60,7 @@ export class AuthService {
             full_name: fullName,
             company_name: companyName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
         },
       })
 
@@ -86,7 +93,7 @@ export class AuthService {
         throw new Error('Email and password are required')
       }
 
-      const { data, error } = await this.supabase.auth.signInWithPassword({
+      const { data, error } = await this.getSupabase().auth.signInWithPassword({
         email,
         password,
       })
@@ -115,7 +122,7 @@ export class AuthService {
 
   async signOut() {
     try {
-      const { error } = await this.supabase.auth.signOut()
+      const { error } = await this.getSupabase().auth.signOut()
       if (error) throw error
     } catch (error: any) {
       console.error('SignOut error:', error)
@@ -125,8 +132,8 @@ export class AuthService {
 
   async resetPassword(email: string) {
     try {
-      const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      const { error } = await this.getSupabase().auth.resetPasswordForEmail(email, {
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/reset-password` : undefined,
       })
 
       if (error) throw error
@@ -138,7 +145,7 @@ export class AuthService {
 
   async updatePassword(newPassword: string) {
     try {
-      const { error } = await this.supabase.auth.updateUser({
+      const { error } = await this.getSupabase().auth.updateUser({
         password: newPassword,
       })
 
@@ -151,7 +158,7 @@ export class AuthService {
 
   async getSession() {
     try {
-      const { data, error } = await this.supabase.auth.getSession()
+      const { data, error } = await this.getSupabase().auth.getSession()
       if (error) throw error
       return data.session
     } catch (error: any) {
@@ -162,7 +169,7 @@ export class AuthService {
 
   async getUser() {
     try {
-      const { data, error } = await this.supabase.auth.getUser()
+      const { data, error } = await this.getSupabase().auth.getUser()
       if (error) throw error
       return data.user
     } catch (error: any) {
