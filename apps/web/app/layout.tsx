@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/providers/Providers'
 import { SiteHeader } from '@/components/navigation/SiteHeader'
+import { SentryInit } from '@/components/SentryInit'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -44,6 +45,7 @@ export default function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
+        <SentryInit />
         <Providers>
           <div className="min-h-screen flex flex-col">
             <SiteHeader />
