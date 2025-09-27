@@ -25,7 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [tenant, setTenant] = useState<Tenant | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Start with false during SSR to prevent hydration mismatch
+  const [isLoading, setIsLoading] = useState(() => typeof window === 'undefined' ? false : true)
 
   const supabase = useMemo(() => createClient(), [])
   
@@ -33,9 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session with timeout
     const getInitialSession = async () => {
       try {
-        // Set a timeout for the session check
+        // Set a longer timeout for the session check (10 seconds)
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+          setTimeout(() => reject(new Error('Session check timeout')), 10000)
         )
 
         const sessionPromise = supabase.auth.getSession()

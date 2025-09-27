@@ -31,27 +31,9 @@ export default function AuthLayout({
     }
   }, [user, isLoading, router])
 
-  // Don't show loading state during SSR - let the page render
-  // The auth check will happen client-side
-  if (typeof window === 'undefined') {
-    // During SSR, render children immediately
-    if (isEN13813Section) {
-      return children
-    }
-    return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-    )
-  }
-
-  // Client-side loading state
-  if (isLoading) {
+  // For SSR and initial client render, don't show loading state
+  // This prevents hydration mismatches
+  if (isLoading && typeof window !== 'undefined') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
