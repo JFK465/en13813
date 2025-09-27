@@ -1,9 +1,12 @@
 Vercel CLI 48.1.6
-Retrieving project…
-Deploying jonas-projects-c5d331f6/en13813-web
-Uploading [--------------------] (0.0B/2.7KB)
-Uploading [====================] (2.7KB/2.7KB)
-Inspect: https://vercel.com/jonas-projects-c5d331f6/en13813-web/86bvXg7tq7Rmmu2p2yCJTrvHGhtg [3s]
-Production: https://en13813-e08y8mmht-jonas-projects-c5d331f6.vercel.app [3s]
-https://en13813-e08y8mmht-jonas-projects-c5d331f6.vercel.appQueued
+Loading scopes…
+Searching for existing projects…
+Linked to jonas-projects-c5d331f6/en13813 (created .vercel)
+Deploying jonas-projects-c5d331f6/en13813
+Uploading [--------------------] (0.0B/301B)
+Uploading [========------------] (128.0B/301B)
+Uploading [====================] (301.0B/301B)
+Inspect: https://vercel.com/jonas-projects-c5d331f6/en13813/HN68DWDtPbY7nj4ZiFLXs5qHmSKH [3s]
+Preview: https://en13813-4jh6wbmfa-jonas-projects-c5d331f6.vercel.app [3s]
+https://en13813-4jh6wbmfa-jonas-projects-c5d331f6.vercel.appQueued
 Building

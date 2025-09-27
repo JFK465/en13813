@@ -47,7 +47,7 @@ export default function SentryExamplePage() {
 
       // Sentry sollte den Fehler automatisch erfassen
       // Falls nicht, können wir es manuell senden:
-      if (typeof window !== 'undefined' && window.Sentry) {
+      if (typeof window !== 'undefined' && window.Sentry && error instanceof Error) {
         window.Sentry.captureException(error, {
           tags: {
             section: 'sentry-test',
