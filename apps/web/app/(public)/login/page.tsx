@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { authService } from '@/lib/auth/auth-service'
+import { useAuth } from '@/hooks/core/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,16 +13,25 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react'
 function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user, signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log('✅ User already logged in, redirecting to EN13813')
+      router.push('/en13813')
+    }
+  }, [user, router])
+
   useEffect(() => {
     const message = searchParams.get('message')
     const registered = searchParams.get('registered')
-    
+
     if (message) {
       setSuccess(message)
     } else if (registered === 'true') {
@@ -39,11 +48,15 @@ function LoginPageContent() {
 
     try {
       console.log('🔗 Attempting authentication')
-      const data = await authService.signIn({ email, password })
+      // Use the signIn from useAuth hook
+      await signIn(email, password)
 
-      console.log('✅ Login successful, redirecting to EN13813')
-      router.push('/en13813')
-      router.refresh()
+      console.log('✅ Login successful, redirecting...')
+
+      // Force a page refresh to ensure auth state is properly initialized
+      // This is necessary because of SSR/Client auth state sync issues in Next.js 14
+      window.location.href = '/en13813'
+
     } catch (err: any) {
       console.log('❌ Login error:', err)
       setError(err.message || 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.')

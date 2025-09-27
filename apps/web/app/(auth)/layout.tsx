@@ -23,17 +23,21 @@ export default function AuthLayout({
 
   useEffect(() => {
     console.log('🔒 AuthLayout useEffect triggered', { user: !!user, isLoading })
-    if (!isLoading && !user) {
-      console.log('❌ No user found, redirecting to login')
-      router.push('/login')
-    } else if (user) {
-      console.log('✅ User found, allowing access')
-    }
+    // Add a small delay to ensure auth state is fully initialized
+    const timer = setTimeout(() => {
+      if (!isLoading && !user) {
+        console.log('❌ No user found, redirecting to login')
+        router.push('/login')
+      } else if (user) {
+        console.log('✅ User found, allowing access')
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [user, isLoading, router])
 
-  // For SSR and initial client render, don't show loading state
-  // This prevents hydration mismatches
-  if (isLoading && typeof window !== 'undefined') {
+  // Show loading state only when actually loading
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

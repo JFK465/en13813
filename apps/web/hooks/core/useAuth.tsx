@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database.types'
+import { getSessionWithFallback, clearCachedSession, retryWithBackoff } from '@/lib/auth/session-utils'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Tenant = Database['public']['Tables']['tenants']['Row']
@@ -25,62 +26,98 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [tenant, setTenant] = useState<Tenant | null>(null)
-  // Start with false during SSR to prevent hydration mismatch
-  const [isLoading, setIsLoading] = useState(() => typeof window === 'undefined' ? false : true)
+  // Start with false for consistent hydration - will be set to true only when needed
+  const [isLoading, setIsLoading] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const supabase = useMemo(() => createClient(), [])
   
+  // Setup auth state listener immediately
   useEffect(() => {
-    // Get initial session with timeout
-    const getInitialSession = async () => {
-      try {
-        // Set a longer timeout for the session check (10 seconds)
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session check timeout')), 10000)
-        )
-
-        const sessionPromise = supabase.auth.getSession()
-
-        const { data: { session } } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any
-
-        if (session?.user) {
-          setUser(session.user)
-          await loadUserData(session.user.id, supabase)
-        }
-      } catch (error) {
-        console.error('Error getting initial session:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    getInitialSession()
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
-        
+        console.log('🔄 Auth state changed:', event, session?.user?.email)
+
         if (session?.user) {
           setUser(session.user)
           await loadUserData(session.user.id, supabase)
+          setIsLoading(false)
         } else {
           setUser(null)
           setProfile(null)
           setTenant(null)
+          setIsLoading(false)
         }
-        
-        setIsLoading(false)
       }
     )
-    
+
     return () => {
       subscription.unsubscribe()
     }
   }, [supabase])
+
+  // Get initial session
+  useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return
+
+    // Prevent re-initialization
+    if (isInitialized) return
+
+    // Get initial session with retry mechanism and better error handling
+    const getInitialSession = async (retryCount = 0) => {
+      const MAX_RETRIES = 3
+      const TIMEOUT_MS = 30000 // 30 seconds
+      const RETRY_DELAYS = [1000, 2000, 4000] // Exponential backoff
+
+      // Set loading true only when actually checking session
+      if (retryCount === 0) {
+        setIsLoading(true)
+      }
+
+      try {
+        // Set timeout promise
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), TIMEOUT_MS)
+        )
+
+        // Use the enhanced session retrieval with fallback
+        const sessionPromise = getSessionWithFallback(supabase)
+
+        const session = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ])
+
+        if (session?.user) {
+          setUser(session.user)
+          await loadUserData(session.user.id, supabase)
+        }
+      } catch (error: any) {
+        console.error(`Session check attempt ${retryCount + 1} failed:`, error)
+
+        // Retry logic with exponential backoff
+        if (retryCount < MAX_RETRIES) {
+          const delay = RETRY_DELAYS[retryCount] || 5000
+          console.log(`Retrying session check in ${delay}ms...`)
+
+          setTimeout(() => {
+            getInitialSession(retryCount + 1)
+          }, delay)
+          return // Important: return here to avoid setting isLoading to false during retry
+        } else {
+          // After all retries failed, just continue without session
+          console.error('Session check failed after all retries. Continuing without session.')
+        }
+      }
+
+      // Set loading to false after successful check or final retry
+      setIsLoading(false)
+      setIsInitialized(true)
+    }
+
+    getInitialSession()
+  }, [supabase, isInitialized])
   
   const loadUserData = async (userId: string, client: ReturnType<typeof createClient>) => {
     try {
@@ -133,6 +170,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
+
+    // Clear cached session on sign out
+    clearCachedSession()
   }
   
   const refreshProfile = async () => {

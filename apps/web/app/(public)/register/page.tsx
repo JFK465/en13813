@@ -3,7 +3,8 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { authService } from '@/lib/auth/auth-service'
+import { useAuth } from '@/hooks/core/useAuth'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +24,7 @@ import {
 function RegisterPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user, signUp } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -34,6 +36,14 @@ function RegisterPageContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log('✅ User already logged in, redirecting to EN13813')
+      router.push('/en13813')
+    }
+  }, [user, router])
 
   useEffect(() => {
     const message = searchParams.get('message')
@@ -61,31 +71,25 @@ function RegisterPageContent() {
     }
 
     try {
-      // Validation is now handled by authService
+      // Use signUp from useAuth hook
+      await signUp(email, password, companyName)
 
-      // Use auth service for signup
-      const { data, requiresEmailConfirmation } = await authService.signUp({
-        email,
-        password,
-        companyName,
-        fullName,
-      })
+      // Check if email confirmation is needed
+      const { data: { session } } = await createClient().auth.getSession()
 
-      if (requiresEmailConfirmation) {
+      if (!session) {
         setSuccess('Please check your email to confirm your account')
         setTimeout(() => {
           router.push('/login?message=Please check your email to confirm your account')
         }, 3000)
-      } else if (data?.session) {
-        // Auto-signed in
-        router.push('/en13813/dashboard')
       } else {
-        // Redirect to login page with success message
-        router.push('/login?registered=true')
+        // Auto-signed in, redirect will happen via useEffect
+        console.log('✅ Registration successful, auto-signed in')
       }
     } catch (err: any) {
       console.error('Signup error:', err)
       setError(err.message || 'An unexpected error occurred. Please try again.')
+    } finally {
       setLoading(false)
     }
   }
