@@ -23,8 +23,8 @@ if (fs.existsSync(prodEnvPath)) {
   console.log('⚠️  Keine .env.production gefunden')
   console.log('Erstellen Sie eine .env.production Datei mit folgenden Variablen:')
   console.log('NEXT_PUBLIC_SUPABASE_URL=https://[your-project].supabase.co')
-  console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...')
-  console.log('SUPABASE_SERVICE_ROLE_KEY=eyJ...')
+  console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key-here>')
+  console.log('SUPABASE_SERVICE_ROLE_KEY=<your-service-key-here>')
   console.log('\nOder geben Sie die Werte direkt ein:')
 }
 
@@ -52,9 +52,9 @@ async function getSupabaseCredentials() {
   }
   
   if (!supabaseServiceKey) {
-    supabaseServiceKey = await question('Service Role Key (eyJ...): ')
-    
-    if (!supabaseServiceKey.startsWith('eyJ')) {
+    supabaseServiceKey = await question('Service Role Key: ')
+
+    if (supabaseServiceKey.length < 20) {
       console.error('❌ Ungültiger Service Role Key')
       process.exit(1)
     }
