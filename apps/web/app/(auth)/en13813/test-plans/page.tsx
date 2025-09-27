@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { TestPlanService, RecipeTestPlan, TestSchedule } from '@/modules/en13813/services/test-plan.service'
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

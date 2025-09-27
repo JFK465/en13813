@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createEN13813Services, DoP } from '@/modules/en13813/services'
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,7 +75,7 @@ export default function DoPsPage() {
         query = query.eq('status', statusFilter)
       }
 
-      const result = await queryWithTimeout(query, 10000)
+      const result = await query
 
       if (result.error) {
         console.error('Error loading DoPs:', result.error)

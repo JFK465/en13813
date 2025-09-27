@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { queryWithTimeout } from '@/lib/utils/query-timeout'
 import {
   Card,
   CardContent,
