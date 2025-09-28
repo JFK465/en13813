@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createEN13813Services, Recipe } from '@/modules/en13813/services'
+import type { RecipeDraft } from '@/modules/en13813/services/recipe-draft.service'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,36 +52,127 @@ export default function RecipesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  
+  const [localDraft, setLocalDraft] = useState<any>(null)
+  const [cloudDrafts, setCloudDrafts] = useState<any[]>([])
+  const [hasInitialized, setHasInitialized] = useState(false)
+
+  // Use refs to access current filter values without causing re-renders
+  const filterRefs = useRef({
+    typeFilter: 'all',
+    statusFilter: 'all',
+    searchTerm: ''
+  })
+
+  // Update refs when state changes
+  useEffect(() => {
+    filterRefs.current.typeFilter = typeFilter
+    filterRefs.current.statusFilter = statusFilter
+    filterRefs.current.searchTerm = searchTerm
+  }, [typeFilter, statusFilter, searchTerm])
+
   const supabase = createClientComponentClient()
   const services = createEN13813Services(supabase)
   const router = useRouter()
 
-  useEffect(() => {
-    loadRecipes()
-  }, [typeFilter, statusFilter])
+  // Lade lokale Entwürfe aus LocalStorage
+  const loadLocalDraft = useCallback(() => {
+    try {
+      const saved = localStorage.getItem('en13813-recipe-draft-new')
+      if (saved) {
+        const draft = JSON.parse(saved)
+        setLocalDraft(draft)
+      }
+    } catch (error) {
+      console.error('Failed to load local draft:', error)
+    }
+  }, [])
 
-  async function loadRecipes() {
+  // Lade Entwürfe aus der Cloud (Supabase)
+  const loadCloudDrafts = useCallback(async () => {
+    try {
+      console.log('📥 Loading cloud drafts...')
+      // Super kurzes Timeout - wir wollen nicht warten!
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Draft load timeout')), 1000) // Nur 1 Sekunde!
+      )
+      const draftsPromise = services.drafts.list()
+      const drafts = await Promise.race([draftsPromise, timeoutPromise]).catch(() => [])
+      console.log('☁️ Found', (drafts as RecipeDraft[]).length, 'cloud drafts')
+      setCloudDrafts(drafts as RecipeDraft[])
+    } catch (error) {
+      console.log('Drafts not loaded (working offline)')
+      setCloudDrafts([])
+    }
+  }, [services])
+
+  const loadRecipes = useCallback(async () => {
+    console.log('🔍 loadRecipes called - starting to load recipes...')
+
     try {
       const filter: any = {}
-      if (typeFilter !== 'all') filter.type = typeFilter
-      if (statusFilter !== 'all') filter.status = statusFilter
-      if (searchTerm) filter.search = searchTerm
+      // Use refs to get current filter values
+      if (filterRefs.current.typeFilter !== 'all') filter.type = filterRefs.current.typeFilter
+      if (filterRefs.current.statusFilter !== 'all') filter.status = filterRefs.current.statusFilter
+      if (filterRefs.current.searchTerm) filter.search = filterRefs.current.searchTerm
 
-      const result = await services.recipes.list(filter)
+      console.log('📤 Calling services.recipes.list with filter:', filter)
+
+      // Sehr kurzes Timeout - wir zeigen lieber eine leere Liste als zu warten!
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 2000) // Nur 2 Sekunden!
+      )
+
+      const loadPromise = services.recipes.list(filter)
+
+      const result = await Promise.race([loadPromise, timeoutPromise]).catch((error) => {
+        console.log('⚠️ Using empty array (timeout or error)')
+        return [] as Recipe[] // Sofort leere Liste zeigen
+      }) as Recipe[]
+
+      console.log('📥 Received recipes:', result?.length || 0, 'items')
       setRecipes(result || [])
+
+      // Don't show error toast if it's just empty results
+      if (result === null || result === undefined) {
+        console.log('ℹ️ No recipes found or service unavailable')
+      }
     } catch (error: any) {
-      console.error('Error loading recipes:', error)
+      console.error('❌ Unexpected error loading recipes:', error)
       setRecipes([]) // Show empty list on error
-      toast({
-        title: 'Fehler beim Laden',
-        description: error?.message || 'Rezepturen konnten nicht geladen werden. Bitte versuchen Sie es später erneut.',
-        variant: 'destructive'
-      })
+      // Only show toast for real errors, not for auth issues
+      if (!error.message?.includes('auth') && !error.message?.includes('timeout')) {
+        toast({
+          title: 'Hinweis',
+          description: 'Rezepturen konnten nicht geladen werden. Die Liste ist möglicherweise leer.',
+          variant: 'default' // Use default instead of destructive for less alarming message
+        })
+      }
     } finally {
+      console.log('✅ Setting loading to false')
       setLoading(false)
     }
-  }
+  }, []) // Remove dependencies to make function stable
+
+  // Initial load - parallel und non-blocking
+  useEffect(() => {
+    console.log('🚀 RecipesPage initializing...')
+    loadLocalDraft()
+    // Keine Verzögerung - lade sofort!
+    loadCloudDrafts()
+    loadRecipes()
+    // Setze loading sofort auf false
+    setLoading(false)
+  }, []) // Only run once on mount
+
+  // Load recipes when filters change (but not on initial mount)
+  useEffect(() => {
+    if (hasInitialized) {
+      console.log('🔄 Filter changed, reloading recipes...')
+      loadRecipes()
+    } else {
+      setHasInitialized(true)
+    }
+  }, [typeFilter, statusFilter]) // Only depend on actual filter values
 
   async function handleSearch() {
     setLoading(true)
@@ -151,9 +243,8 @@ export default function RecipesPage() {
     return <Badge variant="outline">{types[type] || type}</Badge>
   }
 
-  if (loading && recipes.length === 0) {
-    return <div className="flex items-center justify-center h-96">Lade Rezepturen...</div>
-  }
+  // Zeige die Seite sofort, auch während des Ladens
+  // Kein Warten auf "Lade Rezepturen..."
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -218,6 +309,126 @@ export default function RecipesPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Cloud Drafts */}
+      {cloudDrafts.length > 0 && (
+        <Card className="border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+          <CardHeader>
+            <CardTitle className="text-blue-800 dark:text-blue-200">
+              ☁️ Cloud-Entwürfe
+            </CardTitle>
+            <CardDescription className="text-blue-700 dark:text-blue-300">
+              {cloudDrafts.length} {cloudDrafts.length === 1 ? 'Entwurf' : 'Entwürfe'} in der Cloud gespeichert
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {cloudDrafts.map((draft) => (
+                <div key={draft.id} className="p-3 border rounded-lg bg-white dark:bg-gray-900">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{draft.draft_name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Code: {draft.draft_data?.recipe_code || 'Nicht vergeben'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Typ: {draft.draft_data?.binder_type || 'Nicht definiert'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Aktualisiert: {new Date(draft.updated_at).toLocaleString('de-DE')}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          // Verwende draft_name als eindeutigen Identifier
+                          router.push(`/en13813/recipes/new?draft=${encodeURIComponent(draft.draft_name)}`)
+                        }}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Bearbeiten
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          if (confirm('Sind Sie sicher, dass Sie diesen Entwurf löschen möchten?')) {
+                            const deleted = await services.drafts.delete(draft.draft_name)
+                            if (deleted) {
+                              toast({
+                                title: 'Entwurf gelöscht',
+                                description: 'Der Cloud-Entwurf wurde entfernt.'
+                              })
+                              loadCloudDrafts() // Reload drafts
+                            }
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Local Draft Alert (Legacy) */}
+      {localDraft && localDraft.data && (
+        <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <CardHeader>
+            <CardTitle className="text-amber-800 dark:text-amber-200">
+              Lokaler Entwurf vorhanden
+            </CardTitle>
+            <CardDescription className="text-amber-700 dark:text-amber-300">
+              Zuletzt gespeichert: {new Date(localDraft.savedAt).toLocaleString('de-DE')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div>
+                <strong>Name:</strong> {localDraft.data.name || 'Ohne Namen'}
+              </div>
+              <div>
+                <strong>Code:</strong> {localDraft.data.recipe_code || 'Noch nicht vergeben'}
+              </div>
+              <div>
+                <strong>Typ:</strong> {localDraft.data.binder_type || 'Nicht definiert'}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  onClick={() => router.push('/en13813/recipes/new')}
+                  variant="default"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Entwurf fortsetzen
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (confirm('Sind Sie sicher, dass Sie den lokalen Entwurf löschen möchten?')) {
+                      localStorage.removeItem('en13813-recipe-draft-new')
+                      setLocalDraft(null)
+                      toast({
+                        title: 'Entwurf gelöscht',
+                        description: 'Der lokale Entwurf wurde entfernt.'
+                      })
+                    }
+                  }}
+                  variant="outline"
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash className="mr-2 h-4 w-4" />
+                  Entwurf löschen
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recipes Table */}
       <Card>

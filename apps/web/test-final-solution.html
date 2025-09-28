@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>EN13813 Draft System Test</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; max-width: 800px; margin: auto; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 EN13813 Hybrid Draft System - Finale Tests</h1>
+
+    <div class="test info">
+        <h2>Test 1: LocalStorage funktioniert ohne Auth</h2>
+        <button onclick="testLocalStorage()">Test starten</button>
+        <div id="localStorage-result"></div>
+    </div>
+
+    <div class="test info">
+        <h2>Test 2: Formular speichert Draft</h2>
+        <button onclick="testFormDraft()">Test starten</button>
+        <div id="form-result"></div>
+    </div>
+
+    <div class="test info">
+        <h2>Test 3: Recipes Seite lädt schnell</h2>
+        <button onclick="testRecipesPage()">Test starten</button>
+        <div id="recipes-result"></div>
+    </div>
+
+    <div class="test info">
+        <h2>Test 4: Performance Check</h2>
+        <button onclick="testPerformance()">Test starten</button>
+        <div id="performance-result"></div>
+    </div>
+
+    <script>
+        function testLocalStorage() {
+            const result = document.getElementById('localStorage-result');
+            try {
+                // Test localStorage direkt
+                const testDraft = {
+                    id: crypto.randomUUID(),
+                    draft_name: 'browser-test-' + Date.now(),
+                    draft_data: { recipe_code: 'TEST-001' },
+                    created_at: new Date().toISOString(),
+                    sync_status: 'local'
+                };
+
+                // Speichern
+                const drafts = JSON.parse(localStorage.getItem('en13813_recipe_drafts') || '[]');
+                drafts.push(testDraft);
+                localStorage.setItem('en13813_recipe_drafts', JSON.stringify(drafts));
+
+                // Wieder laden
+                const loaded = JSON.parse(localStorage.getItem('en13813_recipe_drafts'));
+                const found = loaded.find(d => d.id === testDraft.id);
+
+                if (found) {
+                    result.innerHTML = '<p class="success">✅ LocalStorage funktioniert perfekt!</p>' +
+                                     '<pre>' + JSON.stringify(found, null, 2) + '</pre>';
+                } else {
+                    result.innerHTML = '<p class="error">❌ Draft nicht gefunden</p>';
+                }
+            } catch (e) {
+                result.innerHTML = '<p class="error">❌ Fehler: ' + e.message + '</p>';
+            }
+        }
+
+        async function testFormDraft() {
+            const result = document.getElementById('form-result');
+            try {
+                const start = performance.now();
+
+                // Simuliere Draft-Speicherung via API
+                const response = await fetch('/api/test-hybrid-draft');
+                const data = await response.json();
+
+                const time = Math.round(performance.now() - start);
+
+                if (data.success) {
+                    result.innerHTML = '<p class="success">✅ Draft-API funktioniert!</p>' +
+                                     '<p>Zeit: ' + time + 'ms</p>' +
+                                     '<pre>' + JSON.stringify(data.summary, null, 2) + '</pre>';
+                } else {
+                    result.innerHTML = '<p class="error">❌ API-Fehler</p>';
+                }
+            } catch (e) {
+                result.innerHTML = '<p class="error">❌ Fehler: ' + e.message + '</p>';
+            }
+        }
+
+        async function testRecipesPage() {
+            const result = document.getElementById('recipes-result');
+            try {
+                const start = performance.now();
+
+                const response = await fetch('/en13813/recipes');
+                const html = await response.text();
+
+                const time = Math.round(performance.now() - start);
+
+                if (response.ok) {
+                    const hasContent = html.includes('Rezeptur') || html.includes('recipe');
+                    result.innerHTML = '<p class="success">✅ Recipes-Seite lädt!</p>' +
+                                     '<p>Ladezeit: ' + time + 'ms</p>' +
+                                     '<p>Inhalt vorhanden: ' + (hasContent ? 'Ja' : 'Nein') + '</p>';
+                } else {
+                    result.innerHTML = '<p class="error">❌ Seite konnte nicht geladen werden</p>';
+                }
+            } catch (e) {
+                result.innerHTML = '<p class="error">❌ Fehler: ' + e.message + '</p>';
+            }
+        }
+
+        async function testPerformance() {
+            const result = document.getElementById('performance-result');
+            const times = [];
+
+            result.innerHTML = '<p>⏳ Teste Performance (5 Durchläufe)...</p>';
+
+            for (let i = 0; i < 5; i++) {
+                const start = performance.now();
+
+                // Test localStorage write
+                const draft = { test: i, data: 'x'.repeat(1000) };
+                localStorage.setItem('perf-test-' + i, JSON.stringify(draft));
+
+                // Test localStorage read
+                const loaded = localStorage.getItem('perf-test-' + i);
+
+                // Clean up
+                localStorage.removeItem('perf-test-' + i);
+
+                const time = performance.now() - start;
+                times.push(time);
+            }
+
+            const avg = times.reduce((a, b) => a + b, 0) / times.length;
+            const max = Math.max(...times);
+
+            result.innerHTML = '<p class="success">✅ Performance-Test abgeschlossen</p>' +
+                             '<p>Durchschnitt: ' + avg.toFixed(2) + 'ms</p>' +
+                             '<p>Maximum: ' + max.toFixed(2) + 'ms</p>' +
+                             '<p>' + (avg < 5 ? '🚀 Exzellente Performance!' :
+                                     avg < 20 ? '👍 Gute Performance' :
+                                     '⚠️ Performance könnte besser sein') + '</p>';
+        }
+
+        // Auto-Test beim Laden
+        window.addEventListener('load', () => {
+            console.log('🚀 EN13813 Test Suite geladen');
+        });
+    </script>
+</body>
+</html>

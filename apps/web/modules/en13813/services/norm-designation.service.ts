@@ -102,15 +102,18 @@ export class NormDesignationService {
    */
   private static validateSurfaceHardness(value: string | undefined): string | null {
     if (!value) return null
-    
+
     const validValues = [30, 40, 50, 70, 100, 150, 200]
     const cleanValue = value.replace(/^SH/, '')
     const numValue = parseInt(cleanValue)
-    
+
+    // Prüfe ob numValue eine gültige Zahl ist
+    if (isNaN(numValue)) return null
+
     if (!validValues.includes(numValue)) {
       console.warn(`Ungültige Oberflächenhärteklasse SH${numValue}`)
     }
-    
+
     return `SH${numValue}`
   }
 
@@ -119,11 +122,14 @@ export class NormDesignationService {
    */
   private static validateBondStrength(value: string | undefined): string | null {
     if (!value) return null
-    
+
     const validValues = [0.2, 0.5, 1.0, 1.5, 2.0]
     const cleanValue = value.replace(/^B/, '')
     const numValue = parseFloat(cleanValue)
-    
+
+    // Prüfe ob numValue eine gültige Zahl ist
+    if (isNaN(numValue)) return null
+
     if (!validValues.includes(numValue)) {
       console.warn(`Ungültige Haftzugfestigkeitsklasse B${numValue}`)
     }

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createEN13813Services } from '@/modules/en13813/services'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/use-toast'
 import { NormDesignationDisplay } from './NormDesignationDisplay'
 import { 
   COMPRESSIVE_STRENGTH_CLASSES,
@@ -49,12 +50,12 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Label } from '@/components/ui/label'
-import { 
-  Save, 
+import {
+  Save,
   AlertCircle,
-  AlertTriangle, 
-  Plus, 
-  Trash2, 
+  AlertTriangle,
+  Plus,
+  Trash2,
   Calculator,
   FlaskConical,
   Shield,
@@ -70,7 +71,8 @@ import {
   Upload,
   Info,
   Zap,
-  Link
+  Link,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -86,10 +88,15 @@ function numOrUndef(e: React.ChangeEvent<HTMLInputElement>) {
 // ========== UMFASSENDES SCHEMA MIT ALLEN EN13813 ANFORDERUNGEN ==========
 const ultimateRecipeSchema = z.object({
   // === GRUNDDATEN & IDENTIFIKATION ===
-  recipe_uuid: z.string().uuid().optional(), // Eindeutige ID zusätzlich zum Code
   recipe_code: z.string().min(1, 'Rezeptur-Code ist erforderlich'),
   name: z.string().min(1, 'Bezeichnung ist erforderlich'),
+  description: z.string().optional(),
   type: z.enum(['CT', 'CA', 'MA', 'SR', 'AS']),
+
+  // === HERSTELLERANGABEN (EN 13813 PFLICHT) ===
+  manufacturer_name: z.string().optional(), // Wird für DoP benötigt
+  manufacturer_address: z.string().optional(), // Wird für DoP benötigt
+  product_name: z.string().optional(), // Kann vom Rezepturnamen abweichen
 
   // === CE-KENNZEICHNUNG & AVCP ===
   avcp_system: z.enum(['4', '3', '2+', '1+', '1']), // System 4 für CT mit A1fl "ohne Prüfung"
@@ -384,8 +391,13 @@ const ultimateRecipeSchema = z.object({
 type UltimateRecipeFormValues = z.infer<typeof ultimateRecipeSchema>
 
 // ========== HAUPTKOMPONENTE ==========
-export function RecipeFormUltimate() {
+interface RecipeFormUltimateProps {
+  draftId?: string | null
+}
+
+export function RecipeFormUltimate({ draftId }: RecipeFormUltimateProps = {}) {
   const [loading, setLoading] = useState(false)
+  const [loadingDraft, setLoadingDraft] = useState(false)
   const [dopNumber] = useState(() => {
     // Generiere einmalig eine konsistente DoP-Nummer für diese Session
     const randomId = String(Math.floor(Math.random() * 1000)).padStart(3, '0')
@@ -394,6 +406,13 @@ export function RecipeFormUltimate() {
   const [currentSection, setCurrentSection] = useState(0)
   const [enDesignation, setEnDesignation] = useState('')
   const sectionRefs = useRef<HTMLDivElement[]>([])  // Für Progress Chips Navigation
+
+  // Draft Management States
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
+  const draftKey = 'recipe-draft-ultimate'
+
   const router = useRouter()
   const supabase = createClientComponentClient()
   const services = createEN13813Services(supabase)
@@ -481,11 +500,172 @@ export function RecipeFormUltimate() {
     }
   })
 
+  const { toast } = useToast()
   const watchedValues = form.watch()
   const { fields: additiveFields, append: appendAdditive, remove: removeAdditive } = useFieldArray({
     control: form.control,
     name: 'materials.additives'
   })
+
+  // ========== DRAFT MANAGEMENT ==========
+  // Draft in Supabase speichern
+  const saveDraftToDatabase = useCallback(async () => {
+    console.log('📝 saveDraftToDatabase called')
+    try {
+      const formData = form.getValues()
+      const draftName = formData.recipe_code || `Entwurf-${new Date().toISOString().split('T')[0]}`
+      console.log('📋 Draft name:', draftName)
+
+      // Save to database
+      console.log('🔄 Calling services.drafts.save...')
+      const result = await services.drafts.save(draftName, formData)
+      console.log('💾 Save result:', result)
+
+      if (result) {
+        setLastSaved(new Date())
+        console.log('✅ Draft saved successfully, returning true')
+        return true
+      }
+      console.log('⚠️ No result from save, returning false')
+      return false
+    } catch (error: any) {
+      console.error('❌ Failed to save draft to database:', error)
+      // Re-throw error to be caught by onClick handler
+      throw error
+    }
+  }, [form, services])
+
+  // Legacy: Draft lokal speichern (Fallback)
+  const saveDraftToLocal = useCallback(() => {
+    try {
+      const formData = form.getValues()
+      localStorage.setItem(draftKey, JSON.stringify({
+        data: formData,
+        savedAt: new Date().toISOString(),
+        version: '1.0'
+      }))
+      setLastSaved(new Date())
+      return true
+    } catch (error) {
+      console.error('Failed to save draft locally:', error)
+      return false
+    }
+  }, [form, draftKey])
+
+  // Draft wiederherstellen
+  const loadDraftFromLocal = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(draftKey)
+      if (saved) {
+        const draft = JSON.parse(saved)
+        return draft
+      }
+    } catch (error) {
+      console.error('Failed to load draft:', error)
+    }
+    return null
+  }, [draftKey])
+
+  // Auto-Save alle 30 Sekunden
+  useEffect(() => {
+    if (!autoSaveEnabled) return
+
+    const interval = setInterval(() => {
+      if (saveDraftToLocal()) {
+        console.log('Auto-saved draft at', new Date().toLocaleTimeString())
+      }
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [autoSaveEnabled, saveDraftToLocal])
+
+  // Speichere bei Änderungen (debounced)
+  useEffect(() => {
+    if (!autoSaveEnabled) return
+
+    const timeout = setTimeout(() => {
+      saveDraftToLocal()
+    }, 2000)
+
+    return () => clearTimeout(timeout)
+  }, [watchedValues, autoSaveEnabled, saveDraftToLocal])
+
+  // Draft laden wenn draftId übergeben wird
+  useEffect(() => {
+    const loadDraftById = async () => {
+      if (!draftId) return
+
+      setLoadingDraft(true)
+      try {
+        console.log('📂 Loading draft with ID:', draftId)
+
+        // Lade alle Drafts und finde den richtigen
+        const drafts = await services.drafts.list()
+        const targetDraft = drafts.find(d => d.id === draftId || d.draft_name === draftId)
+
+        if (targetDraft && targetDraft.draft_data) {
+          console.log('✅ Draft found, loading into form:', targetDraft.draft_name)
+          form.reset(targetDraft.draft_data)
+          setLastSaved(new Date(targetDraft.updated_at || targetDraft.created_at || Date.now()))
+          toast({
+            title: 'Entwurf geladen',
+            description: `Entwurf "${targetDraft.draft_name}" wurde geladen.`
+          })
+        } else {
+          console.warn('⚠️ Draft not found with ID:', draftId)
+          toast({
+            title: 'Entwurf nicht gefunden',
+            description: 'Der angeforderte Entwurf konnte nicht geladen werden.',
+            variant: 'destructive'
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load draft:', error)
+        toast({
+          title: 'Fehler beim Laden',
+          description: 'Der Entwurf konnte nicht geladen werden.',
+          variant: 'destructive'
+        })
+      } finally {
+        setLoadingDraft(false)
+      }
+    }
+
+    loadDraftById()
+  }, [draftId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Beim Laden prüfen ob lokaler Draft vorhanden (nur wenn keine draftId)
+  useEffect(() => {
+    if (draftId) return // Skip wenn wir einen spezifischen Draft laden
+
+    const draft = loadDraftFromLocal()
+    if (draft && draft.data) {
+      const minutesAgo = Math.floor((Date.now() - new Date(draft.savedAt).getTime()) / 60000)
+
+      if (minutesAgo < 1440) { // Nur wenn jünger als 24 Stunden
+        toast({
+          title: 'Entwurf gefunden',
+          description: `Ein Entwurf von vor ${minutesAgo < 60 ? minutesAgo + ' Minuten' : Math.floor(minutesAgo / 60) + ' Stunden'} wurde gefunden.`,
+          action: (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                form.reset(draft.data)
+                setLastSaved(new Date(draft.savedAt))
+                toast({
+                  title: 'Entwurf wiederhergestellt',
+                  description: 'Der gespeicherte Entwurf wurde geladen.'
+                })
+              }}
+            >
+              Wiederherstellen
+            </Button>
+          )
+        })
+      }
+    }
+  }, [draftId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helper functions for validation
   const parseBondStrength = (b?: string) => {
@@ -777,11 +957,32 @@ export function RecipeFormUltimate() {
     setLoading(true)
     try {
       // Rezeptur mit allen Daten erstellen
-      const recipe = await services.recipes.create({
-        ...data,
-        en_designation: enDesignation,
-        recipe_uuid: crypto.randomUUID()
-      } as any)
+      const recipeData = {
+        recipe_code: data.recipe_code || enDesignation,
+        name: data.name,
+        description: data.description,
+        binder_type: data.type,
+        compressive_strength_class: data.compressive_strength_class,
+        flexural_strength_class: data.flexural_strength_class,
+        wear_resistance_method: data.wear_resistance_method,
+        wear_resistance_class: data.wear_resistance_class,
+        surface_hardness_class: data.surface_hardness_class,
+        bond_strength_class: data.bond_strength_class,
+        impact_resistance_class: data.impact_resistance_class,
+        indentation_class: data.indentation_class,
+        rwfc_class: data.rwfc_class,
+        fire_class: data.fire_class || 'A1fl',
+        avcp_system: data.avcp_system || '4',
+        notified_body_number: data.notified_body_number,
+        intended_use: data.intended_use,
+        status: data.status || 'draft',
+        // Herstellerangaben (EN 13813 relevant für DoP)
+        manufacturer_name: data.manufacturer_name,
+        manufacturer_address: data.manufacturer_address,
+        product_name: data.product_name || data.name, // Fallback auf Rezepturname
+      }
+
+      const recipe = await services.recipes.create(recipeData as any)
 
       // Materialzusammensetzung speichern
       await services.materials.create({
@@ -838,9 +1039,132 @@ export function RecipeFormUltimate() {
     'Versionierung'
   ]
 
+  // Zeige Loading-Spinner wenn Draft geladen wird
+  if (loadingDraft) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Lade Entwurf...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Draft Status Bar */}
+        <Card className="border-muted bg-muted/10">
+          <CardHeader className="pb-3 pt-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  {autoSaveEnabled ? (
+                    <Badge variant="outline" className="gap-1">
+                      <Save className="h-3 w-3" />
+                      Auto-Save aktiv
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="gap-1">
+                      <X className="h-3 w-3" />
+                      Auto-Save aus
+                    </Badge>
+                  )}
+                  {lastSaved && (
+                    <span className="text-sm text-muted-foreground">
+                      Zuletzt gespeichert: {lastSaved.toLocaleTimeString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
+                >
+                  {autoSaveEnabled ? 'Auto-Save deaktivieren' : 'Auto-Save aktivieren'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    console.log('🔄 Manual save button clicked')
+                    try {
+                      setIsSaving(true)
+                      console.log('💾 Calling saveDraftToDatabase...')
+                      const saved = await saveDraftToDatabase()
+                      console.log('🌟 Save result:', saved)
+
+                      if (saved) {
+                        toast({
+                          title: 'Entwurf gespeichert',
+                          description: 'Der Entwurf wurde in der Cloud gespeichert. Sie werden zur Rezeptübersicht weitergeleitet.'
+                        })
+                        // Nach erfolgreichem Speichern zur Rezeptübersicht weiterleiten
+                        setTimeout(() => {
+                          router.push('/en13813/recipes')
+                        }, 1500) // Kurze Verzögerung damit der Toast sichtbar ist
+                      } else {
+                        // Fallback zu lokalem Speichern
+                        if (saveDraftToLocal()) {
+                          toast({
+                            title: 'Entwurf lokal gespeichert',
+                            description: 'Der Entwurf wurde lokal gespeichert (Cloud nicht verfügbar).',
+                            variant: 'default'
+                          })
+                          setTimeout(() => {
+                            router.push('/en13813/recipes')
+                          }, 1500)
+                        } else {
+                          toast({
+                            title: 'Fehler beim Speichern',
+                            description: 'Der Entwurf konnte nicht gespeichert werden.',
+                            variant: 'destructive'
+                          })
+                        }
+                      }
+                    } catch (error: any) {
+                      console.error('Draft save error:', error)
+                      toast({
+                        title: 'Fehler beim Speichern',
+                        description: error.message || 'Der Entwurf konnte nicht gespeichert werden.',
+                        variant: 'destructive'
+                      })
+                    } finally {
+                      setIsSaving(false)
+                    }
+                  }}
+                  disabled={isSaving}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSaving ? 'Speichert...' : 'Entwurf speichern'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm('Möchten Sie den gespeicherten Entwurf wirklich löschen?')) {
+                      localStorage.removeItem(draftKey)
+                      setLastSaved(null)
+                      toast({
+                        title: 'Entwurf gelöscht',
+                        description: 'Der lokale Entwurf wurde entfernt.'
+                      })
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
         {/* EN-Bezeichnung Preview */}
         {enDesignation && (
           <Card className="border-primary/20 bg-primary/5">
@@ -904,6 +1228,20 @@ export function RecipeFormUltimate() {
                     <FormDescription>
                       Eindeutiger interner Code
                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bezeichnung*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="z.B. Schnellzement-Estrich SE 30" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1000,22 +1338,96 @@ export function RecipeFormUltimate() {
               />
             </div>
 
+            {/* Beschreibung */}
             <FormField
               control={form.control}
-              name="name"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bezeichnung*</FormLabel>
+                  <FormLabel>Beschreibung</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="z.B. Zementestrich Standard für Wohnbereich" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Detaillierte Beschreibung der Rezeptur und Anwendungsbereiche..."
+                      className="min-h-[80px]"
+                      {...field}
                     />
                   </FormControl>
+                  <FormDescription>
+                    Optionale ausführliche Beschreibung
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* Herstellerangaben für CE-Kennzeichnung */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Herstellerangaben (für Leistungserklärung / DoP)
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="manufacturer_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Hersteller Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="z.B. Mustermann GmbH"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Wird für CE-Kennzeichnung benötigt
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="product_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Produktname</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="z.B. QuickSet Pro 30"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Handelsname (kann von Bezeichnung abweichen)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="manufacturer_address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hersteller Adresse</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Musterstraße 1&#10;12345 Musterstadt&#10;Deutschland"
+                        className="min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Vollständige Adresse für Leistungserklärung
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* EN-Bezeichnung LIVE */}
             <NormDesignationDisplay
@@ -2931,9 +3343,8 @@ export function RecipeFormUltimate() {
                         {FIRE_CLASSES.map(cls => (
                           <SelectItem key={cls.value} value={cls.value}>{cls.label}</SelectItem>
                         ))}
-                        <SelectItem value="Cfl-s1">Cfl-s1</SelectItem>
-                        <SelectItem value="Dfl-s1">Dfl-s1</SelectItem>
-                        <SelectItem value="Efl">Efl</SelectItem>
+                        <SelectItem value="Cfl-s1">Cfl-s1 - Normal entflammbar mit geringer Rauchentwicklung</SelectItem>
+                        <SelectItem value="Dfl-s1">Dfl-s1 - Normal entflammbar mit geringer Rauchentwicklung</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

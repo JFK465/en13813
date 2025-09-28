@@ -1,0 +1,1153 @@
+{
+  "timestamp": "2025-09-28T13:45:21.025Z",
+  "summary": {
+    "totalFields": 187,
+    "testedFields": 170,
+    "successful": 107,
+    "mismatches": 5,
+    "errors": 58,
+    "successRate": 62.9
+  },
+  "fieldGroups": [
+    {
+      "name": "recipe_code",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "name",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "description",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "version",
+      "count": 1,
+      "success": 0
+    },
+    {
+      "name": "status",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "type",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "test_age_days",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "early_strength",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "heated_indicator",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "manufacturer_name",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "manufacturer_address",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "product_name",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "compressive_strength_class",
+      "count": 1,
+      "success": 0
+    },
+    {
+      "name": "flexural_strength_class",
+      "count": 1,
+      "success": 0
+    },
+    {
+      "name": "wear_resistance_method",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "wear_resistance_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "surface_hardness_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "bond_strength_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "impact_resistance_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "impact_resistance_nm",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "indentation_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "rwfc_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "fire_class",
+      "count": 1,
+      "success": 0
+    },
+    {
+      "name": "smoke_class",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "avcp_system",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "notified_body_number",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "notes",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "internal_notes",
+      "count": 1,
+      "success": 1
+    },
+    {
+      "name": "approved_at",
+      "count": 1,
+      "success": 0
+    },
+    {
+      "name": "materials",
+      "count": 68,
+      "success": 32
+    },
+    {
+      "name": "quality_control",
+      "count": 16,
+      "success": 16
+    },
+    {
+      "name": "additional_properties",
+      "count": 11,
+      "success": 11
+    },
+    {
+      "name": "intended_use",
+      "count": 8,
+      "success": 8
+    },
+    {
+      "name": "itt_test_plan",
+      "count": 16,
+      "success": 4
+    },
+    {
+      "name": "traceability",
+      "count": 12,
+      "success": 2
+    },
+    {
+      "name": "change_log",
+      "count": 10,
+      "success": 10
+    }
+  ],
+  "results": {
+    "success": [
+      {
+        "field": "recipe_code",
+        "status": "success",
+        "expected": "DEEP_TEST_1759067111220",
+        "actual": "DEEP_TEST_1759067111220"
+      },
+      {
+        "field": "name",
+        "status": "success",
+        "expected": "Deep Test Recipe",
+        "actual": "Deep Test Recipe"
+      },
+      {
+        "field": "description",
+        "status": "success",
+        "expected": "Umfassender Test aller Felder und JSONB-Strukturen",
+        "actual": "Umfassender Test aller Felder und JSONB-Strukturen"
+      },
+      {
+        "field": "status",
+        "status": "success",
+        "expected": "draft",
+        "actual": "draft"
+      },
+      {
+        "field": "type",
+        "status": "success",
+        "expected": "CT",
+        "actual": "CT"
+      },
+      {
+        "field": "test_age_days",
+        "status": "success",
+        "expected": 28,
+        "actual": 28
+      },
+      {
+        "field": "early_strength",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "heated_indicator",
+        "status": "success",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "field": "manufacturer_name",
+        "status": "success",
+        "expected": "Test Manufacturer GmbH",
+        "actual": "Test Manufacturer GmbH"
+      },
+      {
+        "field": "manufacturer_address",
+        "status": "success",
+        "expected": "Teststraße 123, 12345 Teststadt",
+        "actual": "Teststraße 123, 12345 Teststadt"
+      },
+      {
+        "field": "product_name",
+        "status": "success",
+        "expected": "SuperEstrich 3000",
+        "actual": "SuperEstrich 3000"
+      },
+      {
+        "field": "wear_resistance_method",
+        "status": "success",
+        "expected": "bohme",
+        "actual": "bohme"
+      },
+      {
+        "field": "wear_resistance_class",
+        "status": "success",
+        "expected": "A22",
+        "actual": "A22"
+      },
+      {
+        "field": "surface_hardness_class",
+        "status": "success",
+        "expected": "SH200",
+        "actual": "SH200"
+      },
+      {
+        "field": "bond_strength_class",
+        "status": "success",
+        "expected": "B2.0",
+        "actual": "B2.0"
+      },
+      {
+        "field": "impact_resistance_class",
+        "status": "success",
+        "expected": "IR4",
+        "actual": "IR4"
+      },
+      {
+        "field": "impact_resistance_nm",
+        "status": "success",
+        "expected": 25.5,
+        "actual": 25.5
+      },
+      {
+        "field": "indentation_class",
+        "status": "success",
+        "expected": "IC100",
+        "actual": "IC100"
+      },
+      {
+        "field": "rwfc_class",
+        "status": "success",
+        "expected": "RWFC350",
+        "actual": "RWFC350"
+      },
+      {
+        "field": "smoke_class",
+        "status": "success",
+        "expected": "s1",
+        "actual": "s1"
+      },
+      {
+        "field": "avcp_system",
+        "status": "success",
+        "expected": "1+",
+        "actual": "1+"
+      },
+      {
+        "field": "notified_body_number",
+        "status": "success",
+        "expected": "1234",
+        "actual": "1234"
+      },
+      {
+        "field": "notes",
+        "status": "success",
+        "expected": "Öffentliche Notizen für DoP",
+        "actual": "Öffentliche Notizen für DoP"
+      },
+      {
+        "field": "internal_notes",
+        "status": "success",
+        "expected": "Interne Notizen - nicht für DoP",
+        "actual": "Interne Notizen - nicht für DoP"
+      },
+      {
+        "field": "materials.binder.type",
+        "status": "success",
+        "expected": "CAC",
+        "actual": "CAC"
+      },
+      {
+        "field": "materials.binder.designation",
+        "status": "success",
+        "expected": "Calcium Aluminate Cement",
+        "actual": "Calcium Aluminate Cement"
+      },
+      {
+        "field": "materials.binder.amount_kg_m3",
+        "status": "success",
+        "expected": 350,
+        "actual": 350
+      },
+      {
+        "field": "materials.binder.supplier",
+        "status": "success",
+        "expected": "Calcium Aluminate Corp",
+        "actual": "Calcium Aluminate Corp"
+      },
+      {
+        "field": "materials.binder.certificate",
+        "status": "success",
+        "expected": "CE-12345",
+        "actual": "CE-12345"
+      },
+      {
+        "field": "materials.binder.properties.specific_gravity",
+        "status": "success",
+        "expected": 2.95,
+        "actual": 2.95
+      },
+      {
+        "field": "materials.binder.properties.blaine_fineness",
+        "status": "success",
+        "expected": 4500,
+        "actual": 4500
+      },
+      {
+        "field": "materials.binder.properties.setting_time_initial",
+        "status": "success",
+        "expected": 45,
+        "actual": 45
+      },
+      {
+        "field": "materials.binder.properties.setting_time_final",
+        "status": "success",
+        "expected": 90,
+        "actual": 90
+      },
+      {
+        "field": "materials.fibers.type",
+        "status": "success",
+        "expected": "synthetic",
+        "actual": "synthetic"
+      },
+      {
+        "field": "materials.fibers.designation",
+        "status": "success",
+        "expected": "PP-Fasern 12mm",
+        "actual": "PP-Fasern 12mm"
+      },
+      {
+        "field": "materials.fibers.length_mm",
+        "status": "success",
+        "expected": 12,
+        "actual": 12
+      },
+      {
+        "field": "materials.fibers.amount_kg_m3",
+        "status": "success",
+        "expected": 0.9,
+        "actual": 0.9
+      },
+      {
+        "field": "materials.fibers.supplier",
+        "status": "success",
+        "expected": "FiberTech GmbH",
+        "actual": "FiberTech GmbH"
+      },
+      {
+        "field": "materials.water.amount_l_m3",
+        "status": "success",
+        "expected": 175,
+        "actual": 175
+      },
+      {
+        "field": "materials.water.quality",
+        "status": "success",
+        "expected": "Trinkwasserqualität",
+        "actual": "Trinkwasserqualität"
+      },
+      {
+        "field": "materials.water.temperature_celsius",
+        "status": "success",
+        "expected": 20,
+        "actual": 20
+      },
+      {
+        "field": "materials.water_cement_ratio",
+        "status": "success",
+        "expected": 0.5,
+        "actual": 0.5
+      },
+      {
+        "field": "materials.consistency_class",
+        "status": "success",
+        "expected": "F3",
+        "actual": "F3"
+      },
+      {
+        "field": "materials.flow_diameter_mm",
+        "status": "success",
+        "expected": 240,
+        "actual": 240
+      },
+      {
+        "field": "materials.mixing_time_min",
+        "status": "success",
+        "expected": 3,
+        "actual": 3
+      },
+      {
+        "field": "materials.mixing_speed_rpm",
+        "status": "success",
+        "expected": 45,
+        "actual": 45
+      },
+      {
+        "field": "materials.mixing_temperature_celsius",
+        "status": "success",
+        "expected": 20,
+        "actual": 20
+      },
+      {
+        "field": "materials.fresh_density_kg_m3",
+        "status": "success",
+        "expected": 2300,
+        "actual": 2300
+      },
+      {
+        "field": "materials.air_content_percent",
+        "status": "success",
+        "expected": 2.5,
+        "actual": 2.5
+      },
+      {
+        "field": "materials.setting_time_initial_min",
+        "status": "success",
+        "expected": 180,
+        "actual": 180
+      },
+      {
+        "field": "materials.setting_time_final_min",
+        "status": "success",
+        "expected": 360,
+        "actual": 360
+      },
+      {
+        "field": "materials.workability_time_min",
+        "status": "success",
+        "expected": 45,
+        "actual": 45
+      },
+      {
+        "field": "materials.batch_size_kg",
+        "status": "success",
+        "expected": 25,
+        "actual": 25
+      },
+      {
+        "field": "materials.production_date",
+        "status": "success",
+        "expected": "2025-01-29",
+        "actual": "2025-01-29"
+      },
+      {
+        "field": "materials.shelf_life_months",
+        "status": "success",
+        "expected": 12,
+        "actual": 12
+      },
+      {
+        "field": "materials.storage_conditions",
+        "status": "success",
+        "expected": "Trocken bei 5-30°C lagern",
+        "actual": "Trocken bei 5-30°C lagern"
+      },
+      {
+        "field": "quality_control.test_frequency_fresh",
+        "status": "success",
+        "expected": "per_batch",
+        "actual": "per_batch"
+      },
+      {
+        "field": "quality_control.test_frequency_hardened",
+        "status": "success",
+        "expected": "weekly",
+        "actual": "weekly"
+      },
+      {
+        "field": "quality_control.sample_size",
+        "status": "success",
+        "expected": "3 Würfel 150x150x150mm",
+        "actual": "3 Würfel 150x150x150mm"
+      },
+      {
+        "field": "quality_control.sample_location",
+        "status": "success",
+        "expected": "Nach Mischer",
+        "actual": "Nach Mischer"
+      },
+      {
+        "field": "quality_control.retention_samples_months",
+        "status": "success",
+        "expected": 6,
+        "actual": 6
+      },
+      {
+        "field": "quality_control.calibration_scales",
+        "status": "success",
+        "expected": "monthly",
+        "actual": "monthly"
+      },
+      {
+        "field": "quality_control.calibration_mixers",
+        "status": "success",
+        "expected": "quarterly",
+        "actual": "quarterly"
+      },
+      {
+        "field": "quality_control.calibration_testing",
+        "status": "success",
+        "expected": "jährlich nach DIN EN ISO/IEC 17025",
+        "actual": "jährlich nach DIN EN ISO/IEC 17025"
+      },
+      {
+        "field": "quality_control.tolerance_binder_percent",
+        "status": "success",
+        "expected": 2,
+        "actual": 2
+      },
+      {
+        "field": "quality_control.tolerance_water_percent",
+        "status": "success",
+        "expected": 3,
+        "actual": 3
+      },
+      {
+        "field": "quality_control.tolerance_temperature_celsius",
+        "status": "success",
+        "expected": 2,
+        "actual": 2
+      },
+      {
+        "field": "quality_control.tolerance_consistency_percent",
+        "status": "success",
+        "expected": 5,
+        "actual": 5
+      },
+      {
+        "field": "quality_control.deviation_minor",
+        "status": "success",
+        "expected": "Dokumentation und Nachprüfung",
+        "actual": "Dokumentation und Nachprüfung"
+      },
+      {
+        "field": "quality_control.deviation_major",
+        "status": "success",
+        "expected": "Produktion anhalten, Charge prüfen",
+        "actual": "Produktion anhalten, Charge prüfen"
+      },
+      {
+        "field": "quality_control.deviation_critical",
+        "status": "success",
+        "expected": "Sofortiger Produktionsstopp, Rückruf prüfen",
+        "actual": "Sofortiger Produktionsstopp, Rückruf prüfen"
+      },
+      {
+        "field": "quality_control.acceptance_criteria",
+        "status": "success",
+        "expected": "Mittelwert ≥ deklarierte Klasse, Einzelwert ≥ 0.9 × deklarierte Klasse",
+        "actual": "Mittelwert ≥ deklarierte Klasse, Einzelwert ≥ 0.9 × deklarierte Klasse"
+      },
+      {
+        "field": "additional_properties.elastic_modulus_class",
+        "status": "success",
+        "expected": "E10",
+        "actual": "E10"
+      },
+      {
+        "field": "additional_properties.shrinkage_mm_m",
+        "status": "success",
+        "expected": 0.5,
+        "actual": 0.5
+      },
+      {
+        "field": "additional_properties.swelling_mm_m",
+        "status": "success",
+        "expected": 0.1,
+        "actual": 0.1
+      },
+      {
+        "field": "additional_properties.creep_coefficient",
+        "status": "success",
+        "expected": 2,
+        "actual": 2
+      },
+      {
+        "field": "additional_properties.thermal_conductivity_w_mk",
+        "status": "success",
+        "expected": 1.4,
+        "actual": 1.4
+      },
+      {
+        "field": "additional_properties.thermal_expansion_coefficient",
+        "status": "success",
+        "expected": 0.000012,
+        "actual": 0.000012
+      },
+      {
+        "field": "additional_properties.specific_heat_capacity",
+        "status": "success",
+        "expected": 1000,
+        "actual": 1000
+      },
+      {
+        "field": "additional_properties.electrical_resistance_ohm_m",
+        "status": "success",
+        "expected": 100000,
+        "actual": 100000
+      },
+      {
+        "field": "additional_properties.radioactivity_index",
+        "status": "success",
+        "expected": 0.5,
+        "actual": 0.5
+      },
+      {
+        "field": "additional_properties.tvoc_emission",
+        "status": "success",
+        "expected": 250,
+        "actual": 250
+      },
+      {
+        "field": "additional_properties.formaldehyde_emission",
+        "status": "success",
+        "expected": "E1",
+        "actual": "E1"
+      },
+      {
+        "field": "intended_use.wearing_surface",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "intended_use.with_flooring",
+        "status": "success",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "field": "intended_use.heated_screed",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "intended_use.indoor_only",
+        "status": "success",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "field": "intended_use.outdoor_use",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "intended_use.wet_areas",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "intended_use.industrial_use",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "intended_use.chemical_resistance",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "itt_test_plan.test_laboratory",
+        "status": "success",
+        "expected": "MPA Stuttgart",
+        "actual": "MPA Stuttgart"
+      },
+      {
+        "field": "itt_test_plan.test_report_number",
+        "status": "success",
+        "expected": "MPA-2025-001",
+        "actual": "MPA-2025-001"
+      },
+      {
+        "field": "itt_test_plan.test_report_date",
+        "status": "success",
+        "expected": "2025-01-15",
+        "actual": "2025-01-15"
+      },
+      {
+        "field": "itt_test_plan.test_report_file",
+        "status": "success",
+        "expected": "/reports/itt-2025-001.pdf",
+        "actual": "/reports/itt-2025-001.pdf"
+      },
+      {
+        "field": "traceability.batch_linking_enabled",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "traceability.customer_deliveries_tracked",
+        "status": "success",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "field": "change_log[0].version",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[0].date",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[0].changes",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[0].requires_retest",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[0].approved_by",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[1].version",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[1].date",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[1].changes",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[1].requires_retest",
+        "status": "success",
+        "type": "array-element"
+      },
+      {
+        "field": "change_log[1].approved_by",
+        "status": "success",
+        "type": "array-element"
+      }
+    ],
+    "mismatch": [
+      {
+        "field": "version",
+        "status": "mismatch",
+        "expected": "1.0.0-test",
+        "actual": "1.0"
+      },
+      {
+        "field": "compressive_strength_class",
+        "status": "mismatch",
+        "expected": "C30",
+        "actual": "C25"
+      },
+      {
+        "field": "flexural_strength_class",
+        "status": "mismatch",
+        "expected": "F5",
+        "actual": "F4"
+      },
+      {
+        "field": "fire_class",
+        "status": "mismatch",
+        "expected": "A2fl",
+        "actual": "A1fl"
+      },
+      {
+        "field": "approved_at",
+        "status": "mismatch",
+        "expected": "2025-09-28T13:45:11.220Z",
+        "actual": "2025-09-28T13:45:11.22"
+      }
+    ],
+    "error": [
+      {
+        "field": "materials.aggregates[0].type",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].designation",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].fraction",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].amount_kg_m3",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].source",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].density_kg_m3",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].moisture_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[0].sieve_mm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[0].passing_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[1].sieve_mm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[1].passing_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[2].sieve_mm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[2].passing_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[3].sieve_mm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[0].grading_curve[3].passing_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].type",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].designation",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].fraction",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].amount_kg_m3",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].source",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].density_kg_m3",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.aggregates[1].water_absorption",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].type",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].designation",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].amount_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].supplier",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].function",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].amount_kg_m3",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[0].density",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[1].type",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[1].designation",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[1].amount_percent",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[1].supplier",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[1].function",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "materials.additives[1].amount_kg_m3",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[0].property",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[0].norm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[0].test_age_days",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[0].target_value",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[1].property",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[1].norm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[1].test_age_days",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[1].target_value",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[2].property",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[2].norm",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[2].test_age_days",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "itt_test_plan.required_tests[2].target_value",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[0].supplier",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[0].material",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[0].certificate_number",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[0].valid_until",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[0].file_url",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[1].supplier",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[1].material",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[1].certificate_number",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[1].valid_until",
+        "status": "error",
+        "type": "array-element"
+      },
+      {
+        "field": "traceability.supplier_certificates[1].file_url",
+        "status": "error",
+        "type": "array-element"
+      }
+    ]
+  }
+}

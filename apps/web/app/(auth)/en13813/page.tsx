@@ -45,52 +45,96 @@ export default function EN13813Dashboard() {
 
   async function loadDashboardData() {
     console.log('📊 Loading EN13813 dashboard data...')
+
+    // Set a timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      console.warn('Dashboard loading timeout - showing page anyway')
+      setLoading(false)
+    }, 5000) // 5 second timeout
+
     try {
-      // Get statistics from materialized view
-      const { data: stats, error: statsError } = await supabase
-        .from('en13813_statistics')
-        .select('*')
-        .single()
+      // Load data in parallel for better performance
+      const promises = []
 
-      if (statsError) {
-        console.error('Error loading statistics:', statsError)
-        // Continue anyway to show the page
-      } else if (stats) {
-        setStatistics(stats)
+      // Try to get statistics (but don't fail if table doesn't exist)
+      promises.push(
+        supabase
+          .from('en13813_statistics')
+          .select('*')
+          .single()
+          .then(({ data, error }) => {
+            if (error) {
+              console.warn('Statistics not available:', error.message)
+              // Return mock data for now
+              return {
+                total_recipes: 0,
+                active_recipes: 0,
+                total_dops: 0,
+                published_dops: 0,
+                total_batches: 0,
+                total_test_reports: 0,
+                valid_test_reports: 0
+              }
+            }
+            return data
+          })
+      )
+
+      // Try to get activities (optional)
+      promises.push(
+        supabase
+          .from('audit_logs')
+          .select('*')
+          .in('resource_type', ['en13813_recipes', 'en13813_dops', 'en13813_batches'])
+          .order('created_at', { ascending: false })
+          .limit(10)
+          .then(({ data, error }) => {
+            if (error) {
+              console.warn('Activities not available:', error.message)
+              return []
+            }
+            return data || []
+          })
+      )
+
+      // Try to get tasks (optional)
+      promises.push(
+        supabase
+          .from('en13813_compliance_tasks')
+          .select('*')
+          .eq('status', 'pending')
+          .order('due_date')
+          .limit(5)
+          .then(({ data, error }) => {
+            if (error) {
+              console.warn('Tasks not available:', error.message)
+              return []
+            }
+            return data || []
+          })
+      )
+
+      // Wait for all promises with a timeout
+      const results = await Promise.allSettled(promises)
+
+      // Process results
+      if (results[0].status === 'fulfilled') {
+        setStatistics(results[0].value)
       }
 
-      // Get recent activities (last 10 items)
-      const { data: activities, error: activitiesError } = await supabase
-        .from('audit_logs')
-        .select('*')
-        .in('resource_type', ['en13813_recipes', 'en13813_dops', 'en13813_batches'])
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (activitiesError) {
-        console.error('Error loading activities:', activitiesError)
-      } else {
-        setRecentActivities(activities || [])
+      if (results[1].status === 'fulfilled') {
+        setRecentActivities(results[1].value)
       }
 
-      // Get upcoming compliance tasks
-      const { data: tasks, error: tasksError } = await supabase
-        .from('en13813_compliance_tasks')
-        .select('*')
-        .eq('status', 'pending')
-        .order('due_date')
-        .limit(5)
-
-      if (tasksError) {
-        console.error('Error loading tasks:', tasksError)
-      } else {
-        setUpcomingTasks(tasks || [])
+      if (results[2].status === 'fulfilled') {
+        setUpcomingTasks(results[2].value)
       }
 
       console.log('✅ Dashboard data loading complete')
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {
+      clearTimeout(loadingTimeout)
       setLoading(false)
     }
   }

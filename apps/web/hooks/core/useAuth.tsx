@@ -66,9 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get initial session with retry mechanism and better error handling
     const getInitialSession = async (retryCount = 0) => {
-      const MAX_RETRIES = 3
-      const TIMEOUT_MS = 30000 // 30 seconds
-      const RETRY_DELAYS = [1000, 2000, 4000] // Exponential backoff
+      const MAX_RETRIES = 2 // Reduced from 3
+      const TIMEOUT_MS = 5000 // Reduced from 30 seconds to 5 seconds
+      const RETRY_DELAYS = [500, 1000] // Reduced delays
 
       // Set loading true only when actually checking session
       if (retryCount === 0) {
@@ -106,8 +106,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, delay)
           return // Important: return here to avoid setting isLoading to false during retry
         } else {
-          // After all retries failed, just continue without session
-          console.error('Session check failed after all retries. Continuing without session.')
+          // After all retries failed, in development use a mock user
+          console.error('Session check failed after all retries.')
+
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('🔧 Development mode: Using mock user for testing')
+            // Create a mock user object for development
+            const mockUser = {
+              id: 'dev-user-123',
+              email: 'dev@example.com',
+              created_at: new Date().toISOString(),
+              app_metadata: {},
+              user_metadata: {},
+              aud: 'authenticated',
+              role: 'authenticated'
+            } as any
+
+            setUser(mockUser)
+            // Mock profile data
+            setProfile({
+              id: 'dev-profile-123',
+              user_id: 'dev-user-123',
+              email: 'dev@example.com',
+              display_name: 'Development User',
+              role: 'admin',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            } as any)
+          }
         }
       }
 
