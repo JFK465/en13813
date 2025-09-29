@@ -64,20 +64,35 @@ export default function DoPsPage() {
     try {
       console.log('🔄 Loading DoPs...')
 
-      let query = supabase
-        .from('en13813_dops')
-        .select(`
-          *,
-          recipe:en13813_recipes(recipe_code, name, type),
-          batch:en13813_batches(batch_number)
-        `)
-        .order('created_at', { ascending: false })
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Loading timeout')), 10000)
+      )
 
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter)
-      }
+      const queryPromise = (async () => {
+        let query = supabase
+          .from('en13813_dops')
+          .select(`
+            *,
+            recipe:en13813_recipes(recipe_code, name, type),
+            batch:en13813_batches(batch_number)
+          `)
+          .order('created_at', { ascending: false })
 
-      const { data, error } = await query
+        if (statusFilter !== 'all') {
+          query = query.eq('status', statusFilter)
+        }
+
+        return await query
+      })()
+
+      const { data, error } = await Promise.race([
+        queryPromise,
+        timeoutPromise
+      ]).catch(err => {
+        console.warn('Query timeout or error:', err)
+        return { data: null, error: err }
+      })
 
       if (error) {
         console.error('Error loading DoPs:', error)
@@ -98,6 +113,7 @@ export default function DoPsPage() {
       console.error('Unexpected error loading DoPs:', error)
       setDops([])
     } finally {
+      // ALWAYS set loading to false
       setLoading(false)
     }
   }

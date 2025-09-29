@@ -1,0 +1,109 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - link "EstrichManager":
+    - /url: /
+  - navigation "Main":
+    - list:
+      - listitem:
+        - link "Funktionen":
+          - /url: /funktionen
+      - listitem:
+        - link "Preise":
+          - /url: /preise
+      - listitem:
+        - button "Wissen"
+      - listitem:
+        - link "Kontakt":
+          - /url: /kontakt
+  - link "Anmelden":
+    - /url: /login
+  - link "Kostenlos testen":
+    - /url: /register
+- main:
+  - heading "EstrichManager" [level=1]
+  - heading "Willkommen zurück" [level=2]
+  - paragraph:
+    - text: Noch kein Konto?
+    - link "Jetzt registrieren":
+      - /url: /register
+  - text: E-Mail-Adresse
+  - textbox "E-Mail-Adresse": DoP-1759072164690
+  - text: Passwort
+  - textbox "Passwort": Test Estrich 1759072164690
+  - checkbox "Angemeldet bleiben"
+  - text: Angemeldet bleiben
+  - link "Passwort vergessen?":
+    - /url: /forgot-password
+  - button "Anmelden"
+  - heading "EstrichManager" [level=3]
+  - paragraph: Die führende Qualitätsmanagement-Software für EN13813 konforme Estrichproduktion.
+  - link "Demo anfordern":
+    - /url: /demo
+  - heading "Produkt" [level=4]
+  - list:
+    - listitem:
+      - link "Funktionen":
+        - /url: /funktionen
+    - listitem:
+      - link "Preise":
+        - /url: /preise
+    - listitem:
+      - link "EN13813 Dashboard":
+        - /url: /en13813
+    - listitem:
+      - link "Login":
+        - /url: /login
+    - listitem:
+      - link "Registrierung":
+        - /url: /register
+  - heading "Wissen" [level=4]
+  - list:
+    - listitem:
+      - link "Wissens-Hub":
+        - /url: /wissen
+    - listitem:
+      - link "EN 13813 Guide":
+        - /url: /wissen/en-13813
+    - listitem:
+      - link "CE-Kennzeichnung":
+        - /url: /wissen/ce-kennzeichnung
+    - listitem:
+      - link "Estrich-Arten":
+        - /url: /wissen/estrich-arten
+    - listitem:
+      - link "Glossar A-Z":
+        - /url: /wissen/glossar
+  - heading "Support" [level=4]
+  - list:
+    - listitem:
+      - link "Kontakt":
+        - /url: /kontakt
+    - listitem:
+      - link "FPC-Dokumentation":
+        - /url: /wissen/fpc-dokumentation
+    - listitem:
+      - link "ITT-Management":
+        - /url: /wissen/itt-management
+    - listitem:
+      - link "DoP-Erstellung":
+        - /url: /wissen/dop-erstellung
+  - heading "Rechtliches" [level=4]
+  - list:
+    - listitem:
+      - link "Impressum":
+        - /url: /impressum
+    - listitem:
+      - link "Datenschutz":
+        - /url: /datenschutz
+    - listitem:
+      - link "AGB":
+        - /url: /agb
+    - listitem:
+      - link "Cookie-Richtlinie":
+        - /url: /cookies
+  - paragraph: © 2025 EstrichManager GmbH. Alle Rechte vorbehalten.
+  - paragraph: Made with ❤️ in Berlin
+- alert
+```

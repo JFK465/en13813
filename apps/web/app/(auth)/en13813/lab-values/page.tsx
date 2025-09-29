@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { getSupabaseSingleton } from '@/lib/supabase/singleton-client'
 import { LabValuesService } from '@/modules/en13813/services/lab-values.service'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -82,7 +83,7 @@ export default function LabValuesPage() {
   const [loading, setLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState('overview')
   const [chartData, setChartData] = useState<any[]>([])
-  const supabase = createClientComponentClient()
+  const supabase = getSupabaseSingleton() // Using singleton to prevent multiple instances
   const labValuesService = new LabValuesService(supabase)
 
   useEffect(() => {
@@ -92,16 +93,27 @@ export default function LabValuesPage() {
   const loadData = async () => {
     try {
       setLoading(true)
-      
-      // Lade Rezepturen
-      const { data: recipesData, error: recipesError } = await supabase
-        .from('en13813_recipes')
-        .select('id, recipe_code, name')
-        .eq('status', 'active')
-        .order('recipe_code')
 
-      if (recipesError) throw recipesError
-      setRecipes(recipesData || [])
+      // Set a timeout to prevent infinite loading
+      const loadingTimeout = setTimeout(() => {
+        console.warn('Lab values loading timeout - showing empty state')
+        setLoading(false)
+        setLabValues([])
+        setRecipes([])
+      }, 10000) // 10 seconds max
+
+      try {
+        // Lade Rezepturen
+        const { data: recipesData, error: recipesError } = await supabase
+          .from('en13813_recipes')
+          .select('id, recipe_code, name')
+          .eq('status', 'active')
+          .order('recipe_code')
+
+        if (recipesError) throw recipesError
+        setRecipes(recipesData || [])
+
+        clearTimeout(loadingTimeout) // Clear timeout if successful
 
       // Setze erste Rezeptur als Standard
       if (recipesData && recipesData.length > 0 && !selectedRecipe) {
@@ -161,8 +173,18 @@ export default function LabValuesPage() {
           console.log('Nicht genug Daten für SPC')
         }
       }
+
+      // Success - clear timeout before setting loading false
+      clearTimeout(loadingTimeout)
+      } catch (innerError) {
+        clearTimeout(loadingTimeout)
+        throw innerError
+      }
     } catch (error) {
       console.error('Error loading data:', error)
+      // Set empty data on error
+      setLabValues([])
+      if (!recipes.length) setRecipes([])
     } finally {
       setLoading(false)
     }
