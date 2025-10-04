@@ -86,13 +86,15 @@ export default function DoPsPage() {
         return await query
       })()
 
-      const { data, error } = await Promise.race([
+      const result = await Promise.race([
         queryPromise,
         timeoutPromise
       ]).catch(err => {
         console.warn('Query timeout or error:', err)
         return { data: null, error: err }
-      })
+      }) as { data: any, error: any }
+
+      const { data, error } = result
 
       if (error) {
         console.error('Error loading DoPs:', error)

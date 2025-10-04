@@ -222,31 +222,29 @@ export class RecipeDraftHybridService {
       }, 500) // Sehr kurzes Timeout!
 
       // Versuche User zu bekommen (non-blocking)
-      this.supabase.auth.getUser().then(({ data: { user } }) => {
-        if (!user) {
-          clearTimeout(timeoutId)
-          resolve([])
-          return
-        }
-
-        // Fetch cloud drafts
-        this.supabase
-          .from('en13813_recipe_drafts')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .then(({ data }) => {
-            clearTimeout(timeoutId)
-            resolve(data || [])
-          })
-          .catch(() => {
+      this.supabase.auth.getUser()
+        .then(({ data: { user } }) => {
+          if (!user) {
             clearTimeout(timeoutId)
             resolve([])
-          })
-      }).catch(() => {
-        clearTimeout(timeoutId)
-        resolve([])
-      })
+            return Promise.resolve()
+          }
+
+          // Fetch cloud drafts
+          return this.supabase
+            .from('en13813_recipe_drafts')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .then(({ data }) => {
+              clearTimeout(timeoutId)
+              resolve(data || [])
+            })
+        })
+        .catch(() => {
+          clearTimeout(timeoutId)
+          resolve([])
+        })
     })
   }
 
@@ -255,19 +253,20 @@ export class RecipeDraftHybridService {
    */
   private async deleteFromCloud(draftName: string): Promise<void> {
     // Non-blocking delete - fire and forget
-    this.supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return
+    this.supabase.auth.getUser()
+      .then(({ data: { user } }) => {
+        if (!user) return Promise.resolve()
 
-      this.supabase
-        .from('en13813_recipe_drafts')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('draft_name', draftName)
-        .then(() => console.log('✅ Deleted from cloud'))
-        .catch(() => console.log('Cloud delete failed (local delete successful)'))
-    }).catch(() => {
-      // Auth failed, ignore
-    })
+        return this.supabase
+          .from('en13813_recipe_drafts')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('draft_name', draftName)
+          .then(() => console.log('✅ Deleted from cloud'))
+      })
+      .catch(() => {
+        console.log('Cloud delete failed (local delete successful)')
+      })
   }
 
   /**

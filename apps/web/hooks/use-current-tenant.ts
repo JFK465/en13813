@@ -47,7 +47,9 @@ export function useCurrentTenant() {
             setCurrentTenant({
               id: DEMO_TENANT_ID,
               name: 'Demo Company GmbH',
-              subdomain: 'demo'
+              slug: 'demo',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             });
             setLoading(false);
           }
