@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Providers } from '@/components/providers/Providers'
 import { SiteHeader } from '@/components/navigation/SiteHeader'
 import { SentryInit } from '@/components/SentryInit'
+import { Footer } from '@/components/Footer'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -52,6 +53,7 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
             </main>
+            <Footer />
           </div>
         </Providers>
       </body>

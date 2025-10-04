@@ -96,25 +96,26 @@ export default function ContactPage() {
       {/* Contact Methods */}
       <section className="px-6 pb-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-6 md:grid-cols-3 mb-12">
+          {/* Mobile-optimized Contact Methods Grid */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12">
             {contactMethods.map((method) => {
               const Icon = method.icon
               return (
                 <Card key={method.title} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <Icon className="h-8 w-8 text-blue-600 mb-2" />
-                    <CardTitle>{method.title}</CardTitle>
-                    <CardDescription>{method.description}</CardDescription>
+                  <CardHeader className="p-6">
+                    <Icon className="h-10 w-10 sm:h-8 sm:w-8 text-blue-600 mb-3" />
+                    <CardTitle className="text-lg sm:text-xl">{method.title}</CardTitle>
+                    <CardDescription className="text-sm">{method.description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-6 pt-0">
                     {method.link.startsWith("#") ? (
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full min-h-[44px]">
                         {method.value}
                       </Button>
                     ) : (
                       <a
                         href={method.link}
-                        className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                        className="text-blue-600 hover:text-blue-700 font-medium hover:underline text-base block py-2"
                       >
                         {method.value}
                       </a>
@@ -218,41 +219,42 @@ export default function ContactPage() {
           <p className="mt-4 text-lg text-gray-600">
             Finden Sie schnell Antworten auf die wichtigsten Fragen
           </p>
-          <div className="mt-10 grid gap-6 md:grid-cols-2 text-left">
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">
+          {/* Mobile-optimized FAQ Grid */}
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 text-left">
+            <div className="p-6 sm:p-8 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">
                 Kann ich EstrichManager kostenlos testen?
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
                 Ja, Sie können EstrichManager 14 Tage lang kostenlos und unverbindlich testen.
               </p>
             </div>
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="p-6 sm:p-8 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">
                 Wie schnell ist EstrichManager einsatzbereit?
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
                 Nach der Registrierung können Sie sofort loslegen. Die Einrichtung dauert nur wenige Minuten.
               </p>
             </div>
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="p-6 sm:p-8 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">
                 Bieten Sie Schulungen an?
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
                 Ja, wir bieten Online-Schulungen und persönliche Einweisungen für alle Pakete an.
               </p>
             </div>
-            <div className="p-6 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="p-6 sm:p-8 bg-gray-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">
                 Sind meine Daten sicher?
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
                 Absolut. Wir speichern alle Daten DSGVO-konform in deutschen Rechenzentren.
               </p>
             </div>
           </div>
-          <Button asChild size="lg" variant="outline" className="mt-8">
+          <Button asChild size="lg" variant="outline" className="mt-8 h-14 px-8 text-base">
             <Link href="/faq">
               Alle FAQs ansehen
             </Link>
@@ -270,12 +272,12 @@ export default function ContactPage() {
             Testen Sie EstrichManager 14 Tage kostenlos und unverbindlich
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary">
+            <Button asChild size="lg" variant="secondary" className="h-14 px-8 text-base w-full sm:w-auto">
               <Link href="/register">
                 Kostenlos testen
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20">
+            <Button asChild size="lg" variant="outline" className="h-14 px-8 text-base w-full sm:w-auto bg-white/10 border-white text-white hover:bg-white/20">
               <Link href="/demo">
                 Demo vereinbaren
               </Link>

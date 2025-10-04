@@ -18,8 +18,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { HeroSection } from "@/components/home/HeroSection"
+import { ModernHeroSection } from "@/components/home/ModernHeroSection"
 import { PainPointsSection } from "@/components/home/PainPointsSection"
+import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid"
 
 // ISR - Seite wird alle 24 Stunden neu generiert für aktuelle Inhalte
 export const revalidate = 86400
@@ -146,9 +147,9 @@ export default function HomePage() {
   ]
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Hero Section mit Animationen - Client Component */}
-      <HeroSection />
+    <main className="min-h-screen">
+      {/* Modern Hero Section with Spotlight Effect */}
+      <ModernHeroSection />
 
       {/* Konkrete Probleme & Lösungen - Client Component mit Animationen */}
       <PainPointsSection />
@@ -165,19 +166,20 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          {/* Mobile-optimized Grid: 1 col mobile, 2 tablet, 3 desktop */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {commonMistakes.map((item) => {
               const Icon = item.icon
               return (
                 <div
                   key={item.mistake}
-                  className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                  className="bg-white rounded-lg p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <Icon className="h-8 w-8 text-blue-600 mb-4" />
-                  <h3 className="font-semibold text-gray-900 mb-2">
+                  <Icon className="h-10 w-10 sm:h-8 sm:w-8 text-blue-600 mb-4" />
+                  <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">
                     ❌ {item.mistake}
                   </h3>
-                  <p className="text-green-600 font-medium">
+                  <p className="text-green-600 font-medium text-sm sm:text-base">
                     ✓ {item.prevention}
                   </p>
                 </div>
@@ -203,66 +205,68 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-12">
+          {/* Mobile-optimized Grid: 1 col mobile, 2 tablet, 4 desktop */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-12">
             {normKnowledge.map((item) => (
               <div
                 key={item.term}
-                className="bg-gray-50 rounded-lg p-4 hover:bg-blue-50 transition-colors"
+                className="bg-gray-50 rounded-lg p-5 sm:p-4 hover:bg-blue-50 transition-colors min-h-[100px] flex flex-col justify-between"
               >
-                <h4 className="font-mono font-bold text-blue-600 mb-2">{item.term}</h4>
-                <p className="text-sm text-gray-600">{item.explanation}</p>
+                <h4 className="font-mono font-bold text-blue-600 mb-2 text-base sm:text-sm">{item.term}</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">{item.explanation}</p>
               </div>
             ))}
           </div>
 
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center">
-            <Download className="h-12 w-12 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold mb-4">
-              Kostenlose EN 13813 Compliance-Checkliste
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 sm:p-12 text-white text-center">
+            <BookOpen className="h-12 w-12 mx-auto mb-4" />
+            <h3 className="text-xl sm:text-2xl font-bold mb-4">
+              Vertiefen Sie Ihr EN 13813 Wissen
             </h3>
-            <p className="mb-6 text-blue-100">
-              Überprüfen Sie Ihre aktuelle Dokumentation auf Vollständigkeit
+            <p className="mb-6 text-blue-100 text-base sm:text-lg max-w-2xl mx-auto">
+              Entdecken Sie unseren umfassenden Wissens-Hub mit praktischen Anleitungen
             </p>
-            <Button asChild variant="secondary" size="lg">
-              <Link href="/en13813-checkliste.pdf">
-                Checkliste herunterladen
-                <Download className="ml-2 h-4 w-4" />
+            <Button asChild variant="secondary" size="lg" className="h-14 px-8 text-base w-full sm:w-auto">
+              <Link href="/wissen/en-13813">
+                Zum EN 13813 Guide
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section - Server Component für SEO */}
-      <section className="py-24 px-6 lg:px-8">
+      {/* Benefits Section - Modern Bento Grid */}
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-neutral-950">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
               Warum EstrichManager?
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-lg text-gray-600 dark:text-neutral-400">
               Die professionelle Lösung für digitales Qualitätsmanagement in Estrichwerken
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {benefits.map((benefit) => {
+          <BentoGrid className="max-w-7xl mx-auto">
+            {benefits.map((benefit, i) => {
               const Icon = benefit.icon
               return (
-                <Card key={benefit.title} className="h-full hover:shadow-xl transition-shadow duration-300 border-0 bg-white/80 backdrop-blur">
-                  <CardHeader>
-                    <Icon className="h-10 w-10 text-blue-600 mb-4" />
-                    <CardTitle className="text-xl">{benefit.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base">
-                      {benefit.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+                <BentoGridItem
+                  key={benefit.title}
+                  title={benefit.title}
+                  description={benefit.description}
+                  header={
+                    <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 p-6">
+                      <Icon className="h-12 w-12 text-white" />
+                    </div>
+                  }
+                  className={i === 3 || i === 6 ? "md:col-span-2" : ""}
+                  icon={<Icon className="h-4 w-4 text-neutral-500" />}
+                />
               )
             })}
-          </div>
+          </BentoGrid>
         </div>
       </section>
 
@@ -350,6 +354,42 @@ export default function HomePage() {
           </p>
         </div>
       </section>
+
+      {/* Schema.org Structured Data für SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "EstrichManager",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "EUR",
+              "description": "14 Tage kostenlose Testversion"
+            },
+            "description": "Digitales Qualitätsmanagement für Estrichwerke. EN 13813 konforme Leistungserklärungen in Minuten erstellen.",
+            "url": "https://estrichmanager.de",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "ratingCount": "12"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "EstrichManager",
+              "url": "https://estrichmanager.de",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://estrichmanager.de/logo.png"
+              }
+            }
+          })
+        }}
+      />
     </main>
   )
 }

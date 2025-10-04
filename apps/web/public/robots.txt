@@ -1,0 +1,13 @@
+# EstrichManager robots.txt
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://estrichmanager.de/sitemap.xml
+
+# Disallow admin areas
+Disallow: /api/
+Disallow: /(auth)/en13813/admin/
+
+# Crawl-delay für ressourcenschonende Indexierung
+Crawl-delay: 1

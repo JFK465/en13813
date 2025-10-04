@@ -81,9 +81,10 @@ export function ContactForm() {
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* Mobile-optimized Form Grid */}
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name" className="text-base">Name *</Label>
                 <Input
                   id="name"
                   name="name"
@@ -91,11 +92,12 @@ export function ContactForm() {
                   onChange={handleChange}
                   required
                   placeholder="Max Mustermann"
+                  className="h-12 text-base"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company">Unternehmen *</Label>
+                <Label htmlFor="company" className="text-base">Unternehmen *</Label>
                 <Input
                   id="company"
                   name="company"
@@ -103,11 +105,12 @@ export function ContactForm() {
                   onChange={handleChange}
                   required
                   placeholder="Mustermann Estrichwerk GmbH"
+                  className="h-12 text-base"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-Mail *</Label>
+                <Label htmlFor="email" className="text-base">E-Mail *</Label>
                 <Input
                   id="email"
                   name="email"
@@ -116,11 +119,12 @@ export function ContactForm() {
                   onChange={handleChange}
                   required
                   placeholder="max@estrichwerk.de"
+                  className="h-12 text-base"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefon</Label>
+                <Label htmlFor="phone" className="text-base">Telefon</Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -128,39 +132,41 @@ export function ContactForm() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+49 123 456789"
+                  className="h-12 text-base"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Betreff *</Label>
+            <div className="space-y-3">
+              <Label className="text-base">Betreff *</Label>
               <RadioGroup
                 value={formData.subject}
                 onValueChange={(value) =>
                   setFormData({ ...formData, subject: value })
                 }
+                className="space-y-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="general" id="general" />
-                  <Label htmlFor="general" className="font-normal cursor-pointer">
+                <div className="flex items-center space-x-3 min-h-[44px]">
+                  <RadioGroupItem value="general" id="general" className="h-5 w-5" />
+                  <Label htmlFor="general" className="font-normal cursor-pointer text-base">
                     Allgemeine Anfrage
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="demo" id="demo" />
-                  <Label htmlFor="demo" className="font-normal cursor-pointer">
+                <div className="flex items-center space-x-3 min-h-[44px]">
+                  <RadioGroupItem value="demo" id="demo" className="h-5 w-5" />
+                  <Label htmlFor="demo" className="font-normal cursor-pointer text-base">
                     Demo vereinbaren
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="support" id="support" />
-                  <Label htmlFor="support" className="font-normal cursor-pointer">
+                <div className="flex items-center space-x-3 min-h-[44px]">
+                  <RadioGroupItem value="support" id="support" className="h-5 w-5" />
+                  <Label htmlFor="support" className="font-normal cursor-pointer text-base">
                     Support-Anfrage
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="partnership" id="partnership" />
-                  <Label htmlFor="partnership" className="font-normal cursor-pointer">
+                <div className="flex items-center space-x-3 min-h-[44px]">
+                  <RadioGroupItem value="partnership" id="partnership" className="h-5 w-5" />
+                  <Label htmlFor="partnership" className="font-normal cursor-pointer text-base">
                     Partnerschaft
                   </Label>
                 </div>
@@ -168,7 +174,7 @@ export function ContactForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">Nachricht *</Label>
+              <Label htmlFor="message" className="text-base">Nachricht *</Label>
               <Textarea
                 id="message"
                 name="message"
@@ -177,17 +183,18 @@ export function ContactForm() {
                 required
                 placeholder="Beschreiben Sie Ihr Anliegen..."
                 rows={6}
+                className="text-base"
               />
             </div>
 
-            <div className="flex items-start space-x-2">
+            <div className="flex items-start space-x-3 min-h-[44px]">
               <input
                 type="checkbox"
                 id="privacy"
                 required
-                className="mt-1"
+                className="mt-1 h-5 w-5"
               />
-              <Label htmlFor="privacy" className="text-sm text-gray-600 font-normal">
+              <Label htmlFor="privacy" className="text-sm sm:text-base text-gray-600 font-normal">
                 Ich habe die{" "}
                 <a href="/datenschutz" className="text-blue-600 hover:underline">
                   Datenschutzerklärung
@@ -200,14 +207,14 @@ export function ContactForm() {
               type="submit"
               size="lg"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full h-14 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {isSubmitting ? (
                 "Wird gesendet..."
               ) : (
                 <>
                   Nachricht senden
-                  <Send className="ml-2 h-4 w-4" />
+                  <Send className="ml-2 h-5 w-5" />
                 </>
               )}
             </Button>

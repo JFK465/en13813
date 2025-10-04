@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ModernGlossarHero } from "@/components/glossar/ModernGlossarHero"
+import { ModernAZNavigation } from "@/components/glossar/ModernAZNavigation"
+import { ModernTermCard } from "@/components/glossar/ModernTermCard"
 
 export default function GlossarPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -1604,324 +1607,128 @@ export default function GlossarPage() {
   ].filter(Boolean)
 
   return (
-    <main className="min-h-screen bg-white">
-      <nav className="border-b bg-gray-50">
-        <div className="mx-auto max-w-7xl px-6 py-3">
-          <ol className="flex items-center space-x-2 text-sm">
-            <li><Link href="/" className="text-gray-500 hover:text-gray-700">Home</Link></li>
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-            <li><Link href="/wissen" className="text-gray-500 hover:text-gray-700">Wissen</Link></li>
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-            <li className="text-gray-900 font-medium">Glossar</li>
-          </ol>
-        </div>
-      </nav>
-
-      <section className="px-6 py-16 lg:px-8 border-b">
-        <div className="mx-auto max-w-4xl text-center">
-          <Badge className="mb-4 bg-gray-100 text-gray-800">Nachschlagewerk • {totalTerms} Fachbegriffe</Badge>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Estrich-Glossar von A bis Z
-          </h1>
-          <p className="mt-6 text-xl text-gray-600">
-            Das umfassendste deutsche Nachschlagewerk für Estrich-Fachbegriffe.
-            Über 150 Begriffe aus EN 13813, Qualitätsmanagement und Produktion verständlich erklärt.
-          </p>
-
-          <div className="mt-8 space-y-4">
-            {/* Suchfeld */}
-            <div className="max-w-md mx-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input
-                  className="pl-10 h-12"
-                  placeholder="Begriff oder Stichwort suchen..."
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-2"
-                    onClick={() => setSearchTerm("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Kategoriefilter */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {categories.map((category) => (
-                <Button
-                  key={category.value}
-                  variant={selectedCategory === category.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.value)}
-                  className="text-sm"
-                >
-                  {category.label}
-                  <Badge variant="secondary" className="ml-2">
-                    {category.value === "alle" ? totalTerms : category.count}
-                  </Badge>
-                </Button>
-              ))}
-            </div>
-
-            {/* Ergebniszähler */}
-            {(searchTerm || selectedCategory !== "alle") && (
-              <p className="text-sm text-gray-600">
-                {filteredCount} {filteredCount === 1 ? "Begriff" : "Begriffe"} gefunden
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
+    <main className="min-h-screen bg-neutral-950">
+      {/* Modern Hero with Spotlight */}
+      <ModernGlossarHero
+        totalTerms={totalTerms}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        filteredCount={filteredCount}
+      />
 
       <article className="px-6 py-12 lg:px-8">
         <div className="mx-auto max-w-6xl">
           {/* Wichtige Begriffe hervorgehoben */}
           {!searchTerm && selectedCategory === "alle" && (
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold mb-6">Die wichtigsten Begriffe für Estrichwerke</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {featuredTerms.map((term: any) => term && (
-                  <Card key={term.term} className="border-2 border-blue-200 bg-blue-50">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg">{term.term}</CardTitle>
-                        {term.norm && (
-                          <Badge variant="secondary" className="text-xs">
-                            {term.norm}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700 text-sm">{term.definition}</p>
-                      {term.example && (
-                        <p className="text-xs text-gray-600 mt-2 italic">Beispiel: {term.example}</p>
-                      )}
-                      {term.related && term.related.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-xs font-semibold text-gray-600">Verwandte Begriffe:</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {term.related.slice(0, 3).map((rel: string) => (
-                              <Badge key={rel} variant="outline" className="text-xs">
-                                {rel}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+            <section className="mb-16">
+              <h2 className="text-3xl font-bold mb-8 text-white">Die wichtigsten Begriffe für Estrichwerke</h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {featuredTerms.map((term: any, index: number) => term && (
+                  <ModernTermCard key={term.term} term={term} index={index} onRelatedClick={setSearchTerm} />
                 ))}
               </div>
             </section>
           )}
 
-          {/* Schnellnavigation */}
+          {/* A-Z Schnellnavigation - Modern */}
           {Object.keys(filteredTerms).length > 0 && (
-            <div className="mb-8 p-4 bg-gray-50 rounded-lg sticky top-4 z-10">
-              <p className="font-semibold mb-3">Schnellnavigation:</p>
-              <div className="flex flex-wrap gap-2">
-                {alphabet.map((letter) => {
-                  const hasTerms = letter in filteredTerms
-                  return (
-                    <a
-                      key={letter}
-                      href={hasTerms ? `#${letter}` : undefined}
-                      className={`w-10 h-10 flex items-center justify-center border rounded transition-colors font-medium ${
-                        hasTerms
-                          ? "bg-white hover:bg-blue-50 hover:border-blue-300 cursor-pointer"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      }`}
-                      onClick={!hasTerms ? (e) => e.preventDefault() : undefined}
-                    >
-                      {letter}
-                    </a>
-                  )
-                })}
-              </div>
-            </div>
+            <ModernAZNavigation alphabet={alphabet} filteredTerms={filteredTerms} />
           )}
 
           {/* Glossar-Einträge */}
           {Object.keys(filteredTerms).length > 0 ? (
-            <div className="space-y-8">
+            <div className="space-y-12">
               {Object.entries(filteredTerms).map(([letter, terms]) => (
                 <section key={letter} id={letter}>
-                  <h2 className="text-2xl font-bold mb-4 pb-2 border-b flex items-center gap-3">
-                    <span className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg">
                       {letter}
-                    </span>
-                    <span>Buchstabe {letter}</span>
-                    <Badge variant="secondary">{terms.length} {terms.length === 1 ? "Begriff" : "Begriffe"}</Badge>
-                  </h2>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Buchstabe {letter}</h2>
+                      <p className="text-sm text-neutral-400">{terms.length} {terms.length === 1 ? "Begriff" : "Begriffe"}</p>
+                    </div>
+                  </div>
                   <div className="space-y-6">
-                    {terms.map((item) => {
-                      const termId = (item as any).id || item.term.toLowerCase().replace(/[^a-z0-9äöüß]/g, '-').replace(/-+/g, '-')
-                      return (
-                        <Card key={item.term} id={termId} className="hover:shadow-lg transition-shadow">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-2">
-                                <CardTitle className="text-xl font-bold">{item.term}</CardTitle>
-                                <a href={`#${termId}`} className="text-gray-400 hover:text-blue-600 transition-colors" title="Link zu diesem Begriff">
-                                  <Hash className="w-4 h-4" />
-                                </a>
-                              </div>
-                            <div className="flex gap-2">
-                              {item.category && (
-                                <Badge variant="outline" className="text-xs">
-                                  {item.category === "normen" && "Norm"}
-                                  {item.category === "materialien" && "Material"}
-                                  {item.category === "verarbeitung" && "Verarbeitung"}
-                                  {item.category === "pruefung" && "Prüfung"}
-                                </Badge>
-                              )}
-                              {item.norm && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {item.norm}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          {/* Hauptdefinition */}
-                          <div>
-                            <p className="text-base font-medium text-gray-800 leading-relaxed">
-                              {item.definition}
-                            </p>
-                          </div>
-
-                          {/* Detaillierte Beschreibung falls vorhanden */}
-                          {(item as any).detailedDescription && (
-                            <div className="mt-4 pt-3 border-t">
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {(item as any).detailedDescription}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Technische Daten falls vorhanden */}
-                          {(item as any).technicalData && (
-                            <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                              <p className="text-xs font-semibold text-gray-600 mb-2 uppercase">Technische Daten</p>
-                              <div className="grid grid-cols-1 gap-2">
-                                {Object.entries((item as any).technicalData).map(([key, value]) => (
-                                  <div key={key} className="flex justify-between text-sm">
-                                    <span className="text-gray-600">{key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim()}:</span>
-                                    <span className="text-gray-900 font-medium text-right">{value as string}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Praktische Tipps falls vorhanden */}
-                          {(item as any).practicalTips && (
-                            <div className="mt-4 bg-blue-50 rounded-lg p-3 border-l-4 border-blue-400">
-                              <p className="text-xs text-blue-800 font-semibold mb-1">Praxistipp:</p>
-                              <p className="text-sm text-blue-700">{(item as any).practicalTips}</p>
-                            </div>
-                          )}
-
-                          {item.example && (
-                            <div className="mt-4 bg-amber-50 rounded-lg p-3 border-l-4 border-amber-400">
-                              <p className="text-xs text-amber-800 font-semibold mb-1">Beispiel:</p>
-                              <p className="text-sm text-amber-700">{item.example}</p>
-                            </div>
-                          )}
-
-                          {item.related && item.related.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs font-semibold text-gray-600 mb-1">Siehe auch:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {item.related.map((rel) => (
-                                  <Badge
-                                    key={rel}
-                                    variant="outline"
-                                    className="text-xs cursor-pointer hover:bg-gray-100"
-                                    onClick={() => setSearchTerm(rel)}
-                                  >
-                                    {rel}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                      )
-                    })}
+                    {terms.map((item, index) => (
+                      <ModernTermCard key={item.term} term={item} index={index} onRelatedClick={setSearchTerm} />
+                    ))}
                   </div>
                 </section>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Keine Begriffe gefunden. Versuchen Sie eine andere Suche oder Kategorie.</p>
+            <div className="text-center py-16 bg-white/[0.02] border border-white/[0.1] rounded-2xl backdrop-blur-sm">
+              <p className="text-neutral-400">Keine Begriffe gefunden. Versuchen Sie eine andere Suche oder Kategorie.</p>
             </div>
           )}
 
 
           {/* Statistische Informationen */}
-          <section className="mt-12 p-6 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-bold mb-4">Glossar-Statistik</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-3xl font-bold text-blue-600">{totalTerms}</p>
-                <p className="text-sm text-gray-600">Fachbegriffe</p>
+          <section className="mt-16 p-8 bg-white/[0.02] border border-white/[0.1] rounded-2xl backdrop-blur-sm">
+            <h3 className="text-2xl font-bold mb-6 text-white">Glossar-Statistik</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">{totalTerms}</p>
+                <p className="text-sm text-neutral-400 mt-2">Fachbegriffe</p>
               </div>
-              <div>
-                <p className="text-3xl font-bold text-green-600">26</p>
-                <p className="text-sm text-gray-600">Buchstaben</p>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-4xl font-bold bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">26</p>
+                <p className="text-sm text-neutral-400 mt-2">Buchstaben</p>
               </div>
-              <div>
-                <p className="text-3xl font-bold text-purple-600">5</p>
-                <p className="text-sm text-gray-600">Kategorien</p>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">5</p>
+                <p className="text-sm text-neutral-400 mt-2">Kategorien</p>
               </div>
-              <div>
-                <p className="text-3xl font-bold text-orange-600">15+</p>
-                <p className="text-sm text-gray-600">Normen</p>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">15+</p>
+                <p className="text-sm text-neutral-400 mt-2">Normen</p>
               </div>
             </div>
           </section>
 
           {/* Hinweise zur Nutzung */}
           <section className="mt-8">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertTitle>Tipp zur Nutzung</AlertTitle>
-              <AlertDescription>
-                Nutzen Sie die Suchfunktion für schnelles Auffinden von Begriffen.
-                Klicken Sie auf verwandte Begriffe, um thematisch ähnliche Einträge zu entdecken.
-                Die Kategoriefilter helfen bei der gezielten Suche nach Normen, Materialien oder Prüfverfahren.
-              </AlertDescription>
-            </Alert>
+            <div className="p-6 rounded-2xl bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
+              <div className="flex gap-3">
+                <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-blue-300 mb-2">Tipp zur Nutzung</h4>
+                  <p className="text-sm text-blue-200/80 leading-relaxed">
+                    Nutzen Sie die Suchfunktion für schnelles Auffinden von Begriffen.
+                    Klicken Sie auf verwandte Begriffe, um thematisch ähnliche Einträge zu entdecken.
+                    Die Kategoriefilter helfen bei der gezielten Suche nach Normen, Materialien oder Prüfverfahren.
+                  </p>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </article>
 
-      <section className="px-6 py-16 lg:px-8 bg-gradient-to-r from-gray-700 to-gray-900">
-        <div className="mx-auto max-w-4xl text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Alle Fachbegriffe digital im Griff</h2>
-          <p className="text-lg text-gray-300 mb-8">
+      <section className="relative px-6 py-20 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-3xl" />
+        <div className="relative mx-auto max-w-4xl text-center">
+          <h2 className="text-4xl font-bold mb-6 text-white">Alle Fachbegriffe digital im Griff</h2>
+          <p className="text-lg text-neutral-300 mb-10 max-w-2xl mx-auto leading-relaxed">
             EstrichManager integriert alle relevanten Normen und Fachbegriffe direkt in Ihre Arbeitsabläufe.
             Automatische Normprüfung, integrierte Hilfe und rechtssichere Dokumentation.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/demo">Kostenlose Demo<ArrowRight className="ml-2 h-4 w-4" /></Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="h-14 px-8 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Link href="/demo">
+                Kostenlose Demo
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-gray-900">
-              <Link href="/wissen">Weitere Guides<BookOpen className="ml-2 h-4 w-4" /></Link>
+            <Button asChild size="lg" variant="outline" className="h-14 px-8 text-base border-white/[0.2] text-white hover:bg-white/[0.1]">
+              <Link href="/wissen">
+                Weitere Guides
+                <BookOpen className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -1931,7 +1738,7 @@ export default function GlossarPage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 hover:scale-110 z-50"
+          className="fixed bottom-8 right-8 p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-110 z-50 border border-white/[0.1] backdrop-blur-sm"
           aria-label="Nach oben scrollen"
         >
           <ArrowUp className="w-5 h-5" />

@@ -52,13 +52,13 @@ export function HeroSection() {
           transition={{ delay: 0.6, duration: 0.6 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          <Button asChild size="lg" className="h-14 px-8 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 w-full sm:w-auto">
             <Link href="/register">
               Jetzt Beta-Zugang sichern
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg">
+          <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base w-full sm:w-auto">
             <Link href="/login">
               Anmelden
             </Link>

@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { ModernFeaturesHero } from "@/components/features/ModernFeaturesHero"
 import { FeatureTabs } from "@/components/features/FeatureTabs"
 import { AdditionalFeatureCard } from "@/components/features/AdditionalFeatureCard"
 
@@ -215,49 +215,18 @@ const additionalFeatures = [
 
 export default function FeaturesPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Hero Section */}
-      <section className="px-6 py-20 lg:px-8">
-        <div className="mx-auto max-w-7xl text-center">
-          <Badge className="mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100">
-            EN 13813 konform
-          </Badge>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            Alle Funktionen für perfekte{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Compliance
-            </span>
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
-            EstrichManager bietet alle Werkzeuge, die Sie für ein effizientes
-            Qualitätsmanagement nach EN 13813 benötigen. Von der Rezeptur bis zur
-            fertigen Leistungserklärung.
-          </p>
-
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              <Link href="/register">
-                14 Tage kostenlos testen
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/demo">
-                Live-Demo ansehen
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+    <main className="min-h-screen bg-neutral-950">
+      {/* Modern Hero with Spotlight */}
+      <ModernFeaturesHero />
 
       {/* Feature Categories with Tabs - Client Component */}
       <section className="px-6 py-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl mb-4">
               Funktionen im Detail
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-xl text-neutral-400">
               Wählen Sie einen Bereich, um mehr zu erfahren
             </p>
           </div>
@@ -267,65 +236,66 @@ export default function FeaturesPage() {
       </section>
 
       {/* Additional Features Grid */}
-      <section className="px-6 py-20 lg:px-8 bg-white">
+      <section className="px-6 py-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl mb-4">
               Weitere Vorteile
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-xl text-neutral-400">
               EstrichManager bietet noch mehr für Ihren Arbeitsalltag
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {additionalFeatures.map((feature) => {
-              return (
-                <AdditionalFeatureCard key={feature.title} feature={feature} />
-              )
-            })}
+          {/* Mobile-optimized Grid: 1 col mobile, 2 tablet, 3 desktop */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {additionalFeatures.map((feature) => (
+              <AdditionalFeatureCard key={feature.title} feature={feature} />
+            ))}
           </div>
         </div>
       </section>
 
       {/* Integration Section */}
-      <section className="px-6 py-20 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white">
+      <section className="relative px-6 py-20 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl">
+          <div className="relative bg-white/[0.02] border border-white/[0.1] rounded-3xl p-12 text-white backdrop-blur-sm">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">
+              <h2 className="text-4xl font-bold mb-6">
                 Nahtlose Integration in Ihre Prozesse
               </h2>
-              <p className="text-lg text-blue-100 mb-8 max-w-3xl mx-auto">
+              <p className="text-lg text-neutral-300 mb-12 max-w-3xl mx-auto leading-relaxed">
                 EstrichManager fügt sich perfekt in Ihre bestehenden Arbeitsabläufe ein.
                 Import aus Excel, Export als PDF, API-Schnittstellen - alles ist möglich.
               </p>
 
-              <div className="grid gap-4 md:grid-cols-3 text-left max-w-4xl mx-auto">
-                <div className="bg-white/10 backdrop-blur rounded-lg p-6">
-                  <h3 className="font-semibold mb-2">Excel Import</h3>
-                  <p className="text-sm text-blue-100">
+              {/* Mobile-optimized Integration Grid */}
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 text-left max-w-5xl mx-auto">
+                <div className="bg-white/[0.05] border border-white/[0.1] backdrop-blur rounded-2xl p-6 hover:bg-white/[0.08] transition-all">
+                  <h3 className="font-semibold mb-3 text-lg text-white">Excel Import</h3>
+                  <p className="text-sm text-neutral-400 leading-relaxed">
                     Übernehmen Sie Ihre bestehenden Rezepturen und Daten einfach per Excel-Import
                   </p>
                 </div>
-                <div className="bg-white/10 backdrop-blur rounded-lg p-6">
-                  <h3 className="font-semibold mb-2">PDF Export</h3>
-                  <p className="text-sm text-blue-100">
+                <div className="bg-white/[0.05] border border-white/[0.1] backdrop-blur rounded-2xl p-6 hover:bg-white/[0.08] transition-all">
+                  <h3 className="font-semibold mb-3 text-lg text-white">PDF Export</h3>
+                  <p className="text-sm text-neutral-400 leading-relaxed">
                     Alle Dokumente als professionelle PDFs für Kunden und Behörden
                   </p>
                 </div>
-                <div className="bg-white/10 backdrop-blur rounded-lg p-6">
-                  <h3 className="font-semibold mb-2">API Zugang</h3>
-                  <p className="text-sm text-blue-100">
+                <div className="bg-white/[0.05] border border-white/[0.1] backdrop-blur rounded-2xl p-6 hover:bg-white/[0.08] transition-all">
+                  <h3 className="font-semibold mb-3 text-lg text-white">API Zugang</h3>
+                  <p className="text-sm text-neutral-400 leading-relaxed">
                     Verbinden Sie EstrichManager mit Ihrer ERP-Software (Enterprise)
                   </p>
                 </div>
               </div>
 
-              <Button asChild size="lg" variant="secondary" className="mt-8">
+              <Button asChild size="lg" className="mt-10 h-14 px-8 text-base w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Link href="/kontakt">
                   Integration besprechen
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
@@ -334,24 +304,26 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-6 py-20 lg:px-8 bg-white">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+      <section className="relative px-6 py-24 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-3xl" />
+        <div className="relative mx-auto max-w-4xl text-center">
+          <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl mb-6">
             Bereit für effizientes Qualitätsmanagement?
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-6 text-xl text-neutral-300 leading-relaxed">
             Starten Sie noch heute und erleben Sie, wie einfach EN 13813 Compliance sein kann
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button asChild size="lg" className="h-14 px-8 text-base w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/20">
               <Link href="/register">
                 Jetzt kostenlos starten
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base w-full sm:w-auto border-white/[0.2] text-white hover:bg-white/[0.1]">
               <Link href="/preise">
                 Preise ansehen
+                <BookOpen className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

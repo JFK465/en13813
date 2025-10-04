@@ -174,20 +174,21 @@ export default function PricingPage() {
             Berechnen Sie Ihre Zeitersparnis mit EstrichManager
           </p>
 
-          <div className="mt-8 grid gap-6 md:grid-cols-3 text-left">
+          {/* Mobile-optimized ROI Grid */}
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 text-left">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">DoP-Erstellung</h3>
-              <p className="text-2xl font-bold text-blue-600">4 Stunden → 5 Minuten</p>
+              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">DoP-Erstellung</h3>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">4h → 5min</p>
               <p className="text-sm text-gray-600 mt-2">Zeitersparnis pro Dokument</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">Chargenrückverfolgung</h3>
-              <p className="text-2xl font-bold text-blue-600">2 Stunden → 30 Sekunden</p>
+              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">Chargenrückverfolgung</h3>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">2h → 30s</p>
               <p className="text-sm text-gray-600 mt-2">Bei Reklamationen</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">Audit-Vorbereitung</h3>
-              <p className="text-2xl font-bold text-blue-600">3 Tage → 1 Stunde</p>
+              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">Audit-Vorbereitung</h3>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">3d → 1h</p>
               <p className="text-sm text-gray-600 mt-2">Dokumentation komplett</p>
             </div>
           </div>
@@ -213,13 +214,13 @@ export default function PricingPage() {
             </h2>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             {faqs.map((faq) => (
-              <div key={faq.question} className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-2">
+              <div key={faq.question} className="bg-white rounded-lg p-6 sm:p-8 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">
                   {faq.question}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
                   {faq.answer}
                 </p>
               </div>
@@ -238,12 +239,12 @@ export default function PricingPage() {
             Starten Sie noch heute Ihre kostenlose Testphase
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary">
+            <Button asChild size="lg" variant="secondary" className="h-14 px-8 text-base w-full sm:w-auto">
               <Link href="/register">
                 14 Tage kostenlos testen
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20">
+            <Button asChild size="lg" variant="outline" className="h-14 px-8 text-base w-full sm:w-auto bg-white/10 border-white text-white hover:bg-white/20">
               <Link href="/kontakt">
                 Beratungsgespräch vereinbaren
               </Link>
