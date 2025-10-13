@@ -116,8 +116,8 @@ function RegisterPageContent() {
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3 mx-auto">
                   <Sparkles className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-sm mb-1">100% Kostenlos</h3>
-                <p className="text-xs text-gray-600">Keine Kosten während der Beta-Phase</p>
+                <h3 className="font-semibold text-sm mb-1">Kostenlose Beta</h3>
+                <p className="text-xs text-gray-600">Aktuell keine Kosten während der Beta</p>
               </CardContent>
             </Card>
             <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white">
@@ -126,7 +126,7 @@ function RegisterPageContent() {
                   <Percent className="w-6 h-6 text-purple-600" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1">Exklusive Rabatte</h3>
-                <p className="text-xs text-gray-600">50% Rabatt nach Beta-Ende</p>
+                <p className="text-xs text-gray-600">Voraussichtlich 50% Rabatt nach Beta-Ende*</p>
               </CardContent>
             </Card>
             <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
@@ -349,13 +349,19 @@ function RegisterPageContent() {
           </ul>
         </div>
 
-        <div className="mt-4 text-center text-xs text-gray-500">
+        <div className="mt-4 text-center text-xs text-gray-500 space-y-2">
           <p>
             Mit der Registrierung stimmen Sie unseren{' '}
-            <Link href="/terms" className="underline hover:text-gray-700">Nutzungsbedingungen</Link>
+            <Link href="/agb" className="underline hover:text-gray-700">Allgemeinen Geschäftsbedingungen</Link>,
+            {' '}der{' '}
+            <Link href="/beta-terms" className="underline hover:text-gray-700">Beta-Tester Vereinbarung</Link>
             {' '}und{' '}
-            <Link href="/privacy" className="underline hover:text-gray-700">Datenschutzrichtlinien</Link>
+            <Link href="/datenschutz" className="underline hover:text-gray-700">Datenschutzerklärung</Link>
             {' '}zu.
+          </p>
+          <p className="text-gray-400">
+            * Rabatt vorbehaltlich endgültiger Preisgestaltung nach Beta-Ende.
+            Details siehe Beta-Tester Vereinbarung.
           </p>
         </div>
       </div>

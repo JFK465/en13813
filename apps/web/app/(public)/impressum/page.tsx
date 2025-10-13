@@ -6,7 +6,7 @@ export default function ImpressumPage() {
 
         <div className="prose prose-lg max-w-none space-y-8">
           <section>
-            <h2 className="text-2xl font-semibold mb-4">Angaben gemäß § 5 TMG</h2>
+            <h2 className="text-2xl font-semibold mb-4">Angaben gemäß § 5 DDG</h2>
             <p>
               EstrichManager GmbH<br />
               Musterstraße 123<br />
@@ -93,8 +93,8 @@ export default function ImpressumPage() {
 
             <h3 className="text-xl font-semibold mb-2">Haftung für Inhalte</h3>
             <p>
-              Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten
-              nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als
+              Als Diensteanbieter sind wir gemäß § 7 Abs.1 DDG für eigene Inhalte auf diesen Seiten
+              nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als
               Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde
               Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige
               Tätigkeit hinweisen.

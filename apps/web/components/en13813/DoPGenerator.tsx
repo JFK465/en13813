@@ -298,6 +298,23 @@ export default function DoPGenerator() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Compliance Disclaimer */}
+      <Alert className="border-red-200 bg-red-50">
+        <AlertCircle className="h-5 w-5 text-red-600" />
+        <AlertDescription className="ml-2 text-red-900">
+          <div className="space-y-2">
+            <p className="font-semibold text-sm">⚠️ Wichtiger Compliance-Hinweis</p>
+            <p className="text-xs leading-relaxed">
+              Diese Leistungserklärung (DoP) muss vor offizieller Verwendung von fachkundigem Personal geprüft und freigegeben werden.
+              Sie sind verantwortlich für die Richtigkeit aller Angaben und die Einhaltung der EN 13813.
+            </p>
+            <p className="text-xs font-semibold mt-2">
+              Beta-Software: Alle generierten Dokumente erfordern eine manuelle fachliche Prüfung vor offizieller Verwendung.
+            </p>
+          </div>
+        </AlertDescription>
+      </Alert>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

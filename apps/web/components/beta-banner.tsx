@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Sparkles, Calendar, Gift } from 'lucide-react'
+import { X, Sparkles, Gift } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -9,10 +9,6 @@ export function BetaBanner() {
   const [isDismissed, setIsDismissed] = useState(false)
 
   if (isDismissed) return null
-
-  const betaEndDate = new Date('2025-03-31')
-  const today = new Date()
-  const daysRemaining = Math.ceil((betaEndDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 
   return (
     <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 relative">
@@ -27,12 +23,11 @@ export function BetaBanner() {
 
           <div className="hidden sm:flex items-center gap-4 text-sm">
             <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              Noch {daysRemaining} Tage kostenlos
+              Aktuell kostenlos
             </span>
             <span className="flex items-center gap-1">
               <Gift className="w-4 h-4" />
-              50% Early Adopter Rabatt gesichert
+              Exklusive Early Adopter Vorteile
             </span>
           </div>
         </div>

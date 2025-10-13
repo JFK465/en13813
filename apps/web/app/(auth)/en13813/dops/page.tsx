@@ -200,6 +200,20 @@ export default function DoPsPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {/* Compliance Disclaimer */}
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-blue-900">
+            <p className="font-semibold mb-1">ℹ️ Compliance-Hinweis</p>
+            <p className="text-xs">
+              Alle Leistungserklärungen (DoP) müssen vor offizieller Verwendung von fachkundigem Personal geprüft und freigegeben werden.
+              Sie sind verantwortlich für die Richtigkeit aller Angaben und die Einhaltung der EN 13813.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Leistungserklärungen (DoP)</h1>

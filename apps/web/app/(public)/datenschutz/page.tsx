@@ -38,34 +38,53 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">2. Hosting</h2>
+            <h2 className="text-2xl font-semibold mb-4">2. Hosting und Datenverarbeitung</h2>
 
             <h3 className="text-xl font-semibold mb-2">Externes Hosting</h3>
             <p>
               Diese Website wird extern gehostet. Die personenbezogenen Daten, die auf dieser Website
-              erfasst werden, werden auf den Servern des Hosters gespeichert. Hierbei kann es sich v.a.
-              um IP-Adressen, Kontaktanfragen, Meta- und Kommunikationsdaten, Vertragsdaten,
-              Kontaktdaten, Namen, Websitezugriffe und sonstige Daten handeln.
+              erfasst werden, werden auf den Servern unserer Hosting- und Datenbankdienstleister gespeichert.
+              Hierbei kann es sich v.a. um IP-Adressen, Kontaktanfragen, Meta- und Kommunikationsdaten,
+              Vertragsdaten, Kontaktdaten, Namen, Websitezugriffe und sonstige Daten handeln.
             </p>
 
             <p>
-              Der Einsatz des Hosters erfolgt zum Zwecke der Vertragserfüllung gegenüber unseren
+              Der Einsatz der Dienstleister erfolgt zum Zwecke der Vertragserfüllung gegenüber unseren
               potenziellen und bestehenden Kunden (Art. 6 Abs. 1 lit. b DSGVO) und im Interesse einer
-              sicheren, schnellen und effizienten Bereitstellung unseres Online-Angebots durch einen
-              professionellen Anbieter (Art. 6 Abs. 1 lit. f DSGVO).
+              sicheren, schnellen und effizienten Bereitstellung unseres Online-Angebots durch
+              professionelle Anbieter (Art. 6 Abs. 1 lit. f DSGVO).
             </p>
 
             <p>
-              Unser Hoster wird Ihre Daten nur insoweit verarbeiten, wie dies zur Erfüllung seiner
+              Unsere Dienstleister werden Ihre Daten nur insoweit verarbeiten, wie dies zur Erfüllung ihrer
               Leistungspflichten erforderlich ist und unsere Weisungen in Bezug auf diese Daten befolgen.
+              Mit allen Dienstleistern wurden Auftragsverarbeitungsverträge gemäß Art. 28 DSGVO geschlossen.
             </p>
 
-            <p>
-              <strong>Wir setzen folgenden Hoster ein:</strong><br />
+            <h3 className="text-xl font-semibold mb-2 mt-4">Eingesetzte Dienstleister</h3>
+
+            <p className="mt-3">
+              <strong>Hosting (Frontend):</strong><br />
               Vercel Inc.<br />
               340 S Lemon Ave #4133<br />
               Walnut, CA 91789<br />
               USA
+            </p>
+
+            <p className="mt-3">
+              <strong>Datenbank und Backend-Services:</strong><br />
+              Supabase Inc.<br />
+              970 Toa Payoh North #07-04<br />
+              Singapore 318992<br />
+              Singapur
+            </p>
+
+            <p className="mt-3">
+              <strong>Datentransfer in Drittländer:</strong><br />
+              Beide Dienstleister verarbeiten Daten teilweise in den USA und Singapur. Die Übermittlung
+              erfolgt auf Grundlage von Standardvertragsklauseln der EU-Kommission (Art. 46 Abs. 2 lit. c DSGVO)
+              sowie zusätzlichen technischen und organisatorischen Maßnahmen zur Gewährleistung eines
+              angemessenen Datenschutzniveaus.
             </p>
           </section>
 
@@ -98,7 +117,35 @@ export default function DatenschutzPage() {
               Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde,
               verbleiben Ihre personenbezogenen Daten bei uns, bis der Zweck für die Datenverarbeitung
               entfällt. Wenn Sie ein berechtigtes Löschersuchen geltend machen oder eine Einwilligung zur
-              Datenverarbeitung widerrufen, werden Ihre Daten gelöscht.
+              Datenverarbeitung widerrufen, werden Ihre Daten gelöscht, sofern keine gesetzlichen
+              Aufbewahrungspflichten entgegenstehen.
+            </p>
+
+            <p className="mt-3"><strong>Konkrete Speicherfristen:</strong></p>
+            <ul className="list-disc pl-6 mt-2 space-y-1">
+              <li>Kontaktanfragen: 6 Monate nach Abschluss der Kommunikation</li>
+              <li>Nutzerkonto-Daten: Bis zur Löschung des Kontos durch den Nutzer</li>
+              <li>Compliance-Dokumente: 10 Jahre (gesetzliche Aufbewahrungspflicht)</li>
+              <li>Server-Log-Dateien: 7 Tage</li>
+              <li>Cookies: Siehe jeweilige Cookie-Beschreibung</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold mb-2 mt-4">Datenschutzbeauftragter</h3>
+            <p>
+              Für Unternehmen unserer Größe ist derzeit kein Datenschutzbeauftragter gesetzlich vorgeschrieben.
+              Fragen zum Datenschutz können Sie an datenschutz@estrichmanager.de richten.
+            </p>
+
+            <h3 className="text-xl font-semibold mb-2 mt-4">Zuständige Aufsichtsbehörde</h3>
+            <p>
+              Die zuständige Aufsichtsbehörde in datenschutzrechtlichen Fragen ist:
+            </p>
+            <p className="mt-2">
+              Berliner Beauftragte für Datenschutz und Informationsfreiheit<br />
+              Friedrichstr. 219<br />
+              10969 Berlin<br />
+              Telefon: 030 13889-0<br />
+              E-Mail: mailbox@datenschutz-berlin.de
             </p>
           </section>
 

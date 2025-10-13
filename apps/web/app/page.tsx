@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   keywords: 'EN 13813, Estrich, Leistungserklärung, DoP, CE-Kennzeichnung, Qualitätsmanagement, Estrichwerk, FPC, ITT, Compliance, Estrichmörtel, Zementestrich, Calciumsulfatestrich',
   openGraph: {
     title: 'EstrichManager - Digitales Qualitätsmanagement für Estrichwerke',
-    description: 'EN 13813 konforme Leistungserklärungen in Minuten statt Stunden erstellen. 14 Tage kostenlos testen.',
+    description: 'EN 13813 konforme Leistungserklärungen in Minuten statt Stunden erstellen. Kostenlose Beta-Testphase.',
     type: 'website',
     locale: 'de_DE',
     url: 'https://estrichmanager.de',
@@ -334,12 +334,12 @@ export default function HomePage() {
             Überzeugen Sie sich selbst
           </h2>
           <p className="mt-4 text-lg text-blue-100">
-            14 Tage kostenlos testen • Keine Kreditkarte • Voller Support
+            Kostenlose Beta-Phase • Keine Kreditkarte • Voller Support
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary">
               <Link href="/register">
-                Jetzt 14 Tage kostenlos testen
+                Jetzt kostenlos Beta-Zugang sichern
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -369,15 +369,10 @@ export default function HomePage() {
               "@type": "Offer",
               "price": "0",
               "priceCurrency": "EUR",
-              "description": "14 Tage kostenlose Testversion"
+              "description": "Kostenlose Beta-Phase - Aktuell keine Kosten"
             },
             "description": "Digitales Qualitätsmanagement für Estrichwerke. EN 13813 konforme Leistungserklärungen in Minuten erstellen.",
             "url": "https://estrichmanager.de",
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "4.8",
-              "ratingCount": "12"
-            },
             "publisher": {
               "@type": "Organization",
               "name": "EstrichManager",
