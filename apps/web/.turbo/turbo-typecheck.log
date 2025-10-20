@@ -3,6 +3,7 @@
 > tsc --noEmit
 
 __tests__/integration/en13813/recipe-workflow.test.ts(15,17): error TS2540: Cannot assign to 'NODE_ENV' because it is a read-only property.
+e2e/recipe-complete-field-verification.spec.ts(118,54): error TS2339: Property 'page' does not exist on type 'TestStepInfo'.
 lib/security/__tests__/multi-tenant.test.ts(40,33): error TS7006: Parameter 'r' implicitly has an 'any' type.
 lib/security/__tests__/multi-tenant.test.ts(41,32): error TS7006: Parameter 'r' implicitly has an 'any' type.
 lib/security/__tests__/multi-tenant.test.ts(122,15): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ 'public-uuid-a': { tenant_id: string; dop_id: string; }; 'public-uuid-b': { tenant_id: string; dop_id: string; }; }'.

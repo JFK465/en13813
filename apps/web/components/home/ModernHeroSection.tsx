@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowRight, Building2, Sparkles } from "lucide-react"
+import { ArrowRight, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Spotlight } from "@/components/ui/spotlight"
@@ -23,7 +23,7 @@ export function ModernHeroSection() {
             transition={{ duration: 0.8 }}
             className="mb-8 inline-flex items-center rounded-full border border-white/[0.2] bg-white/[0.05] px-6 py-3 text-sm font-medium text-white backdrop-blur-sm"
           >
-            <Sparkles className="mr-2 h-4 w-4 text-blue-400" />
+            <Sparkles className="mr-2 h-4 w-4 text-orange-400" />
             Entwickelt von Estrich-Experten für Estrich-Experten
           </motion.div>
 
@@ -32,13 +32,11 @@ export function ModernHeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold">
-              <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-400">
-                EstrichManager
-              </span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white">
+              EstrichManager
             </h1>
-            <div className="mt-6 text-xl md:text-3xl lg:text-4xl font-bold text-neutral-400">
-              <TextGenerateEffect words="Schluss mit Excel-Chaos und Papierbergen" className="text-center" />
+            <div className="mt-6 text-xl md:text-3xl lg:text-4xl font-bold text-neutral-200">
+              <TextGenerateEffect words="Digitales Qualitätsmanagement nach EN 13813" className="text-center" />
             </div>
           </motion.div>
 
@@ -46,11 +44,11 @@ export function ModernHeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-neutral-400"
+            className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-neutral-200"
           >
-            Die Qualitätsmanagement-Software, die Estrichwerke wirklich brauchen.
-            Erstellen Sie EN 13813 konforme Leistungserklärungen in{" "}
-            <span className="font-semibold text-blue-400">Minuten statt Stunden</span>.
+            Die professionelle Qualitätsmanagement-Software für Estrichwerke.
+            Norm-konforme Leistungserklärungen erstellen –{" "}
+            <span className="font-semibold text-orange-400">schnell und zuverlässig</span>.
           </motion.p>
 
           <motion.div
@@ -62,9 +60,9 @@ export function ModernHeroSection() {
             <Button
               asChild
               size="lg"
-              className="group h-14 px-8 text-base w-full sm:w-auto bg-white text-black hover:bg-neutral-200 transition-all duration-300"
+              className="group h-14 px-8 text-base w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 shadow-lg"
             >
-              <Link href="/register" className="flex items-center">
+              <Link href="/beta" className="flex items-center">
                 Jetzt Beta-Zugang sichern
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
@@ -73,7 +71,7 @@ export function ModernHeroSection() {
               asChild
               variant="outline"
               size="lg"
-              className="h-14 px-8 text-base w-full sm:w-auto border-white/[0.2] bg-transparent text-white hover:bg-white/[0.1]"
+              className="h-14 px-8 text-base w-full sm:w-auto border-white/[0.2] bg-transparent text-white hover:bg-white/[0.1] hover:border-orange-400/50"
             >
               <Link href="/login">
                 Anmelden
@@ -85,10 +83,10 @@ export function ModernHeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-neutral-500"
+            className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-neutral-300"
           >
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
               <span>Beta-Phase: Kostenloser Zugang</span>
             </div>
             <div className="flex items-center gap-2">
@@ -96,7 +94,7 @@ export function ModernHeroSection() {
               <span>Voller Funktionsumfang</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+              <div className="h-2 w-2 rounded-full bg-orange-500"></div>
               <span>Persönlicher Support</span>
             </div>
           </motion.div>

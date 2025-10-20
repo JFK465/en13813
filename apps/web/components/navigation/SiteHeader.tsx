@@ -118,8 +118,11 @@ export function SiteHeader() {
           {/* Logo */}
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <Building2 className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">EstrichManager</span>
+              <Building2 className="h-8 w-8 text-orange-500" />
+              <span className="text-xl font-bold">
+                <span className="text-blue-600">Estrich</span>
+                <span className="text-gray-900">Manager</span>
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -162,7 +165,7 @@ export function SiteHeader() {
                           "inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:text-blue-600 focus:outline-none",
                           pathname === item.href
                             ? "text-blue-600 bg-blue-50"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-gray-700 hover:bg-blue-50"
                         )}
                       >
                         {item.name}
@@ -225,11 +228,11 @@ export function SiteHeader() {
                   </div>
                 ) : (
                   <div className="hidden md:flex md:items-center md:gap-4">
-                    <Button asChild variant="ghost" size="sm">
+                    <Button asChild variant="ghost" size="sm" className="hover:text-blue-600">
                       <Link href="/login">Anmelden</Link>
                     </Button>
-                    <Button asChild size="sm">
-                      <Link href="/register">Kostenlos testen</Link>
+                    <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Link href="/beta">Kostenlos testen</Link>
                     </Button>
                   </div>
                 )}
@@ -329,7 +332,7 @@ export function SiteHeader() {
                       Anmelden
                     </Link>
                     <Link
-                      href="/register"
+                      href="/beta"
                       className="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700 text-center"
                       onClick={() => setMobileMenuOpen(false)}
                     >

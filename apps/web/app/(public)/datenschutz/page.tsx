@@ -1,10 +1,39 @@
+import { Metadata } from 'next'
+import Link from 'next/link'
+import { ArrowLeft, Shield } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+export const metadata: Metadata = {
+  title: 'Datenschutzerklärung - EstrichManager',
+  description: 'Datenschutzerklärung gemäß DSGVO für EstrichManager',
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
 export default function DatenschutzPage() {
   return (
-    <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-4xl px-6 py-24">
-        <h1 className="text-4xl font-bold mb-8">Datenschutzerklärung</h1>
+    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="mx-auto max-w-4xl px-6 py-12">
+        <Button asChild variant="ghost" className="mb-8">
+          <Link href="/">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Zurück zur Startseite
+          </Link>
+        </Button>
 
-        <div className="prose prose-lg max-w-none space-y-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4 flex items-center gap-3">
+            <Shield className="h-10 w-10 text-emerald-500" />
+            Datenschutzerklärung
+          </h1>
+          <p className="text-lg text-gray-600">
+            Informationen zur Verarbeitung Ihrer personenbezogenen Daten gemäß DSGVO
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-8 prose prose-lg max-w-none">
           <section>
             <h2 className="text-2xl font-semibold mb-4">1. Datenschutz auf einen Blick</h2>
 
@@ -103,13 +132,12 @@ export default function DatenschutzPage() {
               Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:
             </p>
             <p>
-              EstrichManager GmbH<br />
-              Max Mustermann<br />
-              Musterstraße 123<br />
-              12345 Berlin<br />
+              Jonas Krüger<br />
+              Meisenweg 13<br />
+              78465 Konstanz<br />
+              Deutschland<br />
               <br />
-              Telefon: +49 (0) 123 456789<br />
-              E-Mail: datenschutz@estrichmanager.de
+              E-Mail: info@jfkconsulting.de
             </p>
 
             <h3 className="text-xl font-semibold mb-2 mt-4">Speicherdauer</h3>
@@ -133,7 +161,7 @@ export default function DatenschutzPage() {
             <h3 className="text-xl font-semibold mb-2 mt-4">Datenschutzbeauftragter</h3>
             <p>
               Für Unternehmen unserer Größe ist derzeit kein Datenschutzbeauftragter gesetzlich vorgeschrieben.
-              Fragen zum Datenschutz können Sie an datenschutz@estrichmanager.de richten.
+              Fragen zum Datenschutz können Sie an info@jfkconsulting.de richten.
             </p>
 
             <h3 className="text-xl font-semibold mb-2 mt-4">Zuständige Aufsichtsbehörde</h3>
@@ -141,11 +169,11 @@ export default function DatenschutzPage() {
               Die zuständige Aufsichtsbehörde in datenschutzrechtlichen Fragen ist:
             </p>
             <p className="mt-2">
-              Berliner Beauftragte für Datenschutz und Informationsfreiheit<br />
-              Friedrichstr. 219<br />
-              10969 Berlin<br />
-              Telefon: 030 13889-0<br />
-              E-Mail: mailbox@datenschutz-berlin.de
+              Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit Baden-Württemberg<br />
+              Postfach 10 29 32<br />
+              70025 Stuttgart<br />
+              Telefon: 0711/615541-0<br />
+              E-Mail: poststelle@lfdi.bwl.de
             </p>
           </section>
 
@@ -267,6 +295,20 @@ export default function DatenschutzPage() {
           <div className="mt-12 pt-8 border-t text-sm text-gray-600">
             <p>Stand: Januar 2025</p>
           </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-4 justify-center text-sm">
+          <Link href="/impressum" className="text-blue-600 hover:text-blue-700 hover:underline">
+            Impressum
+          </Link>
+          <span className="text-gray-400">•</span>
+          <Link href="/agb" className="text-blue-600 hover:text-blue-700 hover:underline">
+            AGB
+          </Link>
+          <span className="text-gray-400">•</span>
+          <Link href="/kontakt" className="text-blue-600 hover:text-blue-700 hover:underline">
+            Kontakt
+          </Link>
         </div>
       </div>
     </main>

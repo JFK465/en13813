@@ -97,6 +97,17 @@ export default function WissenHubPage() {
       readTime: "30 Min Gesamt",
       color: "bg-indigo-50 border-indigo-200",
       keywords: ["Estricharten", "Estrich Typen", "Zementestrich", "Calciumsulfatestrich"]
+    },
+    {
+      title: "EN 13892 Prüfnormen",
+      slug: "en-13892-reihe",
+      icon: FlaskConical,
+      description: "Kompletter Leitfaden zu allen EN 13892 Prüfverfahren für Estrich - von Festigkeit über Verschleiß bis Haftzug",
+      articles: "20 Artikel",
+      readTime: "90 Min Gesamt",
+      highlight: "Neu",
+      color: "bg-teal-50 border-teal-200",
+      keywords: ["EN 13892", "Prüfnormen Estrich", "Festigkeitsprüfung", "Verschleißprüfung"]
     }
   ]
 
@@ -110,11 +121,25 @@ export default function WissenHubPage() {
       views: "12.3k"
     },
     {
+      title: "EN 13892 Prüfnormen für Estrich - Der komplette Leitfaden",
+      slug: "en-13892-reihe",
+      category: "Prüfung",
+      readTime: "18 Min",
+      views: "9.8k"
+    },
+    {
       title: "DoP in 5 Minuten erstellen - Schritt-für-Schritt Anleitung",
       slug: "dop-erstellung",
       category: "DoP",
       readTime: "8 Min",
       views: "8.7k"
+    },
+    {
+      title: "Welche EN 13892 Prüfung brauche ich? - Entscheidungshilfe",
+      slug: "welche-en-13892-pruefung",
+      category: "Prüfung",
+      readTime: "10 Min",
+      views: "7.4k"
     },
     {
       title: "CE-Kennzeichnung für Estrich - Alles was Sie wissen müssen",
@@ -124,11 +149,25 @@ export default function WissenHubPage() {
       views: "6.2k"
     },
     {
+      title: "Prüfhäufigkeiten nach EN 13813: ITT vs FPC im Vergleich",
+      slug: "pruefhaeufigkeiten-en-13813",
+      category: "Prüfung",
+      readTime: "12 Min",
+      views: "5.9k"
+    },
+    {
       title: "FPC nach EN 13813 - Praxisleitfaden für Estrichwerke",
       slug: "fpc-dokumentation",
       category: "FPC",
       readTime: "10 Min",
       views: "5.1k"
+    },
+    {
+      title: "Druckfestigkeit C25 nicht erreicht - Ursachen & Lösungen",
+      slug: "druckfestigkeit-c25-nicht-erreicht",
+      category: "Troubleshooting",
+      readTime: "8 Min",
+      views: "4.6k"
     }
   ]
 
@@ -200,10 +239,10 @@ export default function WissenHubPage() {
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {popularArticles.map((article) => (
               <Link key={article.slug} href={`/wissen/${article.slug}`}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98] min-h-[120px]">
+                <Card className="hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98] min-h-[140px] h-full">
                   <CardHeader className="p-5">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

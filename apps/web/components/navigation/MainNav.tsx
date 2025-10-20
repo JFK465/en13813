@@ -145,7 +145,7 @@ export function MainNav() {
               <Link href="/login">Anmelden</Link>
             </Button>
             <Button asChild>
-              <Link href="/register">Kostenlos testen</Link>
+              <Link href="/beta">Kostenlos testen</Link>
             </Button>
           </div>
 
@@ -220,7 +220,7 @@ export function MainNav() {
                   Anmelden
                 </Link>
                 <Link
-                  href="/register"
+                  href="/beta"
                   className="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -243,11 +243,14 @@ export function MainFooter() {
           {/* Company */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <Building2 className="h-6 w-6 text-blue-400" />
-              <h3 className="text-lg font-semibold">EstrichManager</h3>
+              <Building2 className="h-6 w-6 text-orange-500" />
+              <h3 className="text-lg font-semibold">
+                <span className="text-blue-400">Estrich</span>
+                <span>Manager</span>
+              </h3>
             </div>
             <p className="text-gray-400 text-sm">
-              Die führende Qualitätsmanagement-Software für EN13813 konforme Estrichproduktion.
+              Professionelle Qualitätsmanagement-Software für EN13813 konforme Estrichproduktion.
             </p>
             <div className="mt-4 flex gap-4">
               <Button asChild size="sm" variant="ghost" className="text-gray-400 hover:text-white hover:bg-gray-800">
@@ -364,11 +367,6 @@ export function MainFooter() {
               <li>
                 <Link href="/agb" className="text-gray-400 hover:text-white transition-colors">
                   AGB
-                </Link>
-              </li>
-              <li>
-                <Link href="/cookies" className="text-gray-400 hover:text-white transition-colors">
-                  Cookie-Richtlinie
                 </Link>
               </li>
             </ul>
