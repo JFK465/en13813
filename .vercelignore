@@ -25,10 +25,12 @@ scripts/setup-*.js
 .DS_Store
 
 # Large dependencies (not needed at runtime)
-node_modules/@playwright
-node_modules/playwright-core
-node_modules/canvas/build
-node_modules/puppeteer-core/.local-chromium
+node_modules/@playwright/**
+node_modules/playwright-core/**
+node_modules/puppeteer-core/.local-chromium/**
+node_modules/@swc/core-*/**
+node_modules/@esbuild/**
+node_modules/esbuild/**
 
 # Migration files
 **/migrations/*.sql
