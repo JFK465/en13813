@@ -32,9 +32,9 @@ node_modules/@swc/core-*/**
 node_modules/@esbuild/**
 node_modules/esbuild/**
 
-# Migration files
+# Migration files and Supabase CLI directory (not lib/supabase!)
 **/migrations/*.sql
-supabase/
+/supabase/
 
 # Git
 .git/
