@@ -1,0 +1,39 @@
+# Test files
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+e2e/
+playwright-report/
+test-results/
+
+# Documentation
+*.md
+!README.md
+docs/
+Abschnitte/
+
+# Scripts
+scripts/create-demo-data*.js
+scripts/test-*.js
+scripts/setup-*.js
+
+# Development files
+.vscode/
+.idea/
+*.log
+.DS_Store
+
+# Large dependencies (not needed at runtime)
+node_modules/@playwright
+node_modules/playwright-core
+node_modules/canvas/build
+node_modules/puppeteer-core/.local-chromium
+
+# Migration files
+**/migrations/*.sql
+supabase/
+
+# Git
+.git/
+.gitignore

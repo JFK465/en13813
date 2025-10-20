@@ -1,5 +1,11 @@
 {
   "buildCommand": "pnpm turbo build",
   "installCommand": "pnpm install",
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet ."
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
+  "functions": {
+    "apps/web/app/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "outputDirectory": "apps/web/.next"
 }
