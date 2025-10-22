@@ -24,13 +24,22 @@ const nextConfig = {
     ],
   },
   // Workaround für Next.js 14.2.5 webpack chunk loading issue
-  webpack: (config, { dev }) => {
+  webpack: (config, { dev, isServer }) => {
     if (dev) {
       config.optimization = {
         ...config.optimization,
         runtimeChunk: 'single',
       }
     }
+
+    // Suppress OpenTelemetry/Sentry build warnings (non-critical)
+    if (isServer) {
+      config.ignoreWarnings = [
+        { module: /node_modules\/@opentelemetry\/instrumentation/ },
+        { module: /node_modules\/require-in-the-middle/ },
+      ]
+    }
+
     return config
   },
 }
