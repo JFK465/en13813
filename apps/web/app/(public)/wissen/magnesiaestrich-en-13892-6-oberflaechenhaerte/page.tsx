@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "Magnesiaestrich EN 13892-6 - Oberflächenhärte Steinholz MA",
   description: "EN 13892-6 Oberflächenhärteprüfung für Magnesiaestrich (Steinholz). Shore-Härte, SH-Klassen.",
   keywords: ["Magnesiaestrich Oberflächenhärte", "EN 13892-6 MA", "Steinholzestrich Härte"],
+  openGraph: {
+    title: "EN 13892-6 Oberflächenhärte - Magnesiaestrich prüfen",
+    description: "Oberflächenhärteprüfung für Magnesiaestrich (Steinholz) nach EN 13892-6. Shore-Härte und SH-Klassen erklärt.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/magnesiaestrich-en-13892-6-oberflaechenhaerte" }
 }
 

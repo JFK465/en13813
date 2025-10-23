@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "EN 13892-2 Zementestrich - Festigkeitsprüfung Anleitung 2025",
   description: "EN 13892-2 Festigkeitsprüfung für Zementestrich Schritt-für-Schritt. Druckfestigkeit und Biegezugfestigkeit richtig prüfen. 28 Tage Prüfalter, Normklima.",
   keywords: ["EN 13892-2 Zementestrich", "Druckfestigkeit CT", "Biegezugfestigkeit Zementestrich", "Festigkeitsprüfung Estrich"],
+  openGraph: {
+    title: "EN 13892-2 Zementestrich - Festigkeitsprüfung richtig durchführen",
+    description: "Schritt-für-Schritt Anleitung zur Festigkeitsprüfung von Zementestrich nach EN 13892-2. Mit Prüfschritten und Normklima-Anforderungen.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/en-13892-2-zementestrich-festigkeit" }
 }
 

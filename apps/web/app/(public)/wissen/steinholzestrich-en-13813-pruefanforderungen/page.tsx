@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "Steinholzestrich EN 13813 - MA Prüfanforderungen Magnesia",
   description: "Steinholzestrich (Magnesiaestrich) Prüfanforderungen. MA-C30-F5-SH80, Oberflächenhärte Pflicht.",
   keywords: ["Steinholzestrich", "Magnesiaestrich Prüfung", "MA-Estrich EN 13813"],
+  openGraph: {
+    title: "Steinholzestrich EN 13813 - Prüfanforderungen für MA-Estrich",
+    description: "Alle Prüfanforderungen für Steinholzestrich (Magnesiaestrich) nach EN 13813. MA-C30-F5-SH80 Bezeichnung und Oberflächenhärte.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/steinholzestrich-en-13813-pruefanforderungen" }
 }
 

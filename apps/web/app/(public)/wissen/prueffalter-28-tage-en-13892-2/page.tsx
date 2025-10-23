@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "28 Tage Prüfalter bei Estrich - EN 13892-2 erklärt | Warum?",
   description: "Warum 28 Tage Prüfalter nach EN 13892-2? Hydratation, Festigkeitsentwicklung Zement. Kann man früher prüfen?",
   keywords: ["28 Tage Prüfalter", "Prüfalter Estrich", "EN 13892-2 Wartezeit", "Festigkeitsentwicklung"],
+  openGraph: {
+    title: "28 Tage Prüfalter - Warum so lange warten?",
+    description: "Die wissenschaftliche Begründung für das 28-Tage-Prüfalter nach EN 13892-2. Hydratation und Festigkeitsentwicklung von Zementestrich erklärt.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/prueffalter-28-tage-en-13892-2" }
 }
 

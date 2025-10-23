@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "EN 13454-2 Konsistenz Ausbreitmaß - Frischmörtel Estrich",
   description: "EN 13454-2 Konsistenz und Ausbreitmaß bei Estrich-Frischmörtel. Fließmaß-Prüfung.",
   keywords: ["EN 13454-2", "Ausbreitmaß Estrich", "Konsistenz Frischmörtel", "Fließmaß"],
+  openGraph: {
+    title: "EN 13454-2 Konsistenz & Ausbreitmaß - Frischmörtel prüfen",
+    description: "Konsistenz und Ausbreitmaß von Estrich-Frischmörtel nach EN 13454-2 bestimmen. Fließmaß-Prüfung Schritt-für-Schritt.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/en-13454-2-konsistenz-ausbreitmass-frischmoertel" }
 }
 

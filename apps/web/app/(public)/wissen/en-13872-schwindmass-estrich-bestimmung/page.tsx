@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "EN 13872 Schwindmaß Estrich - Dimensionsstabilität Bestimmung",
   description: "EN 13872 Schwindmaß-Bestimmung bei Estrich. Dimensionsstabilität für große Flächen wichtig.",
   keywords: ["EN 13872", "Schwindmaß Estrich", "Dimensionsstabilität", "Estrich Schwinden"],
+  openGraph: {
+    title: "EN 13872 Schwindmaß - Dimensionsstabilität bei Estrich",
+    description: "Schwindmaß-Bestimmung nach EN 13872. Warum Dimensionsstabilität besonders bei großen Flächen wichtig ist.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/en-13872-schwindmass-estrich-bestimmung" }
 }
 

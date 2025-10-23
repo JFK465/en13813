@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "EN 13892-2 Anhydritestrich - Besonderheiten CA-Estrich Prüfung",
   description: "EN 13892-2 Besonderheiten bei Anhydrit/Calciumsulfatestrich. Längere Trocknungszeit, höhere Festigkeit.",
   keywords: ["Anhydritestrich EN 13892-2", "CA-Estrich Besonderheiten", "Calciumsulfat Festigkeit"],
+  openGraph: {
+    title: "EN 13892-2 Anhydritestrich - Besonderheiten bei der Prüfung",
+    description: "Was ist bei der Prüfung von Calciumsulfatestrich zu beachten? Längere Trocknungszeiten und höhere Festigkeiten im Vergleich zu Zementestrich.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/en-13892-2-anhydritestrich-besonderheiten" }
 }
 

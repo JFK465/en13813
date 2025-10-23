@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "Kunstharzestrich EN 13892-8 - Haftzugfestigkeit Prüfung SR",
   description: "EN 13892-8 Haftzugfestigkeitsprüfung für Kunstharzestrich (SR). Abreißverfahren, B-Klassen, Prüfanleitung.",
   keywords: ["Kunstharzestrich Haftzugfestigkeit", "EN 13892-8 SR", "Reaktionsharzestrich Prüfung"],
+  openGraph: {
+    title: "EN 13892-8 Haftzugfestigkeit - Kunstharzestrich richtig prüfen",
+    description: "Haftzugfestigkeitsprüfung für Kunstharzestrich nach EN 13892-8. Abreißverfahren und B-Klassen-Zuordnung erklärt.",
+    type: "article",
+  },
   alternates: { canonical: "https://estrichmanager.de/wissen/kunstharzestrich-en-13892-8-haftzugfestigkeit" }
 }
 
